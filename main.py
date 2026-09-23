@@ -1,7 +1,10 @@
 import os
 
+from dotenv import load_dotenv
 from strands import Agent
 from strands.models.anthropic import AnthropicModel
+
+load_dotenv()
 
 model = AnthropicModel(
     client_args={

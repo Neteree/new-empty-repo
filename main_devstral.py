@@ -1,7 +1,10 @@
 import os
 
+from dotenv import load_dotenv
 from strands import Agent
 from strands.models.mistral import MistralModel
+
+load_dotenv()
 
 model = MistralModel(
     api_key=os.environ["MISTRAL_API_KEY"],
