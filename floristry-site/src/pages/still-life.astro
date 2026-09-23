@@ -1,0 +1,568 @@
+---
+import { getCollection } from 'astro:content';
+import StillLifeBase from '../layouts/StillLifeBase.astro';
+import PaintedBloom from '../components/still-life/PaintedBloom.astro';
+import StillLife from '../components/still-life/StillLife.astro';
+import { currentSeason, seasons, thisWeek } from '../data/stems';
+
+const posts = (await getCollection('journal')).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+);
+
+const formatDate = (date: Date) =>
+  date.toLocaleDateString('en-NZ', { day: 'numeric', month: 'long', year: 'numeric' });
+
+const services = [
+  {
+    title: 'A standing order',
+    text: 'A seasonal arrangement delivered every Thursday to homes, studios and restaurants across central Auckland.',
+  },
+  {
+    title: 'Weddings and occasions',
+    text: 'Ceremony pieces, tables and large installations, composed from whatever is at its peak on your date.',
+  },
+  {
+    title: 'Evenings at the bench',
+    text: 'Small workshops of eight on conditioning and foam-free arranging. You leave with your own arrangement.',
+  },
+];
+---
+
+<StillLifeBase
+  title="Stem & Loam · Still Life"
+  description="A seasonal florist in Grey Lynn, Auckland, arranging only what the season gives."
+  home="still-life.html"
+>
+  <main>
+    <section class="hero">
+      <div class="hero-text">
+        <p class="label">Grey Lynn, Auckland</p>
+        <h1>Only what the <em>season</em> gives us.</h1>
+        <p class="lede">
+          Each week we go out to the growers and come back with whatever is at its most beautiful,
+          then arrange it the old way: loosely, generously, and without foam.
+        </p>
+        <div class="actions">
+          <a class="button" href="#this-week">This week's flowers</a>
+          <p class="phone">Telephone <span>09 000 0000</span></p>
+        </div>
+      </div>
+      <figure class="hero-frame">
+        <div class="frame">
+          <div class="frame-inner">
+            <StillLife />
+          </div>
+        </div>
+        <figcaption class="placard">
+          <span class="placard-title">Spring flowers in a bronze urn</span>
+          <span class="placard-meta">Stem &amp; Loam, September 2026</span>
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="this-week" class="section">
+      <div class="section-head">
+        <p class="label">{thisWeek.label}</p>
+        <h2>This week at the bench</h2>
+        <p class="intro">{thisWeek.intro}</p>
+      </div>
+      <ul class="plates">
+        {thisWeek.stems.map((stem) => (
+          <li class="plate">
+            <div class="frame plate-frame">
+              <div class="frame-inner">
+                <PaintedBloom stem petals={stem.bloom.petals} petal={stem.bloom.petal} centre={stem.bloom.centre} />
+              </div>
+            </div>
+            <h3>{stem.name}</h3>
+            <p class="latin">{stem.latin}</p>
+            <p class="note">{stem.note}</p>
+            <p class="price"><span>NZ${stem.price}</span> {stem.bunch}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section id="seasons" class="section">
+      <div class="section-head">
+        <p class="label">Auckland, month by month</p>
+        <h2>The year in flowers</h2>
+      </div>
+      <div class="year">
+        {seasons.map((season) => (
+          <div class:list={['season', { now: season.name === currentSeason }]}>
+            {season.name === currentSeason && <p class="label now-label">Now in the shop</p>}
+            <h3>{season.name}</h3>
+            <p class="months">{season.months}</p>
+            <ul>
+              {season.flowers.map((flower) => (
+                <li><span class="gem" style={`--gem: ${flower.colour}`}></span>{flower.name}</li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="label">Commissions</p>
+        <h2>Beyond the shop</h2>
+      </div>
+      <div class="services">
+        {services.map((service) => (
+          <div class="service">
+            <h3>{service.title}</h3>
+            <p>{service.text}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section id="journal" class="section">
+      <div class="section-head">
+        <p class="label">The journal</p>
+        <h2>Notes on keeping flowers</h2>
+      </div>
+      <ol class="journal">
+        {posts.map((post) => (
+          <li>
+            <a href={`still-life/journal/${post.id}.html`}>
+              <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+              <span class="entry">
+                <span class="entry-title">{post.data.title}</span>
+                <span class="entry-excerpt">{post.data.excerpt}</span>
+              </span>
+              <span class="arrow" aria-hidden="true">→</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section id="visit" class="section visit">
+      <div>
+        <p class="label">Visit</p>
+        <h2>Come and choose by candlelight. Or daylight.</h2>
+        <p class="intro">
+          The shop is in Grey Lynn, Auckland. Come in, take your time, and we'll wrap whatever you
+          fall for in brown paper and string.
+        </p>
+      </div>
+      <dl class="hours">
+        <div><dt>Tuesday to Friday</dt><dd>8 am – 5 pm</dd></div>
+        <div><dt>Saturday</dt><dd>8 am – 1 pm</dd></div>
+        <div><dt>Sunday &amp; Monday</dt><dd>Closed, at the growers</dd></div>
+      </dl>
+    </section>
+  </main>
+</StillLifeBase>
+
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 3rem 4rem;
+    align-items: center;
+    padding-block: clamp(2.5rem, 6vw, 4.5rem) 1rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(3rem, 7vw, 5.6rem);
+    font-weight: 400;
+    margin-block: 1.1rem 1.5rem;
+    letter-spacing: -0.01em;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .lede {
+    max-width: 40ch;
+    font-size: 1.3rem;
+    color: var(--ink-soft);
+    margin: 0 0 2.25rem;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 2rem;
+  }
+
+  .button {
+    font-family: var(--label);
+    font-size: 0.78rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--ground);
+    background: var(--gold);
+    padding: 1rem 1.6rem;
+    transition: background 0.2s ease;
+  }
+
+  .button:hover {
+    background: var(--ink);
+  }
+
+  .phone {
+    margin: 0;
+    font-family: var(--label);
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .phone span {
+    display: block;
+    font-family: var(--display);
+    font-size: 1.6rem;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    color: var(--ink);
+  }
+
+  /* A gilt frame: a gold outer band, a dark inner slip, and a thin gold fillet. */
+  .frame {
+    margin: 0;
+    padding: 0.6rem;
+    background: linear-gradient(135deg, #e3c687, #9a7a3c 35%, #d4b36d 55%, #6f5526);
+    box-shadow: 0 30px 50px -25px rgb(0 0 0 / 0.9);
+    max-width: 100%;
+  }
+
+  .frame-inner {
+    background: #0e0d0a;
+    padding: 0.35rem;
+    outline: 1px solid rgb(240 214 150 / 0.55);
+    outline-offset: -0.35rem;
+  }
+
+  .hero-frame {
+    margin: 0;
+  }
+
+  .placard {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    margin: 1.4rem auto 0;
+    width: fit-content;
+    max-width: 100%;
+    padding: 0.6rem 1.1rem;
+    background: var(--ground-raised);
+    border: 1px solid var(--rule);
+    text-align: center;
+  }
+
+  .placard-title {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 1.05rem;
+  }
+
+  .placard-meta {
+    font-family: var(--label);
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .section {
+    padding-top: clamp(4rem, 9vw, 7rem);
+  }
+
+  .section-head {
+    max-width: 42rem;
+    margin-bottom: 2.75rem;
+  }
+
+  .section-head h2 {
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    font-weight: 400;
+    margin-top: 0.75rem;
+  }
+
+  .intro {
+    color: var(--ink-soft);
+    margin: 1rem 0 0;
+    max-width: 55ch;
+  }
+
+  .plates {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+    gap: 3rem 2rem;
+  }
+
+  .plate-frame {
+    padding: 0.4rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .plate-frame .frame-inner {
+    aspect-ratio: 4 / 5;
+    display: grid;
+    place-items: center;
+    padding: 1.5rem 1.25rem 0.5rem;
+    background: radial-gradient(circle at 30% 20%, #2e281d, #0d0c09 70%);
+    outline-offset: -0.25rem;
+  }
+
+  .plate-frame :global(.painted-bloom) {
+    height: 100%;
+    width: auto;
+    transition: transform 0.6s ease;
+  }
+
+  .plate:hover :global(.painted-bloom) {
+    transform: scale(1.04);
+  }
+
+  .plate h3 {
+    font-size: 1.9rem;
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  .latin {
+    margin: 0.15rem 0 0.7rem;
+    font-family: var(--label);
+    font-size: 0.66rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .note {
+    margin: 0 0 0.8rem;
+    color: var(--ink-soft);
+    font-size: 1.02rem;
+  }
+
+  .price {
+    margin: 0;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--rule);
+    color: var(--ink-soft);
+    font-size: 1rem;
+  }
+
+  .price span {
+    font-family: var(--display);
+    font-size: 1.35rem;
+    color: var(--ink);
+    margin-right: 0.25rem;
+  }
+
+  .year {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .season {
+    padding: 2rem 1.5rem 2.25rem;
+    border-left: 1px solid var(--rule);
+  }
+
+  .season:first-child {
+    border-left: none;
+  }
+
+  .season.now {
+    background: linear-gradient(180deg, rgb(201 164 92 / 0.12), transparent);
+  }
+
+  .now-label {
+    margin-bottom: 0.6rem;
+  }
+
+  .season h3 {
+    font-size: 2.3rem;
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  .months {
+    margin: 0.2rem 0 1.2rem;
+    color: var(--ink-soft);
+    font-size: 0.98rem;
+  }
+
+  .season ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .season li {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+
+  .gem {
+    width: 0.55rem;
+    height: 0.55rem;
+    background: var(--gem);
+    transform: rotate(45deg);
+    box-shadow: 0 0 10px var(--gem);
+    flex: none;
+  }
+
+  .services {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 2.5rem 3rem;
+  }
+
+  .service {
+    border-top: 1px solid var(--gold-deep);
+    padding-top: 1.25rem;
+  }
+
+  .service h3 {
+    font-size: 1.9rem;
+    font-style: italic;
+    font-weight: 400;
+    margin-bottom: 0.6rem;
+  }
+
+  .service p {
+    margin: 0;
+    color: var(--ink-soft);
+  }
+
+  .journal {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .journal a {
+    display: grid;
+    grid-template-columns: 11rem minmax(0, 1fr) auto;
+    gap: 0.5rem 2rem;
+    align-items: baseline;
+    padding-block: 1.6rem;
+    border-bottom: 1px solid var(--rule);
+    text-decoration: none;
+    transition: background 0.3s ease;
+  }
+
+  .journal a:hover {
+    background: linear-gradient(90deg, rgb(201 164 92 / 0.08), transparent);
+  }
+
+  .journal time {
+    font-family: var(--label);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .entry {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .entry-title {
+    font-family: var(--display);
+    font-size: 1.8rem;
+    font-style: italic;
+    line-height: 1.15;
+  }
+
+  .entry-excerpt {
+    color: var(--ink-soft);
+  }
+
+  .arrow {
+    font-size: 1.4rem;
+    color: var(--gold);
+    transition: transform 0.3s ease;
+  }
+
+  .journal a:hover .arrow {
+    transform: translateX(6px);
+  }
+
+  .visit {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+    gap: 2.5rem 4rem;
+    align-items: end;
+  }
+
+  .visit h2 {
+    font-size: clamp(2.3rem, 4.5vw, 3.3rem);
+    font-weight: 400;
+    margin-top: 0.75rem;
+  }
+
+  .hours {
+    margin: 0;
+    padding: 1.75rem 2rem;
+    border: 1px solid var(--gold-deep);
+    outline: 1px solid var(--rule);
+    outline-offset: 5px;
+  }
+
+  .hours div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.2rem 1rem;
+    padding-block: 0.7rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .hours div:last-child {
+    border-bottom: none;
+  }
+
+  .hours dt {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 1.25rem;
+  }
+
+  .hours dd {
+    margin: 0;
+    color: var(--ink-soft);
+  }
+
+  @media (max-width: 52rem) {
+    .hero {
+      grid-template-columns: 1fr;
+    }
+
+    .hero-frame {
+      max-width: 30rem;
+    }
+
+    .journal a {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .journal time {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

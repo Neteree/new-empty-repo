@@ -20,3 +20,13 @@ export function rings(petals: number) {
   const width = Math.min(22, (80 / petals) * 1.9);
   return { outer, inner, width };
 }
+
+/** Lighten (positive amount) or darken (negative amount) a hex colour; amount is -1..1. */
+export function shade(hex: string, amount: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  const channels = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((c) => {
+    const target = amount < 0 ? 0 : 255;
+    return Math.round(c + (target - c) * Math.abs(amount));
+  });
+  return `#${channels.map((c) => c.toString(16).padStart(2, '0')).join('')}`;
+}

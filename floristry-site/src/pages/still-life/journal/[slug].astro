@@ -1,0 +1,94 @@
+---
+import { getCollection, render } from 'astro:content';
+import StillLifeBase from '../../../layouts/StillLifeBase.astro';
+import PaintedBloom from '../../../components/still-life/PaintedBloom.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('journal');
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const date = post.data.date.toLocaleDateString('en-NZ', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+
+<StillLifeBase title={`${post.data.title} · Stem & Loam`} description={post.data.excerpt} home="../../still-life.html">
+  <main class="post">
+    <a class="back" href="../../still-life.html#journal">← The journal</a>
+    <header class="post-head">
+      <div class="bloom">
+        <PaintedBloom stem petals={post.data.bloom.petals} petal={post.data.bloom.petal} centre={post.data.bloom.centre} />
+      </div>
+      <div>
+        <p class="label"><time datetime={post.data.date.toISOString()}>{date}</time></p>
+        <h1>{post.data.title}</h1>
+        <p class="standfirst">{post.data.excerpt}</p>
+      </div>
+    </header>
+    <div class="prose">
+      <Content />
+    </div>
+  </main>
+</StillLifeBase>
+
+<style>
+  .post {
+    max-width: 48rem;
+    padding-top: 2.5rem;
+  }
+
+  .back {
+    font-family: var(--label);
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--gold);
+  }
+
+  .post-head {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    gap: 2rem;
+    align-items: start;
+    margin-block: 2.5rem 3rem;
+  }
+
+  .post-head h1 {
+    font-size: clamp(2.4rem, 5.5vw, 3.6rem);
+    font-style: italic;
+    font-weight: 400;
+    margin-block: 0.8rem 1rem;
+  }
+
+  .standfirst {
+    margin: 0;
+    font-size: 1.3rem;
+    color: var(--ink-soft);
+  }
+
+  .prose {
+    max-width: 62ch;
+    font-size: 1.2rem;
+  }
+
+  .prose :global(p) {
+    margin: 0 0 1.4rem;
+  }
+
+  .prose :global(strong) {
+    font-weight: 500;
+    color: var(--gold);
+  }
+
+  @media (max-width: 36rem) {
+    .post-head {
+      grid-template-columns: 1fr;
+    }
+
+    .bloom {
+      width: 5.5rem;
+    }
+  }
+</style>
