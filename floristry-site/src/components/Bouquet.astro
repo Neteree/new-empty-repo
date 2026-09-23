@@ -27,6 +27,7 @@ const gather = { x: 0, y: 118 };
   <path class="wrap" d="M-86 34 L 86 34 L 34 176 L -34 176 Z" />
   <path class="wrap-fold" d="M-86 34 L 0 60 L 86 34 L 34 176 L -34 176 Z" />
 
+  <g filter="url(#painted)">
   {heads.map((h) => (
     <g transform={`translate(${h.x} ${h.y}) scale(${h.scale})`}>
       {h.outer.map((angle) => <path d={petalPath(h.width)} fill={h.petal} transform={`rotate(${angle})`} />)}
@@ -34,6 +35,7 @@ const gather = { x: 0, y: 118 };
       <circle r={h.petals > 8 ? 10 : 8} fill={h.centre} />
     </g>
   ))}
+  </g>
 
   <g class="ribbon">
     <path d="M0 96 C -26 78 -40 92 -30 104 C -22 112 -8 104 0 96 Z" />
@@ -66,6 +68,13 @@ const gather = { x: 0, y: 118 };
   }
   .inner {
     filter: brightness(0.88);
+  }
+  g[transform] path {
+    opacity: 0.84;
+  }
+  .wrap,
+  .wrap-fold {
+    filter: url(#painted);
   }
   .ribbon path,
   .ribbon circle {

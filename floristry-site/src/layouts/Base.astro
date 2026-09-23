@@ -20,10 +20,16 @@ const { title, description, root = '' } = Astro.props;
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..600,100;1,9..144,300..600,100&family=Figtree:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..600,100;1,9..144,300..600,100&family=Figtree:wght@400;500;600&family=Pinyon+Script&display=swap"
     />
   </head>
   <body>
+    <svg class="defs" width="0" height="0" aria-hidden="true">
+      <filter id="painted" x="-15%" y="-15%" width="130%" height="130%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" seed="7" result="noise" />
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="7" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+    </svg>
     <div class="page">
       <header class="masthead">
         <a class="wordmark" href={`${root}index.html`}>
@@ -32,7 +38,7 @@ const { title, description, root = '' } = Astro.props;
             <path d="M12 18 C 4 16 2 10 3 7 C 9 8 12 12 12 18 Z" />
             <path d="M12 12 C 19 11 22 6 21 3 C 15 4 12 7 12 12 Z" />
           </svg>
-          Stem &amp; Loam
+          <span>Stem &amp; Loam</span>
         </a>
         <nav aria-label="Main">
           <a href={`${root}index.html#this-week`}>This week</a>
@@ -62,8 +68,14 @@ const { title, description, root = '' } = Astro.props;
     --kraft: #d9c2a5;
     --kraft-shade: #c8ad8c;
     --rule: #e6d3cd;
+    --tape: rgb(214 190 160 / 0.55);
+    --tag-ink: #3b2f25;
     --display: 'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
     --body: 'Figtree', 'Segoe UI', system-ui, sans-serif;
+    --script: 'Pinyon Script', 'Snell Roundhand', 'Apple Chancery', cursive;
+    /* Fine fibre grain plus soft mottling, like watercolour paper. */
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.42 0 0 0 0 0.3 0 0 0 0 0.26 0 0 0 0.11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+    --mottle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.66 0 0 0 0 0.27 0 0 0 0 0.42 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)'/%3E%3C/svg%3E");
     color-scheme: light;
   }
 
@@ -79,6 +91,8 @@ const { title, description, root = '' } = Astro.props;
       --kraft: #8c7760;
       --kraft-shade: #756350;
       --rule: #34403a;
+      --tape: rgb(170 150 120 / 0.35);
+      --tag-ink: #1c140f;
       color-scheme: dark;
     }
   }
@@ -94,6 +108,8 @@ const { title, description, root = '' } = Astro.props;
     --kraft: #8c7760;
     --kraft-shade: #756350;
     --rule: #34403a;
+    --tape: rgb(170 150 120 / 0.35);
+    --tag-ink: #1c140f;
     color-scheme: dark;
   }
 
@@ -103,9 +119,13 @@ const { title, description, root = '' } = Astro.props;
     box-sizing: border-box;
   }
 
+  .defs {
+    position: absolute;
+  }
+
   body {
     margin: 0;
-    background: var(--paper);
+    background: var(--grain), var(--mottle), var(--paper);
     color: var(--ink);
     font-family: var(--body);
     font-size: 1.0625rem;
@@ -143,9 +163,9 @@ const { title, description, root = '' } = Astro.props;
 
   /* Small italic lead-in above headings, in place of shouty uppercase labels. */
   .kicker {
-    font-family: var(--display);
-    font-style: italic;
-    font-size: 1.1rem;
+    font-family: var(--script);
+    font-size: 2rem;
+    line-height: 1.1;
     color: var(--peony);
     margin: 0;
   }
@@ -163,9 +183,9 @@ const { title, description, root = '' } = Astro.props;
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    font-family: var(--display);
-    font-style: italic;
-    font-size: 1.7rem;
+    font-family: var(--script);
+    font-size: 2.3rem;
+    line-height: 1;
     text-decoration: none;
   }
 
@@ -213,7 +233,10 @@ const { title, description, root = '' } = Astro.props;
   }
 
   .sign span {
-    font-size: 1.6rem;
+    font-family: var(--script);
+    font-style: normal;
+    font-size: 2.6rem;
+    line-height: 1.2;
     color: var(--ink);
   }
 
