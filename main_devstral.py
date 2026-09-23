@@ -14,4 +14,7 @@ model = MistralModel(
 agent = Agent(model=model)
 
 if __name__ == "__main__":
-    agent("Hello!")
+    agent(
+        "Write a WordPress shortcode that displays the 3 most recent blog posts "
+        "as cards, showing title, excerpt, and featured image."
+    )
