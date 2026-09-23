@@ -1,0 +1,190 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  /** Relative path back to the site root, e.g. "" or "../". */
+  root?: string;
+}
+
+const { title, description, root = '' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en-NZ">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Gloock&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    />
+  </head>
+  <body>
+    <div class="page">
+      <header class="masthead">
+        <a class="wordmark" href={`${root}index.html`}>Stem &amp; Loam</a>
+        <nav aria-label="Main">
+          <a href={`${root}index.html#this-week`}>This week</a>
+          <a href={`${root}index.html#seasons`}>Seasons</a>
+          <a href={`${root}index.html#journal`}>Journal</a>
+          <a href={`${root}index.html#visit`}>Visit</a>
+        </nav>
+      </header>
+      <slot />
+      <footer class="footer">
+        <p>
+          Stem &amp; Loam is a demo business. Prices, hours and contact details are samples.
+          Built with Astro; journal posts are Markdown files, ready for a git-based CMS.
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --paper: #eef1ea;
+    --paper-raised: #f7f9f4;
+    --ink: #1c2a22;
+    --ink-soft: #55635a;
+    --stem: #4f6b4c;
+    --peony: #9c3d63;
+    --rule: #cdd5c8;
+    --in-season: #4f6b4c;
+    --shoulder: #b9c8b0;
+    --display: 'Gloock', 'Didot', 'Bodoni 72', Georgia, serif;
+    --body: 'Figtree', 'Segoe UI', system-ui, sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --paper: #121a15;
+      --paper-raised: #19241d;
+      --ink: #e5ebe2;
+      --ink-soft: #a3b0a6;
+      --stem: #9fbb98;
+      --peony: #e690b3;
+      --rule: #2d3a31;
+      --in-season: #9fbb98;
+      --shoulder: #3d5040;
+      color-scheme: dark;
+    }
+  }
+
+  :root[data-theme='dark'] {
+    --paper: #121a15;
+    --paper-raised: #19241d;
+    --ink: #e5ebe2;
+    --ink-soft: #a3b0a6;
+    --stem: #9fbb98;
+    --peony: #e690b3;
+    --rule: #2d3a31;
+    --in-season: #9fbb98;
+    --shoulder: #3d5040;
+    color-scheme: dark;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding-inline: clamp(1rem, 4vw, 2.5rem);
+    padding-block: 0 2rem;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--display);
+    font-weight: 400;
+    line-height: 1.1;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  a:focus-visible {
+    outline: 2px solid var(--peony);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  .label {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .masthead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem 2rem;
+    padding-block: 1.5rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .wordmark {
+    font-family: var(--display);
+    font-size: 1.6rem;
+    text-decoration: none;
+  }
+
+  .masthead nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.5rem;
+    font-size: 0.95rem;
+  }
+
+  .masthead nav a {
+    text-decoration: none;
+    color: var(--ink-soft);
+  }
+
+  .masthead nav a:hover {
+    color: var(--ink);
+  }
+
+  .footer {
+    margin-top: 5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--rule);
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    max-width: 60ch;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+    }
+  }
+</style>

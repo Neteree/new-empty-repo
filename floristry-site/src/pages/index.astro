@@ -1,0 +1,503 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Bloom from '../components/Bloom.astro';
+import { months, seasons, thisWeek } from '../data/stems';
+
+const posts = (await getCollection('journal')).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+);
+
+const currentMonth = 9;
+const formatDate = (date: Date) =>
+  date.toLocaleDateString('en-NZ', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+
+<Base
+  title="Stem & Loam"
+  description="A seasonal florist in Grey Lynn, Auckland: this week's stems, what's in season, and care notes."
+>
+  <main>
+    <section class="hero">
+      <div class="hero-text">
+        <p class="label">Florist · Grey Lynn, Auckland</p>
+        <h1>Flowers from this season, not a catalogue.</h1>
+        <p class="lede">
+          We buy from growers around Auckland every week and arrange whatever is at its best. When a
+          flower's season ends, it leaves our bench until next year.
+        </p>
+        <div class="hero-actions">
+          <a class="button" href="#this-week">See this week's stems</a>
+          <p class="phone">Orders: <span class="mono">09 000 0000</span></p>
+        </div>
+      </div>
+      <div class="hero-blooms">
+        <Bloom class="b1" petals={12} petal="#e7a3b8" centre="#f3d27a" label="Illustrated pink peony" />
+        <Bloom class="b2" petals={16} petal="#d9784f" centre="#7a2e3a" />
+        <Bloom class="b3" petals={6} petal="#f1e3c8" centre="#9c3d63" />
+      </div>
+    </section>
+
+    <section id="this-week" class="section">
+      <div class="section-head">
+        <p class="label">{thisWeek.label}</p>
+        <h2>In the bucket this week</h2>
+      </div>
+      <div class="scroll">
+        <table class="stems">
+          <thead>
+            <tr>
+              <th scope="col">Stem</th>
+              <th scope="col">Bunch</th>
+              <th scope="col">Vase life</th>
+              <th scope="col" class="num">Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            {thisWeek.stems.map((stem) => (
+              <tr>
+                <th scope="row">
+                  <span class="stem-name">{stem.name}</span>
+                  <span class="latin">{stem.latin}</span>
+                </th>
+                <td>{stem.bunch}</td>
+                <td>{stem.vaseLife}</td>
+                <td class="num mono">${stem.price}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="seasons" class="section">
+      <div class="section-head">
+        <p class="label">Typical Auckland seasons</p>
+        <h2>When each flower is at its best</h2>
+      </div>
+      <div class="scroll">
+        <table class="calendar">
+          <thead>
+            <tr>
+              <th scope="col" class="flower-col"><span class="visually-hidden">Flower</span></th>
+              {months.map((month, i) => (
+                <th scope="col" class:list={['month', { now: i + 1 === currentMonth }]}>{month}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {seasons.map((season) => (
+              <tr>
+                <th scope="row">{season.name}</th>
+                {months.map((month, i) => {
+                  const m = i + 1;
+                  const state = season.peak.includes(m) ? 'peak' : season.edge.includes(m) ? 'edge' : 'off';
+                  return (
+                    <td class:list={['cell', state, { now: m === currentMonth }]}>
+                      <span class="visually-hidden">
+                        {month}: {state === 'peak' ? 'peak season' : state === 'edge' ? 'early or late' : 'out of season'}
+                      </span>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="key">
+        <span class="swatch peak"></span> Peak
+        <span class="swatch edge"></span> Early or late
+        <span class="swatch now-key"></span> This month
+      </p>
+    </section>
+
+    <section class="section services">
+      <div class="section-head">
+        <p class="label">What we do</p>
+        <h2>Three ways to get our flowers</h2>
+      </div>
+      <div class="service-list">
+        <div>
+          <h3>Weekly flowers</h3>
+          <p>A seasonal bunch delivered every Thursday across central Auckland. Pause or skip any week.</p>
+        </div>
+        <div>
+          <h3>Weddings and events</h3>
+          <p>Foam-free ceremony and table flowers, planned around what will be in season on your date.</p>
+        </div>
+        <div>
+          <h3>Workshops</h3>
+          <p>Two-hour evening classes on conditioning and foam-free arranging. Eight people, flowers included.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="journal" class="section">
+      <div class="section-head">
+        <p class="label">Journal</p>
+        <h2>Care notes from the bench</h2>
+      </div>
+      <div class="journal-grid">
+        {posts.map((post) => (
+          <article class="post-card">
+            <a class="post-link" href={`journal/${post.id}.html`}>
+              <div class="post-art">
+                <Bloom petals={post.data.bloom.petals} petal={post.data.bloom.petal} centre={post.data.bloom.centre} />
+              </div>
+              <p class="label">
+                <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+              </p>
+              <h3>{post.data.title}</h3>
+              <p class="excerpt">{post.data.excerpt}</p>
+            </a>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section id="visit" class="section visit">
+      <div class="section-head">
+        <p class="label">Visit</p>
+        <h2>Come and choose your own stems</h2>
+      </div>
+      <dl class="hours">
+        <div><dt>Tuesday to Friday</dt><dd class="mono">8:00–17:00</dd></div>
+        <div><dt>Saturday</dt><dd class="mono">8:00–13:00</dd></div>
+        <div><dt>Sunday and Monday</dt><dd>Closed (we're at the growers)</dd></div>
+      </dl>
+    </section>
+  </main>
+</Base>
+
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: center;
+    gap: 2rem 3rem;
+    padding-block: clamp(2.5rem, 7vw, 5rem);
+  }
+
+  .hero h1 {
+    font-size: clamp(2.5rem, 6.2vw, 4.75rem);
+    margin-block: 0.75rem 1.25rem;
+    letter-spacing: -0.01em;
+  }
+
+  .lede {
+    max-width: 48ch;
+    color: var(--ink-soft);
+    font-size: 1.15rem;
+    margin: 0 0 2rem;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.75rem;
+  }
+
+  .button {
+    display: inline-block;
+    background: var(--peony);
+    color: var(--paper);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0.75rem 1.4rem;
+    border-radius: 2px;
+    transition: transform 0.2s ease;
+  }
+
+  .button:hover {
+    transform: translateY(-1px);
+  }
+
+  .phone {
+    margin: 0;
+    color: var(--ink-soft);
+  }
+
+  .mono {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hero-blooms {
+    position: relative;
+    aspect-ratio: 1;
+    max-width: 100%;
+  }
+
+  .hero-blooms :global(.bloom) {
+    position: absolute;
+  }
+
+  .hero-blooms :global(.b1) {
+    width: 62%;
+    top: 4%;
+    left: 4%;
+  }
+
+  .hero-blooms :global(.b2) {
+    width: 44%;
+    top: 44%;
+    left: 52%;
+  }
+
+  .hero-blooms :global(.b3) {
+    width: 30%;
+    top: 62%;
+    left: 14%;
+  }
+
+  .section {
+    padding-top: clamp(3rem, 7vw, 5rem);
+  }
+
+  .section-head {
+    margin-bottom: 1.75rem;
+  }
+
+  .section-head h2 {
+    font-size: clamp(1.9rem, 3.6vw, 2.75rem);
+    margin-top: 0.4rem;
+  }
+
+  .scroll {
+    position: relative;
+    overflow-x: auto;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  .stems th,
+  .stems td {
+    text-align: left;
+    padding: 0.9rem 1rem 0.9rem 0;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: baseline;
+    white-space: nowrap;
+  }
+
+  .stems thead th {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .stems .num {
+    text-align: right;
+    padding-right: 0;
+  }
+
+  .stem-name {
+    font-family: var(--display);
+    font-size: 1.35rem;
+    font-weight: 400;
+    margin-right: 0.75rem;
+  }
+
+  .latin {
+    font-style: italic;
+    color: var(--ink-soft);
+    font-weight: 400;
+  }
+
+  .calendar {
+    min-width: 40rem;
+    table-layout: fixed;
+  }
+
+  .calendar .flower-col {
+    width: 7.5rem;
+  }
+
+  .calendar th[scope='row'] {
+    text-align: left;
+    white-space: nowrap;
+    font-weight: 500;
+    padding: 0.35rem 0.75rem 0.35rem 0;
+  }
+
+  .calendar .month {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 400;
+    color: var(--ink-soft);
+    padding-bottom: 0.5rem;
+  }
+
+  .calendar .month.now {
+    color: var(--peony);
+    font-weight: 500;
+  }
+
+  .cell {
+    height: 1.9rem;
+    padding: 0;
+    border-left: 2px solid var(--paper);
+    border-bottom: 4px solid var(--paper);
+  }
+
+  .cell.peak {
+    background: var(--in-season);
+  }
+
+  .cell.edge {
+    background: var(--shoulder);
+  }
+
+  .cell.now {
+    box-shadow: inset 0 0 0 2px var(--peony);
+  }
+
+  .key {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    margin-top: 1rem;
+  }
+
+  .swatch {
+    display: inline-block;
+    width: 1.1rem;
+    height: 0.8rem;
+    margin-left: 0.6rem;
+  }
+
+  .swatch:first-child {
+    margin-left: 0;
+  }
+
+  .swatch.peak {
+    background: var(--in-season);
+  }
+
+  .swatch.edge {
+    background: var(--shoulder);
+  }
+
+  .swatch.now-key {
+    box-shadow: inset 0 0 0 2px var(--peony);
+  }
+
+  .service-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 2rem 2.5rem;
+  }
+
+  .service-list > div {
+    border-top: 1px solid var(--ink);
+    padding-top: 1rem;
+  }
+
+  .service-list h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .service-list p {
+    margin: 0;
+    color: var(--ink-soft);
+  }
+
+  .journal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 2.5rem 2rem;
+  }
+
+  .post-link {
+    display: block;
+    text-decoration: none;
+  }
+
+  .post-art {
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    aspect-ratio: 4 / 3;
+    max-width: 100%;
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+
+  .post-art :global(.bloom) {
+    width: auto;
+    height: 100%;
+    transition: transform 0.5s ease;
+  }
+
+  .post-link:hover .post-art :global(.bloom) {
+    transform: rotate(12deg) scale(1.04);
+  }
+
+  .post-card h3 {
+    font-size: 1.45rem;
+    margin-block: 0.35rem 0.5rem;
+  }
+
+  .post-link:hover h3 {
+    color: var(--peony);
+  }
+
+  .excerpt {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.97rem;
+  }
+
+  .hours {
+    margin: 0;
+    max-width: 34rem;
+  }
+
+  .hours div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.25rem 1rem;
+    padding-block: 0.8rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .hours dd {
+    margin: 0;
+    color: var(--ink-soft);
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 44rem) {
+    .hero {
+      grid-template-columns: 1fr;
+    }
+
+    .hero-blooms {
+      width: min(20rem, 80%);
+      margin-inline: auto;
+      order: -1;
+    }
+  }
+</style>

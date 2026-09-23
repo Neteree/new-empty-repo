@@ -1,0 +1,49 @@
+---
+// A drawn flower head: a ring of petals around a centre, with a second,
+// offset inner ring on fuller flowers. Stands in for product photography.
+interface Props {
+  petals: number;
+  petal: string;
+  centre: string;
+  label?: string;
+  class?: string;
+}
+
+const { petals, petal, centre, label, class: className } = Astro.props;
+
+const step = 360 / petals;
+const outer = Array.from({ length: petals }, (_, i) => i * step);
+const inner = petals > 8 ? outer.map((angle) => angle + step / 2) : [];
+const petalWidth = Math.min(32, (60 / petals) * 3.2);
+---
+
+<svg
+  class:list={['bloom', className]}
+  viewBox="-60 -60 120 120"
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : 'true'}
+>
+  {outer.map((angle) => (
+    <ellipse cx="0" cy="-26" rx={petalWidth / 2} ry="21" fill={petal} transform={`rotate(${angle})`} />
+  ))}
+  {inner.map((angle) => (
+    <ellipse cx="0" cy="-16" rx={petalWidth / 2.6} ry="13" fill={petal} transform={`rotate(${angle})`} class="inner" />
+  ))}
+  <circle r={petals > 8 ? 11 : 9} fill={centre} />
+</svg>
+
+<style>
+  .bloom {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+  }
+  ellipse {
+    opacity: 0.9;
+  }
+  .inner {
+    filter: brightness(0.9);
+  }
+</style>
