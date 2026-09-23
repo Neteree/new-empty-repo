@@ -20,13 +20,20 @@ const { title, description, root = '' } = Astro.props;
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Gloock&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..600,100;1,9..144,300..600,100&family=Figtree:wght@400;500;600&display=swap"
     />
   </head>
   <body>
     <div class="page">
       <header class="masthead">
-        <a class="wordmark" href={`${root}index.html`}>Stem &amp; Loam</a>
+        <a class="wordmark" href={`${root}index.html`}>
+          <svg viewBox="0 0 24 32" aria-hidden="true">
+            <path d="M12 31 C 12 20 11 12 12 4" fill="none" stroke-width="1.6" stroke-linecap="round" />
+            <path d="M12 18 C 4 16 2 10 3 7 C 9 8 12 12 12 18 Z" />
+            <path d="M12 12 C 19 11 22 6 21 3 C 15 4 12 7 12 12 Z" />
+          </svg>
+          Stem &amp; Loam
+        </a>
         <nav aria-label="Main">
           <a href={`${root}index.html#this-week`}>This week</a>
           <a href={`${root}index.html#seasons`}>Seasons</a>
@@ -36,10 +43,8 @@ const { title, description, root = '' } = Astro.props;
       </header>
       <slot />
       <footer class="footer">
-        <p>
-          Stem &amp; Loam is a demo business. Prices, hours and contact details are samples.
-          Built with Astro; journal posts are Markdown files, ready for a git-based CMS.
-        </p>
+        <p class="sign">With love from the flower bench,<br /><span>Stem &amp; Loam</span></p>
+        <p class="demo">This is a demo shop. Prices, hours and contact details are made up.</p>
       </footer>
     </div>
   </body>
@@ -47,46 +52,48 @@ const { title, description, root = '' } = Astro.props;
 
 <style is:global>
   :root {
-    --paper: #eef1ea;
-    --paper-raised: #f7f9f4;
-    --ink: #1c2a22;
-    --ink-soft: #55635a;
-    --stem: #4f6b4c;
-    --peony: #9c3d63;
-    --rule: #cdd5c8;
-    --in-season: #4f6b4c;
-    --shoulder: #b9c8b0;
-    --display: 'Gloock', 'Didot', 'Bodoni 72', Georgia, serif;
+    --paper: #f8f0ed;
+    --paper-raised: #fdf8f6;
+    --blush: #f1dcd8;
+    --ink: #2a332c;
+    --ink-soft: #6e6560;
+    --leaf: #5f7d56;
+    --peony: #a8446c;
+    --kraft: #d9c2a5;
+    --kraft-shade: #c8ad8c;
+    --rule: #e6d3cd;
+    --display: 'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
     --body: 'Figtree', 'Segoe UI', system-ui, sans-serif;
-    --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
     color-scheme: light;
   }
 
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme='light']) {
-      --paper: #121a15;
-      --paper-raised: #19241d;
-      --ink: #e5ebe2;
-      --ink-soft: #a3b0a6;
-      --stem: #9fbb98;
-      --peony: #e690b3;
-      --rule: #2d3a31;
-      --in-season: #9fbb98;
-      --shoulder: #3d5040;
+      --paper: #172019;
+      --paper-raised: #1e2a21;
+      --blush: #2e2629;
+      --ink: #f2e9e5;
+      --ink-soft: #bcafa9;
+      --leaf: #9fbd92;
+      --peony: #ec98b9;
+      --kraft: #8c7760;
+      --kraft-shade: #756350;
+      --rule: #34403a;
       color-scheme: dark;
     }
   }
 
   :root[data-theme='dark'] {
-    --paper: #121a15;
-    --paper-raised: #19241d;
-    --ink: #e5ebe2;
-    --ink-soft: #a3b0a6;
-    --stem: #9fbb98;
-    --peony: #e690b3;
-    --rule: #2d3a31;
-    --in-season: #9fbb98;
-    --shoulder: #3d5040;
+    --paper: #172019;
+    --paper-raised: #1e2a21;
+    --blush: #2e2629;
+    --ink: #f2e9e5;
+    --ink-soft: #bcafa9;
+    --leaf: #9fbd92;
+    --peony: #ec98b9;
+    --kraft: #8c7760;
+    --kraft-shade: #756350;
+    --rule: #34403a;
     color-scheme: dark;
   }
 
@@ -102,7 +109,7 @@ const { title, description, root = '' } = Astro.props;
     color: var(--ink);
     font-family: var(--body);
     font-size: 1.0625rem;
-    line-height: 1.6;
+    line-height: 1.65;
     -webkit-font-smoothing: antialiased;
   }
 
@@ -110,7 +117,7 @@ const { title, description, root = '' } = Astro.props;
     max-width: 72rem;
     margin: 0 auto;
     padding-inline: clamp(1rem, 4vw, 2.5rem);
-    padding-block: 0 2rem;
+    padding-block: 0 2.5rem;
   }
 
   h1,
@@ -118,7 +125,8 @@ const { title, description, root = '' } = Astro.props;
   h3 {
     font-family: var(--display);
     font-weight: 400;
-    line-height: 1.1;
+    font-variation-settings: 'SOFT' 100;
+    line-height: 1.12;
     text-wrap: balance;
     margin: 0;
   }
@@ -130,38 +138,51 @@ const { title, description, root = '' } = Astro.props;
   a:focus-visible {
     outline: 2px solid var(--peony);
     outline-offset: 3px;
-    border-radius: 2px;
+    border-radius: 4px;
   }
 
-  .label {
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
+  /* Small italic lead-in above headings, in place of shouty uppercase labels. */
+  .kicker {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--peony);
+    margin: 0;
   }
 
   .masthead {
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     gap: 0.75rem 2rem;
     padding-block: 1.5rem;
-    border-bottom: 1px solid var(--rule);
   }
 
   .wordmark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
     font-family: var(--display);
-    font-size: 1.6rem;
+    font-style: italic;
+    font-size: 1.7rem;
     text-decoration: none;
+  }
+
+  .wordmark svg {
+    width: 1.3rem;
+    height: auto;
+  }
+
+  .wordmark path {
+    fill: var(--leaf);
+    stroke: var(--leaf);
   }
 
   .masthead nav {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.25rem 1.5rem;
-    font-size: 0.95rem;
+    gap: 0.25rem 1.6rem;
   }
 
   .masthead nav a {
@@ -170,16 +191,36 @@ const { title, description, root = '' } = Astro.props;
   }
 
   .masthead nav a:hover {
-    color: var(--ink);
+    color: var(--peony);
   }
 
   .footer {
     margin-top: 5rem;
-    padding-top: 1.5rem;
+    padding-top: 2.5rem;
     border-top: 1px solid var(--rule);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: end;
+    gap: 1rem 2rem;
+  }
+
+  .sign {
+    margin: 0;
+    font-family: var(--display);
+    font-style: italic;
+    color: var(--ink-soft);
+  }
+
+  .sign span {
+    font-size: 1.6rem;
+    color: var(--ink);
+  }
+
+  .demo {
+    margin: 0;
     font-size: 0.85rem;
     color: var(--ink-soft);
-    max-width: 60ch;
   }
 
   @media (prefers-reduced-motion: reduce) {
