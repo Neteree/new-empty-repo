@@ -8,7 +8,7 @@ load_dotenv()
 
 model = MistralModel(
     api_key=os.environ["MISTRAL_API_KEY"],
-    model_id="devstral-2-latest",
+    model_id="mistral-medium-latest",
 )
 
 agent = Agent(model=model)
