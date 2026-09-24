@@ -1,0 +1,70 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import BakeArt from '../../components/BakeArt.svelte';
+
+export async function getStaticPaths() {
+  const notes = await getCollection('notes');
+  return notes.map((note) => ({ params: { slug: note.id }, props: { note } }));
+}
+
+const { note } = Astro.props;
+const { Content } = await render(note);
+const date = note.data.date.toLocaleDateString('en-NZ', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+
+<Base title={`${note.data.title} · Early Crust`} description={note.data.excerpt} root="../">
+  <main class="note">
+    <a class="back" href="../index.html#notes">← All notes</a>
+    <div class="note-art"><BakeArt art={note.data.art} /></div>
+    <p class="hand-note">{date}</p>
+    <h1>{note.data.title}</h1>
+    <p class="standfirst">{note.data.excerpt}</p>
+    <div class="prose">
+      <Content />
+    </div>
+    <a class="button" href="../index.html#order">Pre-order for the weekend</a>
+  </main>
+</Base>
+
+<style>
+  .note {
+    max-width: 44rem;
+    padding-top: 1.5rem;
+  }
+
+  .back {
+    font-weight: 700;
+    text-decoration: none;
+    color: var(--blue);
+  }
+
+  .note-art {
+    width: 12rem;
+    margin-block: 2rem 1rem;
+  }
+
+  h1 {
+    font-size: clamp(2.4rem, 6vw, 3.8rem);
+    margin-top: 0.3rem;
+  }
+
+  .standfirst {
+    font-size: 1.25rem;
+    color: var(--ink-soft);
+    margin: 1rem 0 2rem;
+  }
+
+  .prose {
+    max-width: 62ch;
+    margin-bottom: 2.5rem;
+  }
+
+  .prose :global(p) {
+    margin: 0 0 1.25rem;
+  }
+
+  .prose :global(strong) {
+    color: var(--blue);
+  }
+</style>
