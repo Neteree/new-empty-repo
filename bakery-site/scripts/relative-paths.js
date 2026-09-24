@@ -1,4 +1,4 @@
-// Astro writes asset URLs as "/_astro/...", which only work at a domain's
+// Astro writes asset URLs as "/assets/...", which only work at a domain's
 // root. Rewrite them relative to each page so the built site works from any
 // folder or preview host as well.
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
@@ -12,7 +12,7 @@ function walk(dir) {
     if (statSync(path).isDirectory()) walk(path);
     else if (name.endsWith('.html')) {
       const toRoot = relative(dirname(path), dist) || '.';
-      const html = readFileSync(path, 'utf8').replace(/(["'(])\/_astro\//g, `$1${toRoot}/_astro/`);
+      const html = readFileSync(path, 'utf8').replace(/(["'(])\/assets\//g, `$1${toRoot}/assets/`);
       writeFileSync(path, html);
     }
   }
