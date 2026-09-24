@@ -1,0 +1,144 @@
+:root {
+  --paper: #f8f0ed;
+  --paper-raised: #fdf8f6;
+  --blush: #f1dcd8;
+  --ink: #2a332c;
+  --ink-soft: #6e6560;
+  --leaf: #5f7d56;
+  --peony: #a8446c;
+  --peony-ink: #fdf8f6;
+  --kraft: #d9c2a5;
+  --tag-ink: #3b2f25;
+  --rule: #e6d3cd;
+  --display: 'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --body: 'Figtree', 'Segoe UI', system-ui, sans-serif;
+  --script: 'Pinyon Script', 'Snell Roundhand', 'Apple Chancery', cursive;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.42 0 0 0 0 0.3 0 0 0 0 0.26 0 0 0 0.11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #172019;
+    --paper-raised: #1e2a21;
+    --blush: #2e2629;
+    --ink: #f2e9e5;
+    --ink-soft: #bcafa9;
+    --leaf: #9fbd92;
+    --peony: #ec98b9;
+    --peony-ink: #1b1216;
+    --kraft: #8c7760;
+    --tag-ink: #1c140f;
+    --rule: #34403a;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --paper: #172019;
+  --paper-raised: #1e2a21;
+  --blush: #2e2629;
+  --ink: #f2e9e5;
+  --ink-soft: #bcafa9;
+  --leaf: #9fbd92;
+  --peony: #ec98b9;
+  --peony-ink: #1b1216;
+  --kraft: #8c7760;
+  --tag-ink: #1c140f;
+  --rule: #34403a;
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--grain), var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--display);
+  font-weight: 400;
+  font-variation-settings: 'SOFT' 100;
+  line-height: 1.12;
+  text-wrap: balance;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--peony);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+.kicker {
+  font-family: var(--script);
+  font-size: 2rem;
+  line-height: 1.1;
+  color: var(--peony);
+  margin: 0;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--peony);
+  color: var(--peony-ink);
+  border: none;
+  border-radius: 999px;
+  padding: 0.8rem 1.6rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.button:hover {
+  transform: translateY(-2px);
+}
+
+.button.quiet {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--rule);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
