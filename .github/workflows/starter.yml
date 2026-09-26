@@ -1,0 +1,41 @@
+# Tests the starter and its modules: makes the two example client sites and
+# runs the full checks on each.
+name: Starter
+
+on:
+  pull_request:
+    paths: ['starter/**', 'modules/**', 'site_agent.py', '.github/workflows/starter.yml']
+  push:
+    branches: [main]
+    paths: ['starter/**', 'modules/**', 'site_agent.py', '.github/workflows/starter.yml']
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        client: [example, bakery]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: starter/.node-version
+          cache: npm
+          cache-dependency-path: starter/package-lock.json
+      - name: Make the example site
+        working-directory: starter
+        run: |
+          node scripts/new-client.js clients/${{ matrix.client }}.json "$RUNNER_TEMP/site"
+          cp package-lock.json "$RUNNER_TEMP/site/"
+      - name: Check it
+        working-directory: ${{ runner.temp }}/site
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npm run check
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots-${{ matrix.client }}
+          path: ${{ runner.temp }}/site/check-output/

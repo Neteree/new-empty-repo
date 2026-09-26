@@ -37,7 +37,7 @@ if (unknown.length) {
   process.exit(1);
 }
 
-const skip = new Set(['node_modules', 'dist', '.astro', 'clients', 'check-output']);
+const skip = new Set(['node_modules', 'dist', '.astro', 'clients', 'check-output', 'new-client.js']);
 cpSync(starter, target, {
   recursive: true,
   filter: (source) => !skip.has(basename(source)) || source === starter,
@@ -54,6 +54,9 @@ for (const name of modules) {
 // Names of the business and place are real words for the spelling check.
 const names = `${details.name} ${details.suburb} ${details.city}`.split(/[^\p{L}'’-]+/u).filter(Boolean);
 appendFileSync(join(target, 'cspell-words.txt'), `${names.join('\n')}\n`);
+
+// The change-request workflow runs the agent from the site itself.
+cpSync(resolve(starter, '../site_agent.py'), join(target, 'scripts/site_agent.py'));
 
 const { modules: _, ...config } = { ...details, formKey: details.formKey ?? null, url: details.url ?? null, demo: details.demo ?? false };
 const body = JSON.stringify(config, null, 2)
