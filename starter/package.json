@@ -1,0 +1,22 @@
+{
+  "name": "starter",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && node scripts/relative-paths.js",
+    "preview": "astro preview",
+    "check": "node scripts/check.js"
+  },
+  "dependencies": {
+    "@astrojs/svelte": "^9.0.1",
+    "astro": "^7.3.4",
+    "svelte": "^5.57.1"
+  },
+  "devDependencies": {
+    "cspell": "^10.3.4",
+    "html-validate": "^11.16.0",
+    "playwright": "1.56.1"
+  }
+}

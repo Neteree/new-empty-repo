@@ -1,0 +1,9 @@
+{
+  "extends": ["html-validate:recommended"],
+  "elements": ["html5", { "style": { "flow": true } }],
+  "rules": {
+    "attribute-boolean-style": "off",
+    "void-style": "off",
+    "no-implicit-input-type": "off"
+  }
+}

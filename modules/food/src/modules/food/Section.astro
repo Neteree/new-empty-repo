@@ -1,0 +1,14 @@
+---
+// Menu and pre-order section, added to the home page by the starter.
+import PreOrder from './PreOrder.svelte';
+import { section } from './menu';
+---
+
+<section id="order" class="section">
+  <div class="section-head">
+    <p class="hand-note">{section.note}</p>
+    <h2>{section.title}</h2>
+    <p class="intro">{section.intro}</p>
+  </div>
+  <PreOrder client:load />
+</section>
