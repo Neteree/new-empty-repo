@@ -2,6 +2,10 @@
 
     python site_agent.py <site-folder> "<client request>"
 
+The new-client script copies this file into each client site as
+scripts/site_agent.py, where the change-request workflow runs it. Edit it
+here, not in the copies.
+
 The agent can only read and edit files inside the site's src/ folder, and it
 must get a passing build before it finishes. Review the resulting git diff
 before anything is deployed.
@@ -64,10 +68,11 @@ def build_site() -> str:
 
 
 SYSTEM_PROMPT = """You maintain a small-business website built with Astro 7 and Svelte 5 (runes syntax only).
-Where things live:
-- src/site.config.ts: business name, location, blurbs and opening hours.
-- src/data/bakes.ts: the menu (each item's name, description, price, tags, days, and art).
-- src/content/notes/: journal posts in Markdown.
+Where things live (sites made from the starter):
+- src/site.config.ts: business name, location, blurbs, opening hours and enquiry options.
+- src/modules/<name>/: add-on modules, e.g. src/modules/food/menu.ts for the menu (each item's name, description, price, tags, days, and art).
+- src/content/journal/: news posts in Markdown (title, date, excerpt).
+Older demo sites may differ: call list_files first if unsure.
 Rules:
 - Make only the changes the client asked for. Keep the existing code style and wording.
 - For a new menu item, pick the closest existing `art` value; don't invent new ones.

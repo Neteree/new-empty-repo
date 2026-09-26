@@ -2,3 +2,6 @@ node_modules/
 dist/
 .astro/
 check-output/
+__pycache__/
+.env
+request-summary.md

@@ -1,0 +1,120 @@
+# Turns an approved change request into a pull request.
+#
+# 1. Someone opens an issue with the "Change request" form.
+# 2. Cameron prices it and adds the "approved" label (only people with write
+#    access can add labels, so the public can't trigger this).
+# 3. A wording swap is done by a script (free). Anything else goes to the
+#    agent, which needs the GEMINI_API_KEY secret; without it, the issue gets
+#    a note saying it needs doing by hand.
+# 4. The checks run, and a pull request opens with the result. Cloudflare
+#    Pages builds a preview of it. Merging the pull request puts it live.
+name: Change request
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency: request-${{ github.event.issue.number }}
+
+jobs:
+  apply:
+    if: github.event.label.name == 'approved'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ISSUE: ${{ github.event.issue.number }}
+      BRANCH: request-${{ github.event.issue.number }}
+      HAS_AGENT_KEY: ${{ secrets.GEMINI_API_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+
+      - name: Try it with a script (free)
+        id: script
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: node scripts/apply-request.js
+
+      - name: Stop if it needs the agent and there's no key
+        if: steps.script.outputs.result == 'needs-agent' && env.HAS_AGENT_KEY != 'true'
+        run: |
+          {
+            cat "$RUNNER_TEMP/request-summary.md"
+            echo
+            echo "This one needs the agent, which isn't set up yet (no GEMINI_API_KEY secret), so it needs doing by hand."
+          } > "$RUNNER_TEMP/comment.md"
+          gh issue comment "$ISSUE" --body-file "$RUNNER_TEMP/comment.md"
+          exit 1
+
+      - uses: actions/setup-python@v5
+        if: steps.script.outputs.result == 'needs-agent'
+        with:
+          python-version: '3.12'
+
+      - name: Ask the agent (uses Gemini)
+        if: steps.script.outputs.result == 'needs-agent'
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          pip install -q -r scripts/agent-requirements.txt
+          python scripts/site_agent.py . "$TITLE
+
+          $ISSUE_BODY" | tee "$RUNNER_TEMP/agent-output.txt"
+          { echo "The agent made this change:"; echo; tail -n 20 "$RUNNER_TEMP/agent-output.txt"; } > "$RUNNER_TEMP/request-summary.md"
+
+      - name: Stop if nothing changed
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            { cat "$RUNNER_TEMP/request-summary.md"; echo; echo "Nothing was changed, so there's no pull request."; } > "$RUNNER_TEMP/comment.md"
+            gh issue comment "$ISSUE" --body-file "$RUNNER_TEMP/comment.md"
+            exit 1
+          fi
+
+      - run: npx playwright install --with-deps chromium
+      - name: Run the checks
+        id: check
+        continue-on-error: true
+        run: npm run check 2>&1 | tee "$RUNNER_TEMP/check-output.txt"; exit "${PIPESTATUS[0]}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: check-output/
+
+      - name: Open a pull request
+        env:
+          CHECKS: ${{ steps.check.outcome }}
+          TITLE: ${{ github.event.issue.title }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$BRANCH"
+          git add -A
+          git commit -q -m "$TITLE (#$ISSUE)"
+          git push -f origin "$BRANCH"
+          {
+            cat "$RUNNER_TEMP/request-summary.md"
+            echo
+            if [ "$CHECKS" = success ]; then
+              echo "All checks passed. Look over the Cloudflare preview, then merge to put it live."
+            else
+              echo "**The checks failed.** Don't merge until it's fixed. The end of the check output:"
+              echo; echo '```'; tail -n 30 "$RUNNER_TEMP/check-output.txt"; echo '```'
+            fi
+            echo
+            echo "Closes #$ISSUE"
+          } > "$RUNNER_TEMP/pr.md"
+          draft=""; [ "$CHECKS" = success ] || draft="--draft"
+          url=$(gh pr create $draft --head "$BRANCH" --title "$TITLE" --body-file "$RUNNER_TEMP/pr.md")
+          gh issue comment "$ISSUE" --body "Ready for review: $url"

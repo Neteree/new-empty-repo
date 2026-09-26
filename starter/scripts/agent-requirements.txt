@@ -1,0 +1,2 @@
+strands-agents[gemini]
+python-dotenv

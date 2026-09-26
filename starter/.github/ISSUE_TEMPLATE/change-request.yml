@@ -1,0 +1,29 @@
+name: Change request
+description: Ask for a change to the website.
+title: "Change: "
+labels: ["change request"]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of change?
+      options:
+        - Change some wording, a price or opening hours
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Current wording
+      description: For a wording change, copy the words exactly as they appear on the site now.
+  - type: textarea
+    id: new
+    attributes:
+      label: New wording
+      description: What it should say instead.
+  - type: textarea
+    id: details
+    attributes:
+      label: Anything else?
+      description: For "Something else", describe the change here.

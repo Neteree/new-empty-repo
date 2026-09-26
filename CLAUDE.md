@@ -4,6 +4,8 @@ A side business building websites for local New Zealand businesses, with AI agen
 
 ## Decisions
 
+- **Scripts before AI (most important):** if a task is deterministic, automate it with a plain script or workflow, never an agent. AI costs money on every run, so use it only where real judgement is needed, and always try the scripted path first (as the change-request workflow does). When building anything new, say which parts are scripted and which, if any, need AI and why.
+
 - **Stack:** Astro 7 with Svelte 5 islands, static output. Svelte 5 runes syntax only (`$state`, `$derived`, `$props`). Plain Astro everywhere else, with no JavaScript. SvelteKit only for a client who needs a real web app.
 - **Shops:** a few products means Stripe Checkout. A real catalogue means Shopify behind an Astro front end. Not a focus yet.
 - **Not WordPress,** unless a client already runs on it or needs its plugins.
@@ -16,12 +18,11 @@ A side business building websites for local New Zealand businesses, with AI agen
 - **Base starter** (`starter/`) for every client: config, layout, light and dark mode, news (journal), enquiry form (Web3Forms), 404 page, checks, and the new-client script.
 - **Add-on modules** (`modules/<name>/`) per client type: food (menu, pre-order) is done; services (booking), shops (products, Stripe) and trades (gallery, quotes) are still to build. A module adds `src/modules/<name>/Section.astro` (a home page section) and optionally `NavItem.astro` (a menu item); the starter picks them up automatically.
 - Create a client site: `cd starter && node scripts/new-client.js clients/<client>.json <folder>`. The client JSON lists its `modules`. See `clients/example.json` (no modules) and `clients/bakery.json` (food).
-- **Checks:** `npm run check` in any site builds it, then checks HTML, NZ/UK spelling (`cspell-words.txt`), phone and desktop layout, images, links, empty-form errors, and leftover `[PLACEHOLDER: ...]` text. Screenshots go in `check-output/`. `cameron-belcher-web` uses the same `scripts/check.js` and `scripts/browser.js`; keep them in step.
+- **Checks:** GitHub Actions run them on every pull request (`.github/workflows/check.yml` in each site; `starter.yml` here tests the starter). `npm run check` in any site builds it, then checks HTML, NZ/UK spelling (`cspell-words.txt`), phone and desktop layout, images, links, empty-form errors, and leftover `[PLACEHOLDER: ...]` text. Screenshots go in `check-output/`. `cameron-belcher-web` uses the same `scripts/check.js` and `scripts/browser.js`; keep them in step.
 
 ## Agents
 
 - `site_agent.py`: a Strands agent on Gemini Flash that applies a client change request to a site. Its tools can only touch the site's `src/`, and it must pass the build. It falls back 3.8 → 3.7 → 3.5 → 3.5-lite when a model is overloaded or out of quota.
-- **Principle:** deterministic scripts wherever possible (create site, build, checks, deploy, reports); AI only where judgement is needed.
 - **Planned additions:** a spelling and grammar check (e.g. Vale or LanguageTool), an HTML validator, and a small validation agent (Flash-Lite) that flags anything not in the client's request. A human approves before anything goes live.
 - **Models:** Gemini Flash for routine edits, a stronger model only when checks fail. Use a paid Gemini key for client work, since the free tier hits "overloaded" and quota errors. A Claude subscription doesn't cover API use by custom agents.
 
@@ -32,11 +33,12 @@ A side business building websites for local New Zealand businesses, with AI agen
 - After launch: small change $20, anything bigger quoted. Prices are in `src/site.config.ts` of `cameron-belcher-web`.
 - Family, friends and "first sites free for a testimonial" deals are word of mouth only, never on the site. Record the deal in the client's JSON.
 
-## Client requests (planned)
+## Client requests
 
 - New enquiries: the contact form on Cameron's site emails him through Web3Forms once its key is set (see Parked).
-- Change requests: form or email → GitHub issue in the client's repo → Cameron prices it and approves (e.g. a label) → a GitHub Action runs `site_agent.py` on a branch → checks and a Cloudflare Pages preview → Cameron approves and sends a payment link → merge deploys.
-- Never let a request go straight from the public to the agent to live.
+- Change requests (built into every starter site, not yet used live): a "Change request" issue form → Cameron prices it and adds the `approved` label → the `change-request` workflow tries `scripts/apply-request.js` first (a free wording swap that must match exactly once) and only uses `scripts/site_agent.py` (Gemini) for anything else → `npm run check` → a pull request, with a Cloudflare Pages preview → Cameron merges to put it live. Payment link is still manual.
+- Never let a request go straight from the public to the agent to live. Only people with write access can add labels.
+- `site_agent.py` at the root is the one to edit; new-client copies it into each site.
 
 ## Repo layout
 
@@ -56,6 +58,7 @@ A side business building websites for local New Zealand businesses, with AI agen
 - **Gemini API key** for `site_agent.py` and the other agents (paid key for client work, in `.env`).
 - **Web3Forms access key** for the contact form on `cameron-belcher-web` (`formKey` in `src/site.config.ts`). Until then the form sends nothing.
 - **Cloudflare Pages** for `cameron-belcher-web`: build `npm run build`, output `dist`. Needs a Cloudflare account; a custom domain costs money.
+- **Per client repo, before change requests work:** add the `GEMINI_API_KEY` secret (only for non-wording requests), create an `approved` label, and turn on Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests".
 
 ## Next steps
 
