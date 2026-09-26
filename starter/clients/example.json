@@ -1,0 +1,21 @@
+{
+  "name": "Kōwhai Physio",
+  "suburb": "Takapuna",
+  "city": "Auckland",
+  "description": "A demo physiotherapy clinic in Takapuna, Auckland.",
+  "heroNote": "demo clinic",
+  "heroTitle": "Move well again.",
+  "heroText": "A made-up clinic that shows the base starter with no add-on modules. Every detail here is example text.",
+  "visitText": "This clinic isn't real, so there's nowhere to visit.",
+  "hours": [
+    { "days": "Monday to Friday", "times": "Example hours" },
+    { "days": "Weekends", "times": "Closed" }
+  ],
+  "enquiry": {
+    "title": "Book a first visit",
+    "intro": "Tell us a little about what's going on and we'll get back to you.",
+    "options": ["A first appointment", "A follow-up", "Something else"]
+  },
+  "modules": [],
+  "demo": true
+}

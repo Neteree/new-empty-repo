@@ -1,0 +1,67 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { site } from '../../site.config';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('journal');
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const date = post.data.date.toLocaleDateString('en-NZ', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'Pacific/Auckland',
+});
+---
+
+<Base title={`${post.data.title} · ${site.name}`} description={post.data.excerpt} root="../">
+  <main class="post">
+    <a class="back" href="../index.html#journal">← All news</a>
+    <p class="hand-note">{date}</p>
+    <h1>{post.data.title}</h1>
+    <p class="standfirst">{post.data.excerpt}</p>
+    <div class="prose">
+      <Content />
+    </div>
+    <a class="button" href="../index.html#enquire">{site.enquiry.title}</a>
+  </main>
+</Base>
+
+<style>
+  .post {
+    max-width: 44rem;
+    padding-top: 1.5rem;
+  }
+
+  .back {
+    display: inline-block;
+    margin-bottom: 2rem;
+    font-weight: 700;
+    text-decoration: none;
+    color: var(--blue);
+  }
+
+  h1 {
+    font-size: clamp(2.4rem, 6vw, 3.8rem);
+    margin-top: 0.3rem;
+  }
+
+  .standfirst {
+    font-size: 1.25rem;
+    color: var(--ink-soft);
+    margin: 1rem 0 2rem;
+  }
+
+  .prose {
+    max-width: 62ch;
+    margin-bottom: 2.5rem;
+  }
+
+  .prose :global(p) {
+    margin: 0 0 1.25rem;
+  }
+</style>

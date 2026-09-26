@@ -13,9 +13,10 @@ A side business building websites for local New Zealand businesses, with AI agen
 
 ## Starter plan
 
-- **Base starter** for every client: config, layout, light and dark mode, journal, enquiry form, checks, and the new-client script.
-- **Add-on modules** per client type: food (menu, pre-order), services (booking), shops (products, Stripe), trades (gallery, quotes).
-- `bakery-site/` is the current starter (the "Early Crust" demo). Its menu and pre-order parts become the food module. Create a client site with `node scripts/new-client.js clients/<client>.json <folder>`.
+- **Base starter** (`starter/`) for every client: config, layout, light and dark mode, news (journal), enquiry form (Web3Forms), 404 page, checks, and the new-client script.
+- **Add-on modules** (`modules/<name>/`) per client type: food (menu, pre-order) is done; services (booking), shops (products, Stripe) and trades (gallery, quotes) are still to build. A module adds `src/modules/<name>/Section.astro` (a home page section) and optionally `NavItem.astro` (a menu item); the starter picks them up automatically.
+- Create a client site: `cd starter && node scripts/new-client.js clients/<client>.json <folder>`. The client JSON lists its `modules`. See `clients/example.json` (no modules) and `clients/bakery.json` (food).
+- **Checks:** `npm run check` in any site builds it, then checks HTML, NZ/UK spelling (`cspell-words.txt`), phone and desktop layout, images, links, empty-form errors, and leftover `[PLACEHOLDER: ...]` text. Screenshots go in `check-output/`. `cameron-belcher-web` uses the same `scripts/check.js` and `scripts/browser.js`; keep them in step.
 
 ## Agents
 
@@ -33,13 +34,14 @@ A side business building websites for local New Zealand businesses, with AI agen
 
 ## Client requests (planned)
 
-- New enquiries: the contact form on Cameron's site emails him. Not connected yet; it needs an email address and a form service (e.g. Web3Forms).
+- New enquiries: the contact form on Cameron's site emails him through Web3Forms once its key is set (see Parked).
 - Change requests: form or email → GitHub issue in the client's repo → Cameron prices it and approves (e.g. a label) → a GitHub Action runs `site_agent.py` on a branch → checks and a Cloudflare Pages preview → Cameron approves and sends a payment link → merge deploys.
 - Never let a request go straight from the public to the agent to live.
 
 ## Repo layout
 
-- `bakery-site/`: Astro + Svelte starter (Early Crust demo).
+- `starter/`: base starter and new-client script. `modules/`: add-on modules (`food/`).
+- `bakery-site/`: the Early Crust demo (portfolio piece). New client sites come from `starter/`, not from here.
 - `floristry-site/`: Astro demos (pastel `index.html`, dark `still-life.html`).
 - `demo-designs/`: single-file homepage designs (café, plumber, barber, physio) used as portfolio screenshots. Starting points for real clients.
 - `flower-shop/`: SvelteKit shop demo (`npm run build:preview` makes a single-file preview).
@@ -57,7 +59,6 @@ A side business building websites for local New Zealand businesses, with AI agen
 
 ## Next steps
 
-1. Split `bakery-site` into a base starter plus a food module.
-2. Add automated checks (build, HTML validation, spelling, phone and desktop screenshots, click tests).
-3. Add the validation agent.
-4. Find the first 3 paying clients in one niche.
+1. Add the validation agent (needs the Gemini key).
+2. Build the next modules (services booking, trades gallery and quotes) as clients need them.
+3. Find the first 3 paying clients in one niche.

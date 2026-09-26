@@ -1,0 +1,8 @@
+---
+// Pre-order badge with a live item count, added to the site menu.
+import OrderBadge from './OrderBadge.svelte';
+
+const { home } = Astro.props as { home: string };
+---
+
+<OrderBadge client:load href={`${home}#order`} />
