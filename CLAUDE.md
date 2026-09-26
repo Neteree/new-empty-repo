@@ -49,6 +49,12 @@ A side business building websites for local New Zealand businesses, with AI agen
 
 - `Neteree/cameron-belcher-web`: Cameron's own business site (Astro + Svelte). Portfolio screenshots are in `src/assets/work/`.
 
+## Parked (Cameron to set up later)
+
+- **Gemini API key** for `site_agent.py` and the other agents (paid key for client work, in `.env`).
+- **Web3Forms access key** for the contact form on `cameron-belcher-web` (`formKey` in `src/site.config.ts`). Until then the form sends nothing.
+- **Cloudflare Pages** for `cameron-belcher-web`: build `npm run build`, output `dist`. Needs a Cloudflare account; a custom domain costs money.
+
 ## Next steps
 
 1. Split `bakery-site` into a base starter plus a food module.
