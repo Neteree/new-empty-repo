@@ -1,6 +1,6 @@
 # Project notes
 
-A side business building websites for local New Zealand businesses, with AI agents doing most of the building and maintenance, and a monthly plan charged for every site we build. Maintenance comes from our own builds; we don't go looking for maintenance work on other people's sites.
+A side business building websites for local New Zealand businesses, with AI agents doing most of the building and changes. No monthly fees: clients pay a one-off price for the build, then per request for changes (fixed price for small changes, quoted for bigger ones). Change work comes from our own builds; we don't go looking for work on other people's sites.
 
 ## Decisions
 
