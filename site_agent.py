@@ -10,6 +10,7 @@ before anything is deployed.
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -75,26 +76,36 @@ Rules:
 
 # Pinned versions, tried in order. When one is overloaded ("503") or out of quota
 # ("429"), we move on to the next; each model has its own quota.
-MODELS = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.5-flash"]
+MODELS = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite"]
+
+
+def _unavailable(error: Exception) -> bool:
+    message = str(error)
+    return "503" in message or "429" in message or "quota" in message
 
 
 def run(request: str) -> None:
     for model_id in MODELS:
-        agent = Agent(
-            model=GeminiModel(client_args={"api_key": os.environ["GEMINI_API_KEY"]}, model_id=model_id),
-            system_prompt=SYSTEM_PROMPT,
-            tools=[list_files, read_file, replace_in_file, build_site],
-        )
-        try:
-            print(f"[using {model_id}]", flush=True)
-            agent(request)
-            return
-        except Exception as error:  # the SDK wraps these errors in its own exception types
-            message = str(error)
-            if "503" not in message and "429" not in message and "quota" not in message:
-                raise
-            # Files edited so far stay edited; the next model reads them fresh.
-            print(f"\n[{model_id} is unavailable (overloaded or out of quota), trying the next model]", flush=True)
+        # Overloads are often momentary, so give each model a few tries before moving on.
+        for attempt in range(1, 4):
+            agent = Agent(
+                model=GeminiModel(client_args={"api_key": os.environ["GEMINI_API_KEY"]}, model_id=model_id),
+                system_prompt=SYSTEM_PROMPT,
+                tools=[list_files, read_file, replace_in_file, build_site],
+            )
+            try:
+                print(f"[using {model_id}, try {attempt}]", flush=True)
+                agent(request)
+                return
+            except Exception as error:  # the SDK wraps these errors in its own exception types
+                if not _unavailable(error):
+                    raise
+                reason = "out of quota" if "429" in str(error) or "quota" in str(error) else "overloaded"
+                print(f"\n[{model_id} {reason}]", flush=True)
+                if reason == "out of quota":
+                    break
+                time.sleep(15 * attempt)
+        # Files edited so far stay edited; the next model reads them fresh.
     sys.exit("No model is available right now (overloaded or out of quota). Try again later.")
 
 
