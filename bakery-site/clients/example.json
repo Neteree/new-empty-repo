@@ -1,0 +1,15 @@
+{
+  "name": "Harbour Loaf",
+  "suburb": "Devonport",
+  "city": "Auckland",
+  "description": "A neighbourhood bakery in Devonport, Auckland. Pre-order for weekend pickup.",
+  "heroNote": "first loaves out at 6am",
+  "heroText": "Bread and pastries baked by the ferry terminal every weekend. Order ahead and we'll have it packed and waiting for you.",
+  "visitText": "Find us a short walk from the Devonport ferry.",
+  "hours": [
+    { "days": "Saturday", "times": "6am – 1pm" },
+    { "days": "Sunday", "times": "7am – 12pm" },
+    { "days": "Monday to Friday", "times": "Closed" }
+  ],
+  "demo": true
+}

@@ -1,0 +1,262 @@
+---
+import OrderBadge from '../components/OrderBadge.svelte';
+import { site } from '../site.config';
+
+interface Props {
+  title: string;
+  description: string;
+  /** Relative path back to the home page, e.g. "" or "../". */
+  root?: string;
+}
+
+const { title, description, root = '' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en-NZ">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Karla:wght@400;500;700&family=Caveat:wght@600&display=swap"
+    />
+  </head>
+  <body>
+    <div class="page">
+      <header class="masthead">
+        <a class="wordmark" href={`${root}index.html`}>
+          <span class="mark" aria-hidden="true"></span>{site.name}
+        </a>
+        <nav aria-label="Main">
+          <a href={`${root}index.html#how`}>How it works</a>
+          <a href={`${root}index.html#notes`}>Notes</a>
+          <a href={`${root}index.html#cakes`}>Cakes</a>
+          <a href={`${root}index.html#visit`}>Visit</a>
+          <OrderBadge client:load href={`${root}index.html#order`} />
+        </nav>
+      </header>
+      <slot />
+      <footer class="footer">
+        <p class="sign">{site.name}</p>
+        {site.demo && <p class="demo">A demo bakery built with Astro and Svelte. Nothing here is real or for sale.</p>}
+      </footer>
+    </div>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --paper: #f7f6f2;
+    --ticket: #fffdf7;
+    --ink: #16213e;
+    --ink-soft: #4b5470;
+    --blue: #2350c8;
+    --on-blue: #ffffff;
+    --yellow: #f4c430;
+    --rule: #c9cedc;
+    --error: #b3261e;
+    --display: 'Bricolage Grotesque', 'Arial Black', system-ui, sans-serif;
+    --body: 'Karla', 'Segoe UI', system-ui, sans-serif;
+    --hand: 'Caveat', 'Bradley Hand', 'Comic Sans MS', cursive;
+    --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.09 0 0 0 0 0.13 0 0 0 0 0.24 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --paper: #10172b;
+      --ticket: #fffdf7;
+      --ink: #eef1f8;
+      --ink-soft: #aab2c8;
+      --blue: #8aa6ff;
+      --on-blue: #0d1430;
+      --rule: #34405e;
+      --error: #ff8a80;
+      color-scheme: dark;
+    }
+  }
+
+  :root[data-theme='dark'] {
+    --paper: #10172b;
+    --ticket: #fffdf7;
+    --ink: #eef1f8;
+    --ink-soft: #aab2c8;
+    --blue: #8aa6ff;
+    --on-blue: #0d1430;
+    --rule: #34405e;
+    --error: #ff8a80;
+    color-scheme: dark;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper-grain), var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 74rem;
+    margin: 0 auto;
+    padding-inline: clamp(1rem, 4vw, 2.5rem);
+    padding-block: 0 2.5rem;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--display);
+    font-weight: 800;
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--blue);
+    color: var(--on-blue);
+    border: none;
+    border-radius: 999px;
+    padding: 0.85rem 1.6rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 4px 4px 0 var(--yellow);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .button:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--yellow);
+  }
+
+  .hand-note {
+    font-family: var(--hand);
+    font-size: 1.5rem;
+    line-height: 1.1;
+    color: var(--blue);
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .masthead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 2rem;
+    padding-block: 1.4rem;
+  }
+
+  .wordmark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 1.6rem;
+    letter-spacing: -0.03em;
+    text-decoration: none;
+  }
+
+  .mark {
+    width: 1.3rem;
+    height: 1.3rem;
+    border-radius: 50%;
+    background: var(--yellow);
+    box-shadow: 3px 3px 0 var(--blue);
+  }
+
+  .masthead nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.4rem;
+  }
+
+  .masthead nav > a {
+    text-decoration: none;
+    font-weight: 500;
+    color: var(--ink-soft);
+  }
+
+  .masthead nav > a:hover {
+    color: var(--blue);
+  }
+
+  .footer {
+    margin-top: 5rem;
+    padding-top: 2rem;
+    border-top: 2px solid var(--ink);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: end;
+    gap: 1rem 2rem;
+  }
+
+  .sign {
+    margin: 0;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 2.5rem;
+    letter-spacing: -0.03em;
+    color: var(--blue);
+    text-shadow: 3px 3px 0 var(--yellow);
+  }
+
+  .demo {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+    }
+  }
+</style>

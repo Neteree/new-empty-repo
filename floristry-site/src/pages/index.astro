@@ -1,0 +1,580 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Bloom from '../components/Bloom.astro';
+import Bouquet from '../components/Bouquet.astro';
+import { currentSeason, seasons, thisWeek } from '../data/stems';
+
+const posts = (await getCollection('journal')).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+);
+
+const formatDate = (date: Date) =>
+  date.toLocaleDateString('en-NZ', { day: 'numeric', month: 'long', year: 'numeric' });
+
+const services = [
+  {
+    title: 'Flowers every week',
+    text: 'A fresh seasonal bunch on your doorstep every Thursday, anywhere in central Auckland. Skip a week whenever you like.',
+    bloom: { petals: 12, petal: '#e7a3b8', centre: '#f3d27a' },
+  },
+  {
+    title: 'Weddings and gatherings',
+    text: "Ceremony flowers, table posies and big branch installations, built around whatever is blooming on your day.",
+    bloom: { petals: 16, petal: '#f4e6cf', centre: '#a8446c' },
+  },
+  {
+    title: 'Evening workshops',
+    text: 'Two relaxed hours at our bench learning to condition and arrange. Eight people, all the flowers, and you take your arrangement home.',
+    bloom: { petals: 8, petal: '#b9a3d9', centre: '#5b4a7a' },
+  },
+];
+---
+
+<Base
+  title="Stem & Loam"
+  description="A seasonal florist in Grey Lynn, Auckland, arranging whatever is blooming this week."
+>
+  <main>
+    <section class="hero">
+      <div class="hero-text">
+        <p class="kicker">Seasonal flowers in Grey Lynn</p>
+        <h1>Flowers that change with <em>the seasons</em></h1>
+        <p class="lede">
+          Every week we visit growers around Auckland and bring back whatever is at its most
+          beautiful. No flowers flown halfway round the world, and no foam. Just what's blooming now,
+          tied by hand.
+        </p>
+        <div class="hero-actions">
+          <a class="button" href="#this-week">See this week's flowers</a>
+          <p class="phone">or call us on <strong>09 000 0000</strong></p>
+        </div>
+      </div>
+      <div class="hero-art">
+        <Bouquet />
+      </div>
+    </section>
+
+    <div class="divider" aria-hidden="true">
+      <svg viewBox="0 0 120 40">
+        <path d="M6 22 C 40 18 80 26 114 20" fill="none" stroke-width="1.4" stroke-linecap="round" />
+        <path d="M40 20 C 34 10 26 8 20 10 C 26 16 32 20 40 20 Z" />
+        <path d="M60 22 C 62 10 70 4 78 4 C 76 12 70 18 60 22 Z" />
+        <path d="M84 21 C 90 30 98 32 104 30 C 98 24 92 21 84 21 Z" />
+      </svg>
+    </div>
+
+    <section id="this-week" class="section">
+      <div class="section-head">
+        <p class="kicker">{thisWeek.label}</p>
+        <h2>Fresh on the bench this week</h2>
+        <p class="intro">{thisWeek.intro}</p>
+      </div>
+      <ul class="stem-grid">
+        {thisWeek.stems.map((stem) => (
+          <li class="stem-card">
+            <div class="arch">
+              <Bloom stem petals={stem.bloom.petals} petal={stem.bloom.petal} centre={stem.bloom.centre} />
+            </div>
+            <h3>{stem.name}</h3>
+            <p class="latin">{stem.latin}</p>
+            <p class="note">{stem.note}</p>
+            <p class="tag"><span class="tag-price">${stem.price}</span><span class="tag-unit">{stem.bunch}</span></p>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section id="seasons" class="section">
+      <div class="section-head">
+        <p class="kicker">Through the year</p>
+        <h2>What blooms when</h2>
+        <p class="intro">
+          We only sell flowers in their natural season, so the shop looks different every few weeks.
+          Here's roughly what to expect in Auckland.
+        </p>
+      </div>
+      <div class="season-grid">
+        {seasons.map((season) => (
+          <div class:list={['season', { now: season.name === currentSeason }]}>
+            <div class="season-top">
+              <h3>{season.name}</h3>
+              {season.name === currentSeason && <span class="now-tag">We're here</span>}
+            </div>
+            <p class="months">{season.months}</p>
+            <ul class="flower-list">
+              {season.flowers.map((flower) => (
+                <li><span class="dot" style={`--dot: ${flower.colour}`}></span>{flower.name}</li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="kicker">How to get our flowers</p>
+        <h2>Bunches, big days and evenings at the bench</h2>
+      </div>
+      <div class="service-grid">
+        {services.map((service) => (
+          <div class="service">
+            <div class="service-bloom">
+              <Bloom petals={service.bloom.petals} petal={service.bloom.petal} centre={service.bloom.centre} />
+            </div>
+            <h3>{service.title}</h3>
+            <p>{service.text}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section id="journal" class="section">
+      <div class="section-head">
+        <p class="kicker">From our journal</p>
+        <h2>Notes on caring for your flowers</h2>
+      </div>
+      <div class="journal-grid">
+        {posts.map((post) => (
+          <article>
+            <a class="post-link" href={`journal/${post.id}.html`}>
+              <div class="arch arch-wide">
+                <Bloom petals={post.data.bloom.petals} petal={post.data.bloom.petal} centre={post.data.bloom.centre} />
+              </div>
+              <p class="post-date"><time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time></p>
+              <h3>{post.data.title}</h3>
+              <p class="excerpt">{post.data.excerpt}</p>
+              <span class="read">Read the note</span>
+            </a>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section id="visit" class="section">
+      <div class="visit">
+        <div>
+          <p class="kicker">Visit the shop</p>
+          <h2>Come in and choose your own stems</h2>
+          <p class="intro">
+            Wander in, have a smell of everything, and we'll wrap whatever you fall for. You'll find
+            us in Grey Lynn, Auckland.
+          </p>
+        </div>
+        <dl class="hours">
+          <div><dt>Tuesday to Friday</dt><dd>8am to 5pm</dd></div>
+          <div><dt>Saturday</dt><dd>8am to 1pm</dd></div>
+          <div><dt>Sunday and Monday</dt><dd>Closed, we're out at the growers</dd></div>
+        </dl>
+      </div>
+    </section>
+  </main>
+</Base>
+
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    align-items: center;
+    gap: 2rem 4rem;
+    padding-block: clamp(1.5rem, 5vw, 3.5rem) clamp(2rem, 5vw, 3rem);
+  }
+
+  .hero h1 {
+    font-size: clamp(2.6rem, 6vw, 4.6rem);
+    font-weight: 350;
+    margin-block: 0.5rem 1.25rem;
+  }
+
+  .hero h1 em {
+    display: block;
+    font-family: var(--script);
+    font-style: normal;
+    font-weight: 400;
+    font-size: 1.35em;
+    line-height: 1;
+    color: var(--peony);
+    margin-top: 0.1em;
+  }
+
+  .lede {
+    max-width: 46ch;
+    color: var(--ink-soft);
+    font-size: 1.15rem;
+    margin: 0 0 2rem;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.5rem;
+  }
+
+  .button {
+    display: inline-block;
+    background: var(--peony);
+    color: var(--paper);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0.8rem 1.6rem;
+    border-radius: 999px;
+    transition: transform 0.2s ease;
+  }
+
+  .button:hover {
+    transform: translateY(-2px);
+  }
+
+  .phone {
+    margin: 0;
+    color: var(--ink-soft);
+  }
+
+  .phone strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .hero-art {
+    background: var(--grain), var(--blush);
+    border-radius: 999px 999px 1.5rem 1.5rem;
+    padding: 2.5rem 1.5rem 1.5rem;
+    max-width: 100%;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .divider::before,
+  .divider::after {
+    content: '';
+    flex: 1;
+    border-top: 1px dashed var(--rule);
+  }
+
+  .divider svg {
+    width: 7rem;
+  }
+
+  .divider path {
+    fill: var(--leaf);
+    stroke: var(--leaf);
+  }
+
+  .divider path:first-child {
+    fill: none;
+  }
+
+  .section {
+    padding-top: clamp(3rem, 7vw, 5rem);
+  }
+
+  .section-head {
+    max-width: 40rem;
+    margin-bottom: 2.25rem;
+  }
+
+  .section-head h2 {
+    font-size: clamp(2rem, 4vw, 2.9rem);
+    margin-top: 0.3rem;
+  }
+
+  .intro {
+    color: var(--ink-soft);
+    margin: 0.9rem 0 0;
+    max-width: 55ch;
+  }
+
+  .stem-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+    gap: 2.5rem 1.75rem;
+  }
+
+  .arch {
+    background: var(--grain), var(--blush);
+    border-radius: 999px 999px 1rem 1rem;
+    aspect-ratio: 3 / 4;
+    max-width: 100%;
+    display: grid;
+    place-items: center;
+    padding: 1.75rem 1.5rem 0.75rem;
+    margin-bottom: 1.1rem;
+    overflow: hidden;
+  }
+
+  .arch :global(.bloom) {
+    width: auto;
+    height: 100%;
+    transition: transform 0.6s ease;
+  }
+
+  .stem-card:hover .arch :global(.bloom),
+  .post-link:hover .arch :global(.bloom) {
+    transform: rotate(-4deg);
+  }
+
+  .stem-card h3 {
+    font-size: 1.5rem;
+  }
+
+  .latin {
+    margin: 0.1rem 0 0.6rem;
+    font-family: var(--display);
+    font-style: italic;
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+  }
+
+  .note {
+    margin: 0 0 0.75rem;
+    color: var(--ink-soft);
+    font-size: 0.97rem;
+  }
+
+  /* A kraft-paper gift tag, notched on the left with a string hole. */
+  .tag {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin: 0.25rem 0 0;
+    padding: 0.35rem 0.9rem 0.35rem 1.6rem;
+    background: var(--grain), var(--kraft);
+    color: var(--tag-ink);
+    white-space: nowrap;
+    clip-path: polygon(0.8rem 0, 100% 0, 100% 100%, 0.8rem 100%, 0 50%);
+    transform: rotate(-3deg);
+    position: relative;
+  }
+
+  .tag::before {
+    content: '';
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    width: 0.4rem;
+    height: 0.4rem;
+    margin-top: -0.2rem;
+    border-radius: 50%;
+    background: var(--paper);
+  }
+
+  .stem-card:nth-child(even) .tag {
+    transform: rotate(2deg);
+  }
+
+  .tag-price {
+    font-family: var(--script);
+    font-size: 1.9rem;
+    line-height: 1;
+  }
+
+  .tag-unit {
+    font-size: 0.85rem;
+  }
+
+  .season-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: 2rem 1.5rem;
+    padding-top: 0.75rem;
+  }
+
+  /* Season notes: slightly skewed cards held on with a strip of tape. */
+  .season {
+    position: relative;
+    padding: 1.9rem 1.5rem 1.5rem;
+    background: var(--grain), var(--paper-raised);
+    box-shadow: 0 1px 2px rgb(60 40 30 / 0.08), 0 8px 18px -12px rgb(60 40 30 / 0.3);
+    transform: rotate(-0.8deg);
+  }
+
+  .season:nth-child(even) {
+    transform: rotate(0.9deg);
+  }
+
+  .season::before {
+    content: '';
+    position: absolute;
+    top: -0.7rem;
+    left: 50%;
+    width: 5.5rem;
+    height: 1.5rem;
+    margin-left: -2.75rem;
+    background: var(--tape);
+    transform: rotate(-3deg);
+  }
+
+  .season.now {
+    background: var(--grain), var(--blush);
+  }
+
+  .season-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .season h3 {
+    font-size: 1.7rem;
+  }
+
+  .now-tag {
+    font-family: var(--script);
+    color: var(--peony);
+    font-size: 1.6rem;
+    line-height: 1;
+  }
+
+  .months {
+    margin: 0.1rem 0 1rem;
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+  }
+
+  .flower-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .flower-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .dot {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50% 50% 50% 0;
+    background: var(--dot);
+    transform: rotate(-45deg);
+    flex: none;
+  }
+
+  .service-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 2.5rem;
+  }
+
+  .service-bloom {
+    width: 4.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .service h3 {
+    font-size: 1.55rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .service p {
+    margin: 0;
+    color: var(--ink-soft);
+  }
+
+  .journal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 2.5rem 2rem;
+  }
+
+  .post-link {
+    display: block;
+    text-decoration: none;
+  }
+
+  .arch-wide {
+    aspect-ratio: 4 / 3;
+    padding: 2rem;
+  }
+
+  .post-date {
+    margin: 0 0 0.3rem;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+
+  .post-link h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .excerpt {
+    margin: 0 0 0.75rem;
+    color: var(--ink-soft);
+  }
+
+  .read {
+    font-family: var(--display);
+    font-style: italic;
+    color: var(--peony);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s ease;
+  }
+
+  .post-link:hover .read {
+    border-bottom-color: var(--peony);
+  }
+
+  .visit {
+    background: var(--grain), var(--blush);
+    border-radius: 2rem;
+    padding: clamp(1.75rem, 5vw, 3.5rem);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 2rem 3rem;
+    align-items: center;
+  }
+
+  .visit h2 {
+    font-size: clamp(2rem, 4vw, 2.7rem);
+    margin-top: 0.3rem;
+  }
+
+  .hours {
+    margin: 0;
+  }
+
+  .hours div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.2rem 1rem;
+    padding-block: 0.85rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .hours dt {
+    font-weight: 600;
+  }
+
+  .hours dd {
+    margin: 0;
+    color: var(--ink-soft);
+  }
+
+  @media (max-width: 46rem) {
+    .hero {
+      grid-template-columns: 1fr;
+    }
+
+    .hero-art {
+      width: min(22rem, 90%);
+      margin-inline: auto;
+    }
+  }
+</style>

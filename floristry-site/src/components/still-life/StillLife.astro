@@ -1,0 +1,102 @@
+---
+// The hero "painting": a spring arrangement in a bronze urn on a stone
+// ledge, lit from the upper left in the manner of a Dutch flower piece.
+import { petalPath, rings, shade } from '../../lib/bloom';
+
+const heads = [
+  { x: -8, y: -178, s: 0.8, petals: 16, petal: '#f3ead8', centre: '#c9a24a' },
+  { x: -118, y: -150, s: 0.55, petals: 5, petal: '#f2c3cf', centre: '#b24d6b' },
+  { x: 132, y: -168, s: 0.5, petals: 5, petal: '#f2c3cf', centre: '#b24d6b' },
+  { x: -70, y: -92, s: 1.25, petals: 14, petal: '#e48aa5', centre: '#f1cf6b' },
+  { x: 78, y: -104, s: 1.1, petals: 16, petal: '#e2724a', centre: '#6d1f2c' },
+  { x: 8, y: -38, s: 0.95, petals: 12, petal: '#b4263f', centre: '#f0c75e' },
+  { x: -136, y: -28, s: 0.75, petals: 7, petal: '#7a5aa6', centre: '#1d1626' },
+  { x: 142, y: -18, s: 0.72, petals: 6, petal: '#f4d27a', centre: '#d5892f' },
+  { x: -34, y: 10, s: 0.6, petals: 7, petal: '#eef0f4', centre: '#191820' },
+].map((h, i) => ({ ...h, ...rings(h.petals), id: `sl-${i}` }));
+
+const mouth = { x: 0, y: 70 };
+const fallen = [
+  { x: 118, y: 176, r: 64, c: '#e48aa5' },
+  { x: 142, y: 184, r: 150, c: '#e48aa5' },
+  { x: -150, y: 182, r: -30, c: '#b4263f' },
+];
+---
+
+<svg class="still-life" viewBox="-210 -250 420 470" role="img" aria-label="Painted still life of spring flowers in a bronze urn on a stone ledge">
+  <defs>
+    <radialGradient id="sl-light" cx="-120" cy="-200" r="520" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3a3326" />
+      <stop offset="0.55" stop-color="#17150f" />
+      <stop offset="1" stop-color="#0b0a07" />
+    </radialGradient>
+    <linearGradient id="sl-ledge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4a4034" />
+      <stop offset="0.12" stop-color="#2c261e" />
+      <stop offset="1" stop-color="#15120d" />
+    </linearGradient>
+    <linearGradient id="sl-urn" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e2c27a" />
+      <stop offset="0.3" stop-color="#a7813f" />
+      <stop offset="0.75" stop-color="#4e3a1b" />
+      <stop offset="1" stop-color="#231a0c" />
+    </linearGradient>
+    <linearGradient id="sl-leaf" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6f8f50" />
+      <stop offset="1" stop-color="#1c2f1d" />
+    </linearGradient>
+    {heads.map((h) => (
+      <radialGradient id={h.id} cx="0" cy="0" r="50" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color={shade(h.petal, -0.5)} />
+        <stop offset="0.5" stop-color={h.petal} />
+        <stop offset="1" stop-color={shade(h.petal, 0.3)} />
+      </radialGradient>
+    ))}
+  </defs>
+
+  <rect x="-210" y="-250" width="420" height="470" fill="url(#sl-light)" />
+
+  <g class="foliage">
+    {heads.map((h) => (
+      <path d={`M${mouth.x} ${mouth.y} Q ${h.x * 0.3} ${(h.y + mouth.y) / 2} ${h.x} ${h.y}`} fill="none" stroke="#2f4a2a" stroke-width="3" />
+    ))}
+    <path d="M-10 60 C -80 20 -150 50 -190 10 C -140 0 -70 10 -10 60 Z" fill="url(#sl-leaf)" />
+    <path d="M10 58 C 90 30 150 70 196 40 C 150 20 80 20 10 58 Z" fill="url(#sl-leaf)" />
+    <path d="M-4 40 C -40 -20 -20 -80 -60 -130 C -10 -100 0 -40 -4 40 Z" fill="url(#sl-leaf)" opacity="0.85" />
+    <path d="M6 44 C 60 0 50 -60 100 -60 C 80 -20 60 20 6 44 Z" fill="url(#sl-leaf)" opacity="0.85" />
+    <path d="M20 60 C 90 80 120 130 150 150 C 100 150 60 110 20 60 Z" fill="url(#sl-leaf)" opacity="0.9" />
+  </g>
+
+  <path d="M-210 158 L 210 158 L 210 220 L -210 220 Z" fill="url(#sl-ledge)" />
+  <path d="M-210 158 L 210 158" stroke="#6a5c49" stroke-width="1.5" />
+
+  <path
+    d="M-46 62 C -58 62 -64 70 -58 76 C -40 90 -52 118 -40 138 C -30 150 -22 152 -24 158 L 24 158 C 22 152 30 150 40 138 C 52 118 40 90 58 76 C 64 70 58 62 46 62 Z"
+    fill="url(#sl-urn)"
+  />
+  <ellipse cx="0" cy="63" rx="47" ry="6" fill="#1a1309" />
+  <path d="M-30 80 C -34 100 -30 118 -24 132" fill="none" stroke="#f3dca0" stroke-width="2" opacity="0.45" stroke-linecap="round" />
+
+  {heads.map((h) => (
+    <g transform={`translate(${h.x} ${h.y}) scale(${h.s})`} class="head">
+      {h.outer.map((angle) => <path d={petalPath(h.width)} fill={`url(#${h.id})`} transform={`rotate(${angle})`} />)}
+      {h.inner.map((angle) => <path d={petalPath(h.width * 0.7, 32)} fill={`url(#${h.id})`} transform={`rotate(${angle})`} opacity="0.9" />)}
+      <circle r={h.petals > 8 ? 10 : 8} fill={shade(h.centre, -0.1)} />
+    </g>
+  ))}
+
+  {fallen.map((p) => (
+    <path d={petalPath(9, 24)} fill={p.c} transform={`translate(${p.x} ${p.y}) rotate(${p.r}) scale(1 0.55)`} opacity="0.9" />
+  ))}
+</svg>
+
+<style>
+  .still-life {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .head {
+    filter: drop-shadow(-4px 8px 10px rgb(0 0 0 / 0.6));
+  }
+</style>

@@ -1,0 +1,87 @@
+---
+// The hero illustration: a hand-tied bouquet in kraft paper.
+import { petalPath, rings } from '../lib/bloom';
+
+const heads = [
+  { x: 0, y: -128, scale: 0.72, petals: 6, petal: '#f4e6cf', centre: '#a8446c' },
+  { x: -52, y: -82, scale: 1.0, petals: 12, petal: '#e7a3b8', centre: '#f3d27a' },
+  { x: 48, y: -92, scale: 0.86, petals: 16, petal: '#d9784f', centre: '#7a2e3a' },
+  { x: -92, y: -22, scale: 0.62, petals: 8, petal: '#b9a3d9', centre: '#5b4a7a' },
+  { x: 88, y: -30, scale: 0.66, petals: 10, petal: '#f2c6a0', centre: '#b0603c' },
+  { x: 0, y: -46, scale: 0.8, petals: 14, petal: '#c95d7f', centre: '#f3d27a' },
+].map((head) => ({ ...head, ...rings(head.petals) }));
+
+const gather = { x: 0, y: 118 };
+---
+
+<svg class="bouquet" viewBox="-140 -195 280 380" role="img" aria-label="A hand-tied bouquet of pink, coral, cream and lilac flowers wrapped in paper">
+  <g class="stems">
+    {heads.map((h) => (
+      <path d={`M${h.x} ${h.y} Q ${h.x * 0.45} ${(h.y + gather.y) / 2} ${gather.x} ${gather.y}`} fill="none" stroke-width="3" stroke-linecap="round" />
+    ))}
+    <path class="leaf" d="M-30 40 C -80 10 -118 30 -128 4 C -96 -6 -58 6 -30 40 Z" />
+    <path class="leaf" d="M30 34 C 82 6 116 24 128 -2 C 94 -10 58 2 30 34 Z" />
+    <path class="leaf" d="M-10 20 C -30 -30 -20 -60 -40 -80 C -12 -62 -4 -30 -10 20 Z" />
+  </g>
+
+  <path class="wrap" d="M-86 34 L 86 34 L 34 176 L -34 176 Z" />
+  <path class="wrap-fold" d="M-86 34 L 0 60 L 86 34 L 34 176 L -34 176 Z" />
+
+  <g filter="url(#painted)">
+  {heads.map((h) => (
+    <g transform={`translate(${h.x} ${h.y}) scale(${h.scale})`}>
+      {h.outer.map((angle) => <path d={petalPath(h.width)} fill={h.petal} transform={`rotate(${angle})`} />)}
+      {h.inner.map((angle) => <path d={petalPath(h.width * 0.7, 32)} fill={h.petal} transform={`rotate(${angle})`} class="inner" />)}
+      <circle r={h.petals > 8 ? 10 : 8} fill={h.centre} />
+    </g>
+  ))}
+  </g>
+
+  <g class="ribbon">
+    <path d="M0 96 C -26 78 -40 92 -30 104 C -22 112 -8 104 0 96 Z" />
+    <path d="M0 96 C 26 78 40 92 30 104 C 22 112 8 104 0 96 Z" />
+    <path d="M-2 98 L -14 132 M2 98 L 14 134" fill="none" stroke-width="4" stroke-linecap="round" />
+    <circle cx="0" cy="97" r="6" />
+  </g>
+</svg>
+
+<style>
+  .bouquet {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .stems path {
+    stroke: var(--leaf);
+  }
+  .stems .leaf {
+    fill: var(--leaf);
+    stroke: none;
+    opacity: 0.9;
+  }
+  .wrap {
+    fill: var(--kraft);
+  }
+  .wrap-fold {
+    fill: var(--kraft-shade);
+  }
+  .inner {
+    filter: brightness(0.88);
+  }
+  g[transform] path {
+    opacity: 0.84;
+  }
+  .wrap,
+  .wrap-fold {
+    filter: url(#painted);
+  }
+  .ribbon path,
+  .ribbon circle {
+    fill: var(--peony);
+    stroke: var(--peony);
+  }
+  .ribbon path:not([fill='none']) {
+    stroke: none;
+  }
+</style>

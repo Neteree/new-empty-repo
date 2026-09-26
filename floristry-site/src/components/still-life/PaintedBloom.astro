@@ -1,0 +1,65 @@
+---
+// A flower head shaded like an oil painting: dark at the heart, catching
+// light at the petal tips. Optionally on a stem with leaves.
+import { petalPath, rings, shade } from '../../lib/bloom';
+
+interface Props {
+  petals: number;
+  petal: string;
+  centre: string;
+  stem?: boolean;
+  label?: string;
+}
+
+const { petals, petal, centre, stem = false, label } = Astro.props;
+const { outer, inner, width } = rings(petals);
+const id = `pb-${Math.random().toString(36).slice(2, 9)}`;
+---
+
+<svg
+  class="painted-bloom"
+  viewBox={stem ? '-62 -62 124 214' : '-62 -62 124 124'}
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : 'true'}
+>
+  <defs>
+    <radialGradient id={`${id}-petal`} cx="0" cy="0" r="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color={shade(petal, -0.45)} />
+      <stop offset="0.5" stop-color={petal} />
+      <stop offset="1" stop-color={shade(petal, 0.28)} />
+    </radialGradient>
+    <radialGradient id={`${id}-centre`} cx="-3" cy="-3" r="12" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color={shade(centre, 0.35)} />
+      <stop offset="1" stop-color={shade(centre, -0.35)} />
+    </radialGradient>
+    <linearGradient id={`${id}-leaf`} x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5d7a45" />
+      <stop offset="1" stop-color="#1f3321" />
+    </linearGradient>
+  </defs>
+  {stem && (
+    <g>
+      <path d="M0 0 C 5 50 -7 100 2 148" fill="none" stroke="#3c5a33" stroke-width="3.5" stroke-linecap="round" />
+      <path d="M1 92 C 22 78 38 82 46 68 C 30 64 12 72 1 92 Z" fill={`url(#${id}-leaf)`} />
+      <path d="M-1 118 C -22 104 -38 108 -46 94 C -30 90 -12 98 -1 118 Z" fill={`url(#${id}-leaf)`} />
+    </g>
+  )}
+  <g class="head">
+    {outer.map((angle) => <path d={petalPath(width)} fill={`url(#${id}-petal)`} transform={`rotate(${angle})`} />)}
+    {inner.map((angle) => <path d={petalPath(width * 0.7, 32)} fill={`url(#${id}-petal)`} transform={`rotate(${angle})`} opacity="0.9" />)}
+    <circle r={petals > 8 ? 10 : 8} fill={`url(#${id}-centre)`} />
+  </g>
+</svg>
+
+<style>
+  .painted-bloom {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .head {
+    filter: drop-shadow(0 6px 10px rgb(0 0 0 / 0.55));
+  }
+</style>

@@ -1,0 +1,339 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import BakeArt from '../components/BakeArt.svelte';
+import PreOrder from '../components/PreOrder.svelte';
+import EnquiryForm from '../components/EnquiryForm.svelte';
+import { weekend } from '../data/bakes';
+import { site } from '../site.config';
+
+const notes = (await getCollection('notes')).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const formatDate = (date: Date) => date.toLocaleDateString('en-NZ', { day: 'numeric', month: 'long' });
+
+// These really are a sequence, so they're numbered.
+const steps = [
+  { title: 'Order by Friday, 2pm', text: 'Pick your day and pickup time. We only bake what’s been ordered, plus a little extra for walk-ins.' },
+  { title: 'We bake before dawn', text: 'Ovens go on at 4am. Everything you ordered comes out of the oven that morning.' },
+  { title: 'Collect it warm', text: 'Your order is packed in a paper bag with your name on it, ready at the counter.' },
+];
+---
+
+<Base title={site.name} description={site.description}>
+  <main>
+    <section class="hero">
+      <div class="hero-text">
+        <p class="hand-note">{site.suburb}, {site.city} · {site.heroNote}</p>
+        <h1>Baked this morning. <span class="ink">Gone by noon.</span></h1>
+        <p class="lede">{site.heroText}</p>
+        <a class="button" href="#order">Pre-order for the weekend</a>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="hero-loaf"><BakeArt art="loaf" /></div>
+        <div class="hero-croissant"><BakeArt art="croissant" /></div>
+        <div class="hero-bun"><BakeArt art="bun" /></div>
+        <span class="burst">Fresh<br />Sat &amp; Sun</span>
+      </div>
+    </section>
+
+    <section id="order" class="section">
+      <div class="section-head">
+        <p class="hand-note">{weekend.label}</p>
+        <h2>This weekend’s bake</h2>
+        <p class="intro">Choose your day, add what you’d like, and pick it up warm. Pre-orders close {weekend.orderBy}.</p>
+      </div>
+      <PreOrder client:load />
+    </section>
+
+    <section id="how" class="section">
+      <div class="section-head">
+        <p class="hand-note">How it works</p>
+        <h2>Three steps to a warm loaf</h2>
+      </div>
+      <ol class="steps">
+        {steps.map((step, i) => (
+          <li>
+            <span class="step-num">{i + 1}</span>
+            <h3>{step.title}</h3>
+            <p>{step.text}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section id="notes" class="section">
+      <div class="section-head">
+        <p class="hand-note">From the bench</p>
+        <h2>Notes on bread</h2>
+      </div>
+      <div class="notes">
+        {notes.map((note) => (
+          <a class="note-card" href={`notes/${note.id}.html`}>
+            <div class="note-art"><BakeArt art={note.data.art} /></div>
+            <p class="note-date">{formatDate(note.data.date)}</p>
+            <h3>{note.data.title}</h3>
+            <p>{note.data.excerpt}</p>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section id="cakes" class="section cakes">
+      <div class="section-head">
+        <p class="hand-note">Cakes &amp; catering</p>
+        <h2>Birthdays, office mornings and big days</h2>
+        <p class="intro">
+          Tell us what you’re planning and we’ll get back to you within a day with ideas and a price.
+          We need at least a week’s notice for cakes.
+        </p>
+      </div>
+      <div class="form-card">
+        <EnquiryForm client:visible />
+      </div>
+    </section>
+
+    <section id="visit" class="section visit">
+      <div>
+        <p class="hand-note">Come say hi</p>
+        <h2>The shop</h2>
+        <p class="intro">{site.visitText}</p>
+      </div>
+      <dl class="hours">
+        {site.hours.map((row) => (
+          <div><dt>{row.days}</dt><dd>{row.times}</dd></div>
+        ))}
+      </dl>
+    </section>
+  </main>
+</Base>
+
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 2rem 3rem;
+    padding-block: clamp(1.5rem, 5vw, 3.5rem) 1rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(3rem, 8vw, 6.2rem);
+    margin-block: 0.5rem 1.4rem;
+  }
+
+  .ink {
+    display: block;
+    color: var(--blue);
+    text-shadow: 5px 5px 0 var(--yellow);
+  }
+
+  .lede {
+    max-width: 44ch;
+    font-size: 1.2rem;
+    color: var(--ink-soft);
+    margin: 0 0 2rem;
+  }
+
+  .hero-art {
+    position: relative;
+    aspect-ratio: 1;
+    max-width: 100%;
+  }
+
+  .hero-art > div {
+    position: absolute;
+  }
+
+  .hero-loaf {
+    width: 78%;
+    left: 4%;
+    top: 16%;
+  }
+
+  .hero-croissant {
+    width: 52%;
+    right: -2%;
+    top: 58%;
+    transform: rotate(-10deg);
+  }
+
+  .hero-bun {
+    width: 34%;
+    left: 6%;
+    top: 62%;
+  }
+
+  .burst {
+    position: absolute;
+    right: 4%;
+    top: 2%;
+    width: 7.5rem;
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    border-radius: 50%;
+    background: var(--yellow);
+    color: #16213e;
+    font-family: var(--display);
+    font-weight: 800;
+    line-height: 1.05;
+    transform: rotate(12deg);
+    box-shadow: 4px 4px 0 var(--blue);
+  }
+
+  .section {
+    padding-top: clamp(4rem, 8vw, 6rem);
+  }
+
+  .section-head {
+    max-width: 44rem;
+    margin-bottom: 2rem;
+  }
+
+  .section-head h2 {
+    font-size: clamp(2.3rem, 5vw, 3.6rem);
+    margin-top: 0.3rem;
+  }
+
+  .intro {
+    color: var(--ink-soft);
+    margin: 0.9rem 0 0;
+    max-width: 56ch;
+  }
+
+  .steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 2rem;
+  }
+
+  .step-num {
+    display: inline-grid;
+    place-items: center;
+    width: 3.2rem;
+    height: 3.2rem;
+    border-radius: 50%;
+    background: var(--blue);
+    color: var(--on-blue);
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 1.5rem;
+    box-shadow: 3px 3px 0 var(--yellow);
+    margin-bottom: 1rem;
+  }
+
+  .steps h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .steps p {
+    margin: 0;
+    color: var(--ink-soft);
+  }
+
+  .notes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+    gap: 2rem;
+  }
+
+  .note-card {
+    display: block;
+    text-decoration: none;
+    border: 2px solid var(--ink);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .note-card:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 6px 6px 0 var(--yellow);
+  }
+
+  .note-art {
+    width: 9rem;
+    margin-bottom: 1rem;
+  }
+
+  .note-date {
+    margin: 0 0 0.3rem;
+    font-weight: 700;
+    color: var(--blue);
+  }
+
+  .note-card h3 {
+    font-size: 1.6rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .note-card p:last-child {
+    margin: 0;
+    color: var(--ink-soft);
+  }
+
+  .cakes {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: 2rem 3rem;
+    align-items: start;
+  }
+
+  .form-card {
+    border: 2px solid var(--ink);
+    border-radius: 1.25rem;
+    padding: clamp(1.25rem, 3vw, 2rem);
+    box-shadow: 8px 8px 0 var(--blue);
+  }
+
+  .visit {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+    gap: 2rem 3rem;
+    align-items: end;
+  }
+
+  .visit h2 {
+    font-size: clamp(2.3rem, 5vw, 3.6rem);
+    margin-top: 0.3rem;
+  }
+
+  .hours {
+    margin: 0;
+    border-top: 2px solid var(--ink);
+  }
+
+  .hours div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.2rem 1rem;
+    padding-block: 0.85rem;
+    border-bottom: 1.5px dashed var(--rule);
+  }
+
+  .hours dt {
+    font-weight: 700;
+  }
+
+  .hours dd {
+    margin: 0;
+    color: var(--ink-soft);
+  }
+
+  @media (max-width: 52rem) {
+    .hero,
+    .cakes {
+      grid-template-columns: 1fr;
+    }
+
+    .hero-art {
+      width: min(24rem, 90%);
+      margin-inline: auto;
+    }
+  }
+</style>

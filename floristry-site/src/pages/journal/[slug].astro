@@ -1,0 +1,117 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Bloom from '../../components/Bloom.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('journal');
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const date = post.data.date.toLocaleDateString('en-NZ', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+
+<Base title={`${post.data.title} · Stem & Loam`} description={post.data.excerpt} root="../">
+  <main class="post">
+    <a class="back" href="../index.html#journal">← Back to all notes</a>
+    <header class="post-head">
+      <div class="post-art">
+        <Bloom stem petals={post.data.bloom.petals} petal={post.data.bloom.petal} centre={post.data.bloom.centre} />
+      </div>
+      <div>
+        <p class="post-date"><time datetime={post.data.date.toISOString()}>{date}</time></p>
+        <h1>{post.data.title}</h1>
+        <p class="standfirst">{post.data.excerpt}</p>
+      </div>
+    </header>
+    <div class="prose">
+      <Content />
+    </div>
+  </main>
+</Base>
+
+<style>
+  .post {
+    max-width: 46rem;
+    padding-top: 2rem;
+  }
+
+  .back {
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-size: 0.95rem;
+  }
+
+  .back:hover {
+    color: var(--peony);
+  }
+
+  .post-art {
+    background: var(--blush);
+    border-radius: 999px 999px 1rem 1rem;
+    padding: 1.25rem 1rem 0.5rem;
+  }
+
+  .post-date {
+    margin: 0;
+    color: var(--peony);
+    font-family: var(--display);
+    font-style: italic;
+  }
+
+  .post-head {
+    display: grid;
+    grid-template-columns: 8rem minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+    margin-block: 2rem 2.5rem;
+  }
+
+  .post-head h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    margin-block: 0.4rem 0.75rem;
+  }
+
+  .standfirst {
+    margin: 0;
+    font-size: 1.15rem;
+    color: var(--ink-soft);
+  }
+
+  .prose {
+    max-width: 65ch;
+  }
+
+  .prose :global(p) {
+    margin: 0 0 1.25rem;
+  }
+
+  .prose :global(strong) {
+    font-weight: 600;
+  }
+
+  @media (max-width: 36rem) {
+    .post-art {
+    background: var(--blush);
+    border-radius: 999px 999px 1rem 1rem;
+    padding: 1.25rem 1rem 0.5rem;
+  }
+
+  .post-date {
+    margin: 0;
+    color: var(--peony);
+    font-family: var(--display);
+    font-style: italic;
+  }
+
+  .post-head {
+      grid-template-columns: 1fr;
+    }
+
+    .post-art {
+      width: 6rem;
+    }
+  }
+</style>
