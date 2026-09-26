@@ -1,5 +1,6 @@
 ---
 import OrderBadge from '../components/OrderBadge.svelte';
+import { site } from '../site.config';
 
 interface Props {
   title: string;
@@ -29,7 +30,7 @@ const { title, description, root = '' } = Astro.props;
     <div class="page">
       <header class="masthead">
         <a class="wordmark" href={`${root}index.html`}>
-          <span class="mark" aria-hidden="true"></span>Early Crust
+          <span class="mark" aria-hidden="true"></span>{site.name}
         </a>
         <nav aria-label="Main">
           <a href={`${root}index.html#how`}>How it works</a>
@@ -41,8 +42,8 @@ const { title, description, root = '' } = Astro.props;
       </header>
       <slot />
       <footer class="footer">
-        <p class="sign">Early Crust</p>
-        <p class="demo">A demo bakery built with Astro and Svelte. Nothing here is real or for sale.</p>
+        <p class="sign">{site.name}</p>
+        {site.demo && <p class="demo">A demo bakery built with Astro and Svelte. Nothing here is real or for sale.</p>}
       </footer>
     </div>
   </body>

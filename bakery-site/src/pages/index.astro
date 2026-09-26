@@ -5,6 +5,7 @@ import BakeArt from '../components/BakeArt.svelte';
 import PreOrder from '../components/PreOrder.svelte';
 import EnquiryForm from '../components/EnquiryForm.svelte';
 import { weekend } from '../data/bakes';
+import { site } from '../site.config';
 
 const notes = (await getCollection('notes')).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 const formatDate = (date: Date) => date.toLocaleDateString('en-NZ', { day: 'numeric', month: 'long' });
@@ -17,16 +18,13 @@ const steps = [
 ];
 ---
 
-<Base title="Early Crust" description="A small sourdough bakery in Mt Eden, Auckland. Pre-order for weekend pickup.">
+<Base title={site.name} description={site.description}>
   <main>
     <section class="hero">
       <div class="hero-text">
-        <p class="hand-note">Mt Eden, Auckland · ovens on at 4am</p>
+        <p class="hand-note">{site.suburb}, {site.city} · {site.heroNote}</p>
         <h1>Baked this morning. <span class="ink">Gone by noon.</span></h1>
-        <p class="lede">
-          A small sourdough bakery that bakes in small batches every weekend. Pre-order online and
-          we’ll have it waiting, still warm, with your name on the bag.
-        </p>
+        <p class="lede">{site.heroText}</p>
         <a class="button" href="#order">Pre-order for the weekend</a>
       </div>
       <div class="hero-art" aria-hidden="true">
@@ -97,12 +95,12 @@ const steps = [
       <div>
         <p class="hand-note">Come say hi</p>
         <h2>The shop</h2>
-        <p class="intro">We’re on a quiet corner in Mt Eden, Auckland. Walk-ins welcome while it lasts.</p>
+        <p class="intro">{site.visitText}</p>
       </div>
       <dl class="hours">
-        <div><dt>Saturday</dt><dd>7am – sold out</dd></div>
-        <div><dt>Sunday</dt><dd>7am – sold out</dd></div>
-        <div><dt>Monday to Friday</dt><dd>Closed, we’re mixing dough</dd></div>
+        {site.hours.map((row) => (
+          <div><dt>{row.days}</dt><dd>{row.times}</dd></div>
+        ))}
       </dl>
     </section>
   </main>
