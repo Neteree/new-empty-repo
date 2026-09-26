@@ -24,12 +24,30 @@ A side business building websites for local New Zealand businesses, with AI agen
 - **Planned additions:** a spelling and grammar check (e.g. Vale or LanguageTool), an HTML validator, and a small validation agent (Flash-Lite) that flags anything not in the client's request. A human approves before anything goes live.
 - **Models:** Gemini Flash for routine edits, a stronger model only when checks fail. Use a paid Gemini key for client work, since the free tier hits "overloaded" and quota errors. A Claude subscription doesn't cover API use by custom agents.
 
+## Pricing (on Cameron's business site)
+
+- One base site at $150 (one page, enquiry form, local search basics, own domain, free hosting in the client's name).
+- Add-ons, now or later: extra page $40, menu or product list $60, booking or quote form $60, news editor $80, online orders (Stripe) $350.
+- After launch: small change $20, anything bigger quoted. Prices are in `src/site.config.ts` of `cameron-belcher-web`.
+- Family, friends and "first sites free for a testimonial" deals are word of mouth only, never on the site. Record the deal in the client's JSON.
+
+## Client requests (planned)
+
+- New enquiries: the contact form on Cameron's site emails him. Not connected yet; it needs an email address and a form service (e.g. Web3Forms).
+- Change requests: form or email → GitHub issue in the client's repo → Cameron prices it and approves (e.g. a label) → a GitHub Action runs `site_agent.py` on a branch → checks and a Cloudflare Pages preview → Cameron approves and sends a payment link → merge deploys.
+- Never let a request go straight from the public to the agent to live.
+
 ## Repo layout
 
 - `bakery-site/`: Astro + Svelte starter (Early Crust demo).
 - `floristry-site/`: Astro demos (pastel `index.html`, dark `still-life.html`).
+- `demo-designs/`: single-file homepage designs (café, plumber, barber, physio) used as portfolio screenshots. Starting points for real clients.
 - `flower-shop/`: SvelteKit shop demo (`npm run build:preview` makes a single-file preview).
 - `site_agent.py`, `main_gemini.py`, `main.py`: Strands agents. Keys go in `.env` (see `.env.example`); `.env` is gitignored and isn't kept between sessions.
+
+## Related repos
+
+- `Neteree/cameron-belcher-web`: Cameron's own business site (Astro + Svelte). Portfolio screenshots are in `src/assets/work/`.
 
 ## Next steps
 
