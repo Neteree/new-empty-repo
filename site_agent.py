@@ -73,8 +73,8 @@ Rules:
 - After editing, call build_site. If it fails, fix the problem and build again.
 - Finish with a short, plain-English summary for the site owner of what changed."""
 
-# Pinned versions, tried in order. Gemini's servers sometimes turn requests away
-# with "503 high demand"; when that happens we move on to the next model.
+# Pinned versions, tried in order. When one is overloaded ("503") or out of quota
+# ("429"), we move on to the next; each model has its own quota.
 MODELS = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.5-flash"]
 
 
@@ -89,12 +89,13 @@ def run(request: str) -> None:
             print(f"[using {model_id}]", flush=True)
             agent(request)
             return
-        except Exception as error:  # the SDK wraps the 503 in its own exception types
-            if "503" not in str(error):
+        except Exception as error:  # the SDK wraps these errors in its own exception types
+            message = str(error)
+            if "503" not in message and "429" not in message and "quota" not in message:
                 raise
             # Files edited so far stay edited; the next model reads them fresh.
-            print(f"\n[{model_id} is overloaded, trying the next model]", flush=True)
-    sys.exit("All models are overloaded right now. Try again later.")
+            print(f"\n[{model_id} is unavailable (overloaded or out of quota), trying the next model]", flush=True)
+    sys.exit("No model is available right now (overloaded or out of quota). Try again later.")
 
 
 if __name__ == "__main__":
