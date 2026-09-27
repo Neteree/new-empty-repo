@@ -8,6 +8,8 @@ A side business building websites for local New Zealand businesses, with AI agen
 
 - **Data-driven sites:** everything a client might change (wording, prices, hours, photos, menu items, news) lives in data files (`src/data/site.json`, module JSON such as `menu.json`, Markdown posts, `src/assets/photos/`), never mixed into page code, so scripts can make most changes. `.ts` files next to the JSON only hold types.
 - **AI where it earns its keep:** the build and routine changes are scripted. AI is for judgement and writing: drafting a client's headline and copy from their onboarding answers (Cameron reviews), working out vague requests, and one-off work like new sections. When a kind of request keeps needing AI, write a script for it.
+- **Components, built once:** a site is a set of components (hero, menu, hours, news…), each with its own data file. A new site uses the components that exist; only a missing one gets built (by Cameron or AI), in the same shape so themes, checks and scripted changes still work. A one-off stays with that client; once a kind of request or component comes up a second time, it becomes a reusable module or change script. Avoid building a site from scratch: it loses the automation. Keep automation first for now.
+- **No AI at the front for now:** forms sort requests by type and Cameron approves everything. Add an AI step only if free-text requests become common, and then only to translate them into the scripts' change format for Cameron to approve.
 - **Payments:** Stripe (payment links; a paid invoice triggers go-live), with bank transfer as a manual fallback.
 - **Stack:** Astro 7 with Svelte 5 islands, static output. Svelte 5 runes syntax only (`$state`, `$derived`, `$props`). Plain Astro everywhere else, with no JavaScript. SvelteKit only for a client who needs a real web app.
 - **Shops:** a few products means Stripe Checkout. A real catalogue means Shopify behind an Astro front end. Not a focus yet.
@@ -76,5 +78,6 @@ The GitHub side (issue form, `approved` label, `change-request` workflow opening
 
 ## Next steps
 
-1. Switch on the parts that need accounts: receiving and sending email (so intake and confirmations run by themselves), Stripe, automatic repo and Cloudflare setup, AI copy drafting (Gemini).
-2. Find the first 3 paying clients in one niche.
+1. When a client first asks to reorder or add sections: list each site's sections and their order in `site.json`, so layout changes become scripted too.
+2. Switch on the parts that need accounts: receiving and sending email (so intake and confirmations run by themselves), Stripe, automatic repo and Cloudflare setup, AI copy drafting (Gemini).
+3. Find the first 3 paying clients in one niche.
