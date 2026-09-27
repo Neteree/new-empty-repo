@@ -53,12 +53,14 @@ if (item.kind === 'onboarding') {
   writeFileSync(email, item.email);
   execFileSync('node', [join(starter, 'scripts/onboard.js'), email, site], { stdio: 'inherit' });
 } else {
+  // 0 is fine for free work (family, testimonial deals); leaving it out isn't.
   const price = Number(option('--price'));
-  if (!(price > 0)) {
-    console.error('Set the price you agreed: --price <dollars>');
+  if (option('--price') === undefined || !(price >= 0)) {
+    console.error('Set the price you agreed: --price <dollars> (0 for free work)');
     process.exit(1);
   }
   item.price = price;
+  if (price === 0) item.free = true;
   if (site) {
     const changes = join(scratch, 'changes.json');
     writeFileSync(changes, JSON.stringify(item.changes));
