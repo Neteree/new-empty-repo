@@ -7,7 +7,8 @@ export const site = {
   suburb: '[PLACEHOLDER: suburb]',
   city: 'Auckland',
   description: '[PLACEHOLDER: one sentence for search results]',
-  heroNote: '[PLACEHOLDER: short line above the headline]',
+  /** Optional few words shown after the location, e.g. 'family run since 1998'. */
+  heroNote: '',
   heroTitle: '[PLACEHOLDER: headline]',
   heroText: '[PLACEHOLDER: two sentences on what the business does and for whom]',
   visitText: '[PLACEHOLDER: where to find the business]',

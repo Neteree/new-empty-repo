@@ -18,6 +18,9 @@ export interface Bake {
   note?: string;
 }
 
+/** True while these are still the demo items. Set to false once the client's real menu is in. */
+export const demoMenu = true;
+
 /** Wording for the menu section on the home page. */
 export const section = {
   note: 'Weekend of 26–27 September',

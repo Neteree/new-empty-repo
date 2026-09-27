@@ -6,6 +6,9 @@ A side business building websites for local New Zealand businesses, with AI agen
 
 - **Scripts before AI (most important):** if a task is deterministic, automate it with a plain script or workflow, never an agent. AI costs money on every run, so use it only where real judgement is needed, and always try the scripted path first (as the change-request workflow does). When building anything new, say which parts are scripted and which, if any, need AI and why.
 
+- **Data-driven sites:** everything a client might change (wording, prices, hours, photos, menu items, news) lives in data files (`site.config.ts`, module data, Markdown), never mixed into page code, so scripts can make most changes.
+- **AI where it earns its keep:** the build and routine changes are scripted. AI is for judgement and writing: drafting a client's headline and copy from their onboarding answers (Cameron reviews), working out vague requests, and one-off work like new sections. When a kind of request keeps needing AI, write a script for it.
+- **Payments:** Stripe (payment links; a paid invoice triggers go-live), with bank transfer as a manual fallback.
 - **Stack:** Astro 7 with Svelte 5 islands, static output. Svelte 5 runes syntax only (`$state`, `$derived`, `$props`). Plain Astro everywhere else, with no JavaScript. SvelteKit only for a client who needs a real web app.
 - **Shops:** a few products means Stripe Checkout. A real catalogue means Shopify behind an Astro front end. Not a focus yet.
 - **Not WordPress,** unless a client already runs on it or needs its plugins.
@@ -17,7 +20,7 @@ A side business building websites for local New Zealand businesses, with AI agen
 
 - **Base starter** (`starter/`) for every client: config, layout, light and dark mode, news (journal), enquiry form (Web3Forms), 404 page, checks, and the new-client script.
 - **Add-on modules** (`modules/<name>/`) per client type: food (menu, pre-order) is done; services (booking), shops (products, Stripe) and trades (gallery, quotes) are still to build. A module adds `src/modules/<name>/Section.astro` (a home page section) and optionally `NavItem.astro` (a menu item); the starter picks them up automatically.
-- Create a client site: `cd starter && node scripts/new-client.js clients/<client>.json <folder>`. The client JSON lists its `modules`. See `clients/example.json` (no modules) and `clients/bakery.json` (food).
+- Create a client site: `cd starter && node scripts/onboard.js <onboarding-email> <folder>` from onboarding answers, or `node scripts/new-client.js clients/<client>.json <folder>` from a client JSON. The client JSON lists its `modules`. See `clients/example.json` (no modules) and `clients/bakery.json` (food).
 - **Looks:** four presets in `starter/src/themes.ts` (bold, classic, calm, warm), picked with `theme` in the client JSON. Colours are CSS variables (`--accent`, `--highlight`, `--paper`, `--ink`…); modules must use them, never hard-coded colours.
 - **Checks:** GitHub Actions run them on every pull request (`.github/workflows/check.yml` in each site; `starter.yml` here tests the starter). `npm run check` in any site builds it, then checks HTML, NZ/UK spelling (`cspell-words.txt`), phone and desktop layout, images, links, empty-form errors, leftover `[PLACEHOLDER: ...]` text, and accessibility including colour contrast in light and dark mode (axe-core). Screenshots go in `check-output/`. `cameron-belcher-web` uses the same `scripts/check.js` and `scripts/browser.js`; keep them in step.
 
@@ -34,12 +37,19 @@ A side business building websites for local New Zealand businesses, with AI agen
 - After launch: small change $20, anything bigger quoted. Prices are in `src/site.config.ts` of `cameron-belcher-web`.
 - Family, friends and "first sites free for a testimonial" deals are word of mouth only, never on the site. Record the deal in the client's JSON.
 
-## Client requests
+## Client flow (agreed; being built in stages)
 
-- New enquiries: the contact form on Cameron's site emails him through Web3Forms once its key is set (see Parked).
-- Change requests (built into every starter site, not yet used live): a "Change request" issue form → Cameron prices it and adds the `approved` label → the `change-request` workflow tries `scripts/apply-request.js` first (a free wording swap that must match exactly once) and only uses `scripts/site_agent.py` (Gemini) for anything else → `npm run check` → a pull request, with a Cloudflare Pages preview → Cameron merges to put it live. Payment link is still manual.
-- Never let a request go straight from the public to the agent to live. Only people with write access can add labels.
-- `site_agent.py` at the root is the one to edit; new-client copies it into each site.
+One pipeline for new clients and changes:
+
+1. Request: an email or the form on Cameron's site (texts get a reply with the form link). **Planned.**
+2. A script sorts it: new or existing client (matched against the client list). Existing clients confirm by clicking a link sent to their saved email, so nobody can make requests as someone else. **Planned.**
+3. **Cameron approves** and sets the price (small changes: fixed $20).
+4. New clients fill in the onboarding form (`onboarding.html` on Cameron's site, linked privately, with agreed add-ons in the link, e.g. `?modules=food`). `starter/scripts/onboard.js` turns the emailed answers into the client JSON and site. **Built.** Blank headlines stay `[PLACEHOLDER]` for Cameron or AI copy drafting.
+5. Build: new sites by script; changes by `scripts/apply-request.js` (wording swaps, built) or more change scripts (photos, menu items, news: **planned**), and the agent only for the rest.
+6. Checks and a Cloudflare Pages preview. **Cameron checks it first**, then the client sees it. Tweaks go back to step 5 (limit the free rounds).
+7. The client pays the Stripe link; payment puts it live. **Planned.**
+
+The GitHub side (issue form, `approved` label, `change-request` workflow opening a pull request) is built into every starter site. Never let a request go straight from the public to live: Cameron approves every job and every preview. `site_agent.py` at the root is the one to edit; new-client copies it into each site.
 
 ## Repo layout
 
@@ -59,10 +69,12 @@ A side business building websites for local New Zealand businesses, with AI agen
 - **Gemini API key** for `site_agent.py` and the other agents (paid key for client work, in `.env`).
 - **Web3Forms access key** for the contact form on `cameron-belcher-web` (`formKey` in `src/site.config.ts`). Until then the form sends nothing.
 - **Cloudflare Pages** for `cameron-belcher-web`: build `npm run build`, output `dist`. Needs a Cloudflare account; a custom domain costs money.
+- **Stripe account** (payment links and the webhook that puts a paid job live).
 - **Per client repo, before change requests work:** add the `GEMINI_API_KEY` secret (only for non-wording requests), create an `approved` label, and turn on Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests".
 
 ## Next steps
 
-1. Add the validation agent (needs the Gemini key).
-2. Build the next modules (services booking, trades gallery and quotes) as clients need them.
-3. Find the first 3 paying clients in one niche.
+1. Change scripts for photos, menu items and news posts (stage 3 of the client flow).
+2. Request intake: sort new vs existing clients and email confirmation (stage 4).
+3. Switch on the parts that need accounts: receiving email, Stripe, automatic repo and Cloudflare setup, AI copy drafting (Gemini).
+4. Find the first 3 paying clients in one niche.

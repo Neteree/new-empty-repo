@@ -1,7 +1,8 @@
 ---
 // Menu and pre-order section, added to the home page by the starter.
 import PreOrder from './PreOrder.svelte';
-import { section } from './menu';
+import { demoMenu, section } from './menu';
+import { site } from '../../site.config';
 ---
 
 <section id="order" class="section">
@@ -10,5 +11,6 @@ import { section } from './menu';
     <h2>{section.title}</h2>
     <p class="intro">{section.intro}</p>
   </div>
+  {demoMenu && !site.demo && <p class="intro">[PLACEHOLDER: the client's real menu goes in src/modules/food/menu.ts]</p>}
   <PreOrder client:load />
 </section>

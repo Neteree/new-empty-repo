@@ -22,7 +22,7 @@ if (existsSync(target)) {
 }
 
 const details = JSON.parse(readFileSync(detailsPath, 'utf8'));
-const required = ['name', 'suburb', 'city', 'description', 'heroNote', 'heroTitle', 'heroText', 'visitText', 'hours', 'enquiry'];
+const required = ['name', 'suburb', 'city', 'description', 'heroTitle', 'heroText', 'visitText', 'hours', 'enquiry'];
 const missing = required.filter((key) => details[key] === undefined);
 if (missing.length) {
   console.error(`${detailsPath} is missing: ${missing.join(', ')}`);
@@ -65,7 +65,8 @@ appendFileSync(join(target, 'cspell-words.txt'), `${names.join('\n')}\n`);
 // The change-request workflow runs the agent from the site itself.
 cpSync(resolve(starter, '../site_agent.py'), join(target, 'scripts/site_agent.py'));
 
-const { modules: _, ...config } = { ...details, theme, formKey: details.formKey ?? null, url: details.url ?? null, demo: details.demo ?? false };
+// `contact` (the client's own email and phone) is for Cameron only, never the site.
+const { modules: _, contact: __, ...config } = { heroNote: '', ...details, theme, formKey: details.formKey ?? null, url: details.url ?? null, demo: details.demo ?? false };
 const body = JSON.stringify(config, null, 2)
   .replace('"formKey": null', '"formKey": null as string | null')
   .replace('"url": null', '"url": null as string | null');

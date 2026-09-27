@@ -18,7 +18,7 @@ const formatDate = (date: Date) =>
 <Base title={site.name} description={site.description}>
   <main>
     <section class="hero">
-      <p class="hand-note">{site.suburb}, {site.city} · {site.heroNote}</p>
+      <p class="hand-note">{site.suburb}, {site.city}{site.heroNote && ` · ${site.heroNote}`}</p>
       <h1>{site.heroTitle}</h1>
       <p class="lede">{site.heroText}</p>
       <a class="button" href="#enquire">{site.enquiry.title}</a>
