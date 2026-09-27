@@ -7,6 +7,12 @@
   "heroTitle": "[PLACEHOLDER: headline]",
   "heroText": "[PLACEHOLDER: two sentences on what the business does and for whom]",
   "visitText": "[PLACEHOLDER: where to find the business]",
+  "address": "",
+  "phone": "",
+  "social": {
+    "instagram": "",
+    "facebook": ""
+  },
   "hours": [
     {
       "days": "[PLACEHOLDER: days]",

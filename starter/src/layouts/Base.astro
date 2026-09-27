@@ -3,6 +3,7 @@ import { site } from '../site.config';
 import { Image } from 'astro:assets';
 import { themes } from '../themes';
 import { photo } from '../lib/photos';
+import { mapLink, phoneLink, phoneText, socialLinks } from '../lib/contact';
 
 interface Props {
   title: string;
@@ -68,7 +69,16 @@ const hasJournal = Object.keys(import.meta.glob('../content/journal/**/*.md')).l
       </header>
       <slot />
       <footer class="footer">
-        <p class="sign">{site.name}</p>
+        <div class="footer-main">
+          <p class="sign">{site.name}</p>
+          {(phoneLink || site.address || socialLinks.length > 0) && (
+            <ul class="footer-links">
+              {phoneLink && <li><a href={phoneLink}>{phoneText}</a></li>}
+              {site.address && <li>{mapLink ? <a href={mapLink}>{site.address}</a> : site.address}</li>}
+              {socialLinks.map((link) => <li><a href={link.url}>{link.label}</a></li>)}
+            </ul>
+          )}
+        </div>
         {site.demo && <p class="demo">A demo site. Nothing here is real or for sale.</p>}
       </footer>
     </div>
@@ -245,6 +255,26 @@ const hasJournal = Object.keys(import.meta.glob('../content/journal/**/*.md')).l
     justify-content: space-between;
     align-items: end;
     gap: 1rem 2rem;
+  }
+
+  .footer-main {
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--ink-soft);
+  }
+
+  .footer-links a {
+    color: var(--ink);
+    font-weight: 600;
   }
 
   .sign {

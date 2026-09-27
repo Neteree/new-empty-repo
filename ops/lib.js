@@ -72,7 +72,9 @@ export function describeChange(change) {
     case 'form-key':
       return 'Connect the enquiry form';
     case 'photo':
-      return `New main photo: ${change.alt}`;
+      return change.gallery ? `Use gallery photo ${change.gallery} as the main photo` : `New main photo: ${change.alt}`;
+    case 'contact':
+      return `Contact details: ${['phone', 'address', 'instagram', 'facebook'].filter((key) => change[key] !== undefined).map((key) => `${key} ${change[key] || '(remove)'}`).join('; ')}`;
     case 'menu-add':
       return `Add “${change.name}” to the menu at ${change.price}`;
     case 'menu-price':

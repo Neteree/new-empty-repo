@@ -8,7 +8,9 @@
 //   hours          { hours: [{ days, times }] }        replace the opening hours
 //   form-key       { key }                             connect the enquiry form (the client's Web3Forms key)
 //   theme          { theme }                           switch the look (bold, classic, calm or warm; see src/themes.ts)
+//   contact        { phone?, address?, instagram?, facebook? }  public contact details ('' removes one)
 //   photo          { slot: 'hero', file, alt }         set the hero photo from an uploaded file
+//                  { slot: 'hero', gallery, alt? }     …or use a gallery photo (by file name)
 //   logo           { file }                            show a logo in the header instead of the name
 //   gallery-add    { photos?: [{ file, alt? }], folder? }  add photos (a folder adds every image in it)
 //   gallery-describe { file, alt }                     describe a gallery photo
@@ -135,6 +137,51 @@ function theme({ theme: name }) {
   return `The site now uses the ${wanted[0].toUpperCase()}${wanted.slice(1)} look.`;
 }
 
+// Handles, bare addresses and full links all become a full https link.
+export function socialUrl(value, site) {
+  const text = value.trim().replace(/^@/, '');
+  if (!text) return '';
+  const bad = () => needsPerson(`“${value}” isn’t ${site === 'instagram' ? 'an Instagram' : 'a Facebook'} link.`);
+  if (/\s/.test(text)) bad();
+  // A handle (letters, numbers, dots, dashes) or an address with a page on it.
+  const url = /^https?:\/\//i.test(text) ? text : text.includes('/') ? `https://${text}` : `https://www.${site}.com/${text}`;
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch {
+    bad();
+  }
+  const host = parsed.hostname.replace(/^(www|m)\./, '');
+  const known = host === `${site}.com` || (site === 'facebook' && host === 'fb.com');
+  if (!known || parsed.pathname.length < 2 || /^(instagram|facebook|fb)\.com$/i.test(parsed.pathname.slice(1))) bad();
+  parsed.protocol = 'https:';
+  return parsed.href.replace(/\/$/, '');
+}
+
+function contact({ phone, address, instagram, facebook }) {
+  const site = readJson(SITE_JSON);
+  const done = [];
+  if (phone !== undefined) {
+    const digits = phone.replace(/\D/g, '');
+    if (phone.trim() && (digits.length < 7 || digits.length > 15 || /[^\d\s()+-]/.test(phone.trim()))) needsPerson(`“${phone}” doesn’t look like a phone number.`);
+    site.phone = phone.trim();
+    done.push(site.phone ? `phone ${site.phone}` : 'phone removed');
+  }
+  if (address !== undefined) {
+    site.address = address.trim();
+    done.push(site.address ? `address ${site.address}` : 'address removed');
+  }
+  site.social = { instagram: '', facebook: '', ...site.social };
+  for (const [name, value] of [['instagram', instagram], ['facebook', facebook]]) {
+    if (value === undefined) continue;
+    site.social[name] = socialUrl(value, name);
+    done.push(site.social[name] ? `${name} ${site.social[name]}` : `${name} removed`);
+  }
+  if (!done.length) needsPerson('No contact details were given.');
+  writeJson(SITE_JSON, site);
+  return `Contact details: ${done.join('; ')}.`;
+}
+
 const IMAGE_TYPES = ['.jpg', '.jpeg', '.png', '.webp', '.avif'];
 const PLACEHOLDER_ALT = '[PLACEHOLDER: describe this photo for people who can’t see it]';
 let copies = 0;
@@ -149,14 +196,20 @@ function copyImage(file, prefix, types = IMAGE_TYPES) {
   return name;
 }
 
-function photo({ slot, file, alt }) {
+function photo({ slot, file, gallery, alt }) {
   if (slot !== 'hero') needsPerson(`The script only knows the hero photo, not “${slot}”.`);
-  if (!alt?.trim()) needsPerson('The photo needs a short description for people who can’t see it.');
-  const name = copyImage(file, 'hero');
   const site = readJson(SITE_JSON);
-  site.heroPhoto = { file: name, alt: alt.trim() };
+  if (gallery) {
+    const item = (site.gallery ?? []).find((photo) => photo.file === gallery);
+    if (!item) needsPerson(`There's no gallery photo called ${gallery}.`);
+    alt = alt?.trim() || item.alt;
+  }
+  // Without a description it gets a placeholder, so the checks stop it going live undescribed.
+  alt = alt?.trim() || PLACEHOLDER_ALT;
+  const name = gallery ?? copyImage(file, 'hero');
+  site.heroPhoto = { file: name, alt };
   writeJson(SITE_JSON, site);
-  return `The main photo is now ${name} (“${alt.trim()}”).`;
+  return `The main photo is now ${name}${alt === PLACEHOLDER_ALT ? ' (it still needs a description: see src/data/site.json)' : ` (“${alt}”)`}.`;
 }
 
 function logo({ file }) {
@@ -315,6 +368,7 @@ const handlers = {
   hours,
   'form-key': formKey,
   theme,
+  contact,
   photo,
   logo,
   'gallery-add': galleryAdd,

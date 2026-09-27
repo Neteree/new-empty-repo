@@ -12,6 +12,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { themes } from '../src/themes.ts';
+import { socialUrl } from './changes.js';
 
 const [input, target] = process.argv.slice(2);
 if (!input) {
@@ -52,6 +53,16 @@ const firstSentence = answers.about.match(/^.*?[.!?](\s|$)/)?.[0].trim() ?? answ
 let description = `${answers.name}, ${answers.suburb}, ${answers.city}. ${firstSentence}`;
 if (description.length > 160) description = `${description.slice(0, 157).replace(/\s+\S*$/, '')}…`;
 
+// Social links become full links; one that doesn't look right is left for Cameron to check.
+const social = {};
+for (const name of ['instagram', 'facebook']) {
+  try {
+    social[name] = socialUrl(answers[name] ?? '', name);
+  } catch {
+    social[name] = `[PLACEHOLDER: check the ${name} link; they wrote “${answers[name]}”]`;
+  }
+}
+
 const client = {
   name: answers.name,
   suburb: answers.suburb,
@@ -61,6 +72,10 @@ const client = {
   heroTitle: answers.headline || `[PLACEHOLDER: headline; ${answers.name} left it for us to suggest]`,
   heroText: answers.about,
   visitText: answers.visit,
+  address: answers.address ?? '',
+  // Only the number they chose to show on the site; contact.phone stays private.
+  phone: answers.sitePhone ?? '',
+  social,
   hours: answers.hours,
   enquiry: {
     title: 'Get in touch',

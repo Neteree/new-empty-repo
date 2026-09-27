@@ -53,13 +53,19 @@ if (item.kind === 'onboarding') {
   writeFileSync(email, item.email ?? JSON.stringify(item.answers));
   execFileSync('node', [join(starter, 'scripts/onboard.js'), email, site], { stdio: 'inherit' });
 
-  // Photos uploaded with the onboarding form go straight in: the logo, and the rest
+  // Photos uploaded with the onboarding form go straight in: the logo, the main photo, and the rest
   // into the gallery with the client's descriptions (blank ones get a placeholder, which the checks list).
   const logo = (item.files ?? []).find((file) => file.slot === 'logo');
-  const photos = (item.files ?? []).filter((file) => file.slot === 'photos');
+  // The one they picked as their main photo goes beside the headline instead of in the gallery.
+  const described = (item.files ?? [])
+    .filter((file) => file.slot === 'photos')
+    .map((photo, i) => ({ file: photo.path, alt: item.answers?.photoDescriptions?.[i] || undefined }));
+  const main = described[item.answers?.heroPhoto ?? -1];
+  const photos = described.filter((photo) => photo !== main);
   const changes = [
     ...(logo ? [{ type: 'logo', file: logo.path }] : []),
-    ...(photos.length ? [{ type: 'gallery-add', photos: photos.map((photo, i) => ({ file: photo.path, alt: item.answers?.photoDescriptions?.[i] || undefined })) }] : []),
+    ...(main ? [{ type: 'photo', slot: 'hero', file: main.file, alt: main.alt }] : []),
+    ...(photos.length ? [{ type: 'gallery-add', photos }] : []),
   ];
   if (changes.length) {
     const list = join(scratch, 'photos.json');

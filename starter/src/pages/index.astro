@@ -6,6 +6,7 @@ import EnquiryForm from '../components/EnquiryForm.svelte';
 import HeroArt from '../components/HeroArt.astro';
 import Gallery from '../components/Gallery.astro';
 import { photo } from '../lib/photos';
+import { mapLink, phoneLink, phoneText } from '../lib/contact';
 import { site } from '../site.config';
 
 // Add-on modules (menu and pre-order, booking, gallery…) each add a section
@@ -69,6 +70,12 @@ const formatDate = (date: Date) =>
         <div id="visit" class="visit">
           <h3>Find us</h3>
           <p class="intro">{site.visitText}</p>
+          {(phoneLink || mapLink) && (
+            <p class="contact-links">
+              {phoneLink && <a href={phoneLink}>{`Call\u00a0${phoneText}`}</a>}
+              {mapLink && <a href={mapLink}>Open in Google Maps</a>}
+            </p>
+          )}
           <dl class="hours">
             {site.hours.map((row) => (
               <div><dt>{row.days}</dt><dd>{row.times}</dd></div>
@@ -179,6 +186,18 @@ const formatDate = (date: Date) =>
 
   .visit .intro {
     margin: 0 0 1rem;
+  }
+
+  .contact-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.4rem;
+    margin: 0 0 1rem;
+  }
+
+  .contact-links a {
+    font-weight: 700;
+    color: var(--accent);
   }
 
   .hours {
