@@ -22,7 +22,7 @@ A side business building websites for local New Zealand businesses, with AI agen
 ## Starter plan
 
 - **Base starter** (`starter/`) for every client: config, layout, light and dark mode, optional logo, hero photo (or theme-coloured art until there is one), gallery, news (journal), enquiry form (Web3Forms) with address and hours beside it, 404 page, checks, and the new-client script.
-- **Photos:** until the intake Worker is live, clients email them and Cameron (or Claude) applies `logo` and `gallery-add` changes. Once it's live, onboarding has logo and photo upload buttons, and approving an onboarding adds them automatically (descriptions still needed; the checks list them).
+- **Photos:** onboarding has logo and photo upload buttons (through the intake Worker), and approving an onboarding adds them automatically (descriptions still needed; the checks list them). Photos emailed later go in with `logo` and `gallery-add` changes.
 - **Add-on modules** (`modules/<name>/`) per client type: food is done (a plain menu grouped by category; weekend-style pre-ordering is optional, `"menu": { "preOrder": true }` in the client JSON or `&preorder=1` in the onboarding link); services (booking), shops (products, Stripe) and trades (gallery, quotes) are still to build. A module adds `src/modules/<name>/Section.astro` (a home page section) and optionally `NavItem.astro` (a menu item); the starter picks them up automatically.
 - Create a client site: `cd starter && node scripts/onboard.js <onboarding-email> <folder>` from onboarding answers, or `node scripts/new-client.js clients/<client>.json <folder>` from a client JSON. The client JSON lists its `modules`. See `clients/example.json` (no modules) and `clients/bakery.json` (food).
 - **Looks:** four presets in `starter/src/themes.ts` (bold, classic, calm, warm), picked with `theme` in the client JSON. Colours are CSS variables (`--accent`, `--highlight`, `--paper`, `--ink`…); modules must use them, never hard-coded colours.
@@ -59,7 +59,7 @@ The GitHub side (issue form, `approved` label, `change-request` workflow opening
 
 - `starter/`: base starter and new-client script. `modules/`: add-on modules (`food/`).
 - `ops/`: the request queue scripts (intake for emails, pull for the intake Worker, confirm, queue, approve; shared sorting in `sort.js`).
-- `worker/`: the Cloudflare intake Worker (form answers and photo uploads into R2). Tested and deployed by `.github/workflows/worker.yml`; setup steps in `worker/README.md`.
+- `worker/`: the Cloudflare intake Worker (form answers and photo uploads into R2). Live at https://cameron-belcher-intake.neteree.workers.dev; tested and deployed by `.github/workflows/worker.yml` on every push to `main`; setup steps in `worker/README.md`. `ops/pull.js` needs `INTAKE_URL` and `INTAKE_TOKEN` in `.env`.
 - `bakery-site/`: the Early Crust demo (portfolio piece). New client sites come from `starter/`, not from here.
 - `floristry-site/`: Astro demos (pastel `index.html`, dark `still-life.html`).
 - `demo-designs/`: single-file homepage designs (café, plumber, barber, physio) used as portfolio screenshots. Starting points for real clients.
@@ -75,7 +75,6 @@ The GitHub side (issue form, `approved` label, `change-request` workflow opening
 - **Gemini API key** for `site_agent.py` and the other agents (paid key for client work, in `.env`).
 - **Custom domain** for `cameron-belcher-web` (costs money). The site is live at https://cameron-belcher-web.pages.dev.
 - **Stripe account** (payment links and the webhook that puts a paid job live).
-- **Intake Worker setup** (R2 is on and the bucket exists; still needed: an API token and two GitHub secrets): see `worker/README.md`. Built and tested; not deployed yet.
 - **Email service** for sending the confirmation emails (and receiving direct emails): needs a custom domain for Cloudflare Email Routing.
 - **Per client repo, before change requests work:** add the `GEMINI_API_KEY` secret (only for non-wording requests), create an `approved` label, and turn on Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests".
 
