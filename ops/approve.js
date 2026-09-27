@@ -50,8 +50,22 @@ if (item.kind === 'onboarding') {
     process.exit(1);
   }
   const email = join(scratch, 'onboarding.txt');
-  writeFileSync(email, item.email);
+  writeFileSync(email, item.email ?? JSON.stringify(item.answers));
   execFileSync('node', [join(starter, 'scripts/onboard.js'), email, site], { stdio: 'inherit' });
+
+  // Photos uploaded with the onboarding form go straight in: the logo, and the rest
+  // into the gallery (each still needs a description; the checks list them).
+  const logo = (item.files ?? []).find((file) => file.slot === 'logo');
+  const photos = (item.files ?? []).filter((file) => file.slot === 'photos');
+  const changes = [
+    ...(logo ? [{ type: 'logo', file: logo.path }] : []),
+    ...(photos.length ? [{ type: 'gallery-add', photos: photos.map((photo) => ({ file: photo.path })) }] : []),
+  ];
+  if (changes.length) {
+    const list = join(scratch, 'photos.json');
+    writeFileSync(list, JSON.stringify(changes));
+    process.stdout.write(execFileSync('node', ['scripts/apply-changes.js', list], { cwd: site, encoding: 'utf8' }));
+  }
 } else {
   // 0 is fine for free work (family, testimonial deals); leaving it out isn't.
   const price = Number(option('--price'));

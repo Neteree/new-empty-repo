@@ -1,0 +1,15 @@
+# Cloudflare Worker for form submissions and photo uploads. Deployed by
+# .github/workflows/worker.yml; see worker/README.md for the one-time setup.
+name = "cameron-belcher-intake"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+# Sites allowed to send forms here (the live site and local testing).
+[vars]
+ALLOWED_ORIGINS = "https://cameron-belcher-web.pages.dev,http://localhost:4321"
+
+[[r2_buckets]]
+binding = "STORE"
+bucket_name = "cameron-belcher-intake"
+
+# ADMIN_TOKEN is a secret (set by the deploy workflow), never written here.

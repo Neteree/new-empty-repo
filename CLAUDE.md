@@ -22,7 +22,7 @@ A side business building websites for local New Zealand businesses, with AI agen
 ## Starter plan
 
 - **Base starter** (`starter/`) for every client: config, layout, light and dark mode, optional logo, hero photo (or theme-coloured art until there is one), gallery, news (journal), enquiry form (Web3Forms) with address and hours beside it, 404 page, checks, and the new-client script.
-- **Photos for now:** clients email them; Cameron (or Claude) applies `logo` and `gallery-add` changes. Direct uploads with separate logo and photo buttons come with the Cloudflare build (a Worker and R2 storage), which can also replace Web3Forms and feed the queue directly.
+- **Photos:** until the intake Worker is live, clients email them and Cameron (or Claude) applies `logo` and `gallery-add` changes. Once it's live, onboarding has logo and photo upload buttons, and approving an onboarding adds them automatically (descriptions still needed; the checks list them).
 - **Add-on modules** (`modules/<name>/`) per client type: food is done (a plain menu grouped by category; weekend-style pre-ordering is optional, `"menu": { "preOrder": true }` in the client JSON or `&preorder=1` in the onboarding link); services (booking), shops (products, Stripe) and trades (gallery, quotes) are still to build. A module adds `src/modules/<name>/Section.astro` (a home page section) and optionally `NavItem.astro` (a menu item); the starter picks them up automatically.
 - Create a client site: `cd starter && node scripts/onboard.js <onboarding-email> <folder>` from onboarding answers, or `node scripts/new-client.js clients/<client>.json <folder>` from a client JSON. The client JSON lists its `modules`. See `clients/example.json` (no modules) and `clients/bakery.json` (food).
 - **Looks:** four presets in `starter/src/themes.ts` (bold, classic, calm, warm), picked with `theme` in the client JSON. Colours are CSS variables (`--accent`, `--highlight`, `--paper`, `--ink`…); modules must use them, never hard-coded colours.
@@ -45,7 +45,7 @@ A side business building websites for local New Zealand businesses, with AI agen
 
 One pipeline for new clients and changes:
 
-1. Request: an email, the contact form, or `request.html` on Cameron's site (clients list their changes; texts get a reply with the link). **Built**; emails still have to be saved and fed in by hand until email receiving is set up.
+1. Request: an email, the contact form, or `request.html` on Cameron's site (clients list their changes; texts get a reply with the link). **Built.** With `intakeUrl` set, the site's forms (and onboarding photos) go to the intake Worker and `node ops/pull.js` brings them into the queue, with a Web3Forms heads-up email; without it they arrive by Web3Forms email and go in with `ops/intake.js`.
 2. `node ops/intake.js <email>` sorts it into the queue (`ops/queue/`, not committed): new enquiry, onboarding answers, or a change request from a known client (matched on the saved `contact.email` in `starter/clients/`). Change requests wait for the client to confirm from their saved address (the email is written to `ops/outbox/` until an email service sends it; `ops/confirm.js` marks it confirmed). Unknown addresses and direct emails failing SPF/DKIM are flagged, never confirmed. **Built.** `node ops/queue.js` lists everything.
 3. **Cameron approves** and sets the price (small changes: fixed $20; `--price 0` for free family or testimonial work): `node ops/approve.js <id> --price 20 --site <folder>` (or `--close`).
 4. New clients fill in the onboarding form (tested for real end to end) (`onboarding.html` on Cameron's site, linked privately, with agreed add-ons in the link, e.g. `?modules=food`). `starter/scripts/onboard.js` turns the emailed answers into the client JSON and site. **Built.** Blank headlines stay `[PLACEHOLDER]` for Cameron or AI copy drafting. A real client's site stays blocked until it has their own Web3Forms key (create one at web3forms.com with the client's email; they forward the key; apply a `form-key` change) and, with the food module, their real menu (a `menu-replace` change).
@@ -58,7 +58,8 @@ The GitHub side (issue form, `approved` label, `change-request` workflow opening
 ## Repo layout
 
 - `starter/`: base starter and new-client script. `modules/`: add-on modules (`food/`).
-- `ops/`: the request queue scripts (intake, confirm, queue, approve).
+- `ops/`: the request queue scripts (intake for emails, pull for the intake Worker, confirm, queue, approve; shared sorting in `sort.js`).
+- `worker/`: the Cloudflare intake Worker (form answers and photo uploads into R2). Tested and deployed by `.github/workflows/worker.yml`; setup steps in `worker/README.md`.
 - `bakery-site/`: the Early Crust demo (portfolio piece). New client sites come from `starter/`, not from here.
 - `floristry-site/`: Astro demos (pastel `index.html`, dark `still-life.html`).
 - `demo-designs/`: single-file homepage designs (café, plumber, barber, physio) used as portfolio screenshots. Starting points for real clients.
@@ -74,7 +75,8 @@ The GitHub side (issue form, `approved` label, `change-request` workflow opening
 - **Gemini API key** for `site_agent.py` and the other agents (paid key for client work, in `.env`).
 - **Custom domain** for `cameron-belcher-web` (costs money). The site is live at https://cameron-belcher-web.pages.dev.
 - **Stripe account** (payment links and the webhook that puts a paid job live).
-- **Email service** for receiving requests into `ops/intake.js` and sending the confirmation emails (e.g. Cloudflare Email Routing and Workers, free).
+- **Intake Worker setup** (R2, an API token, three GitHub secrets): see `worker/README.md`. Built and tested; not deployed yet.
+- **Email service** for sending the confirmation emails (and receiving direct emails): needs a custom domain for Cloudflare Email Routing.
 - **Per client repo, before change requests work:** add the `GEMINI_API_KEY` secret (only for non-wording requests), create an `approved` label, and turn on Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests".
 
 ## Next steps
