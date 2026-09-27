@@ -4,7 +4,7 @@
 //
 // Copies the starter (without build output or installed packages), adds each
 // module listed in the client's "modules" (from ../modules/<name>/), writes
-// the client's details into src/site.config.ts, and names the package after
+// the client's details into src/data/site.json, and names the package after
 // the folder. Colours, fonts and any module data (e.g. the food menu) are
 // still the starter's: edit those next.
 import { appendFileSync, cpSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -66,14 +66,16 @@ appendFileSync(join(target, 'cspell-words.txt'), `${names.join('\n')}\n`);
 cpSync(resolve(starter, '../site_agent.py'), join(target, 'scripts/site_agent.py'));
 
 // `contact` (the client's own email and phone) is for Cameron only, never the site.
-const { modules: _, contact: __, ...config } = { heroNote: '', ...details, theme, formKey: details.formKey ?? null, url: details.url ?? null, demo: details.demo ?? false };
-const body = JSON.stringify(config, null, 2)
-  .replace('"formKey": null', '"formKey": null as string | null')
-  .replace('"url": null', '"url": null as string | null');
-writeFileSync(
-  join(target, 'src/site.config.ts'),
-  `// Everything that changes from one client to the next. Never invent details:\n// leave [PLACEHOLDER: ...] and ask.\n\nexport const site = ${body};\n`,
-);
+const { modules: _, contact: __, ...config } = {
+  heroNote: '',
+  heroPhoto: null,
+  ...details,
+  theme,
+  formKey: details.formKey ?? null,
+  url: details.url ?? null,
+  demo: details.demo ?? false,
+};
+writeFileSync(join(target, 'src/data/site.json'), `${JSON.stringify(config, null, 2)}\n`);
 
 const pkgPath = join(target, 'package.json');
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));

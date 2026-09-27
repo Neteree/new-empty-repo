@@ -9,7 +9,8 @@
 // 3. Every page, on a phone (390px) and a desktop (1440px): no sideways
 //    scrolling, no broken images or files, no script errors, and every link
 //    on the site points at a page and section that exist.
-// 4. Forms: sending an empty form shows errors instead of sending.
+// 4. Forms: sending an empty form (or pressing Next on step one) shows errors
+//    instead of sending.
 // 5. No [PLACEHOLDER: ...] text is left on any page.
 // 6. Accessibility in light and dark mode (axe-core): colour contrast, labels,
 //    headings and other WCAG AA basics.
@@ -138,7 +139,9 @@ for (const page of pages) {
         const onRequest = (request) => request.method() === 'POST' && sent.push(request.url());
         tab.on('request', onRequest);
         await form.scrollIntoViewIfNeeded();
-        await form.locator('[type=submit]').first().click();
+        // A multi-step form starts with Next rather than a submit button.
+        const button = form.locator('[type=submit]:visible, button:visible:text-matches("^(Next|Continue)$", "i")').first();
+        await button.click();
         await tab.waitForTimeout(300);
         tab.off('request', onRequest);
         const flagged = await tab.locator('form [aria-invalid="true"], form :invalid').count();

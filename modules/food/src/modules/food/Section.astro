@@ -11,6 +11,6 @@ import { site } from '../../site.config';
     <h2>{section.title}</h2>
     <p class="intro">{section.intro}</p>
   </div>
-  {demoMenu && !site.demo && <p class="intro">[PLACEHOLDER: the client's real menu goes in src/modules/food/menu.ts]</p>}
+  {demoMenu && !site.demo && <p class="intro">[PLACEHOLDER: the client's real menu goes in src/modules/food/menu.json]</p>}
   <PreOrder client:load />
 </section>

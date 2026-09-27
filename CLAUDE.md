@@ -6,13 +6,13 @@ A side business building websites for local New Zealand businesses, with AI agen
 
 - **Scripts before AI (most important):** if a task is deterministic, automate it with a plain script or workflow, never an agent. AI costs money on every run, so use it only where real judgement is needed, and always try the scripted path first (as the change-request workflow does). When building anything new, say which parts are scripted and which, if any, need AI and why.
 
-- **Data-driven sites:** everything a client might change (wording, prices, hours, photos, menu items, news) lives in data files (`site.config.ts`, module data, Markdown), never mixed into page code, so scripts can make most changes.
+- **Data-driven sites:** everything a client might change (wording, prices, hours, photos, menu items, news) lives in data files (`src/data/site.json`, module JSON such as `menu.json`, Markdown posts, `src/assets/photos/`), never mixed into page code, so scripts can make most changes. `.ts` files next to the JSON only hold types.
 - **AI where it earns its keep:** the build and routine changes are scripted. AI is for judgement and writing: drafting a client's headline and copy from their onboarding answers (Cameron reviews), working out vague requests, and one-off work like new sections. When a kind of request keeps needing AI, write a script for it.
 - **Payments:** Stripe (payment links; a paid invoice triggers go-live), with bank transfer as a manual fallback.
 - **Stack:** Astro 7 with Svelte 5 islands, static output. Svelte 5 runes syntax only (`$state`, `$derived`, `$props`). Plain Astro everywhere else, with no JavaScript. SvelteKit only for a client who needs a real web app.
 - **Shops:** a few products means Stripe Checkout. A real catalogue means Shopify behind an Astro front end. Not a focus yet.
 - **Not WordPress,** unless a client already runs on it or needs its plugins.
-- **Content:** client details live in `src/site.config.ts`, lists in `src/data/*.ts`, and journal posts in Markdown content collections.
+- **Content:** client details live in `src/data/site.json` (typed by `src/site.config.ts`), module lists in their JSON, and news posts in Markdown content collections.
 - **Time zone:** all date logic uses the client's time zone (`Pacific/Auckland`), never UTC.
 - **Honesty:** never invent facts about a client (prices, hours, allergens, suppliers). Use `[PLACEHOLDER: ...]` and ask.
 
@@ -45,7 +45,7 @@ One pipeline for new clients and changes:
 2. A script sorts it: new or existing client (matched against the client list). Existing clients confirm by clicking a link sent to their saved email, so nobody can make requests as someone else. **Planned.**
 3. **Cameron approves** and sets the price (small changes: fixed $20).
 4. New clients fill in the onboarding form (`onboarding.html` on Cameron's site, linked privately, with agreed add-ons in the link, e.g. `?modules=food`). `starter/scripts/onboard.js` turns the emailed answers into the client JSON and site. **Built.** Blank headlines stay `[PLACEHOLDER]` for Cameron or AI copy drafting.
-5. Build: new sites by script; changes by `scripts/apply-request.js` (wording swaps, built) or more change scripts (photos, menu items, news: **planned**), and the agent only for the rest.
+5. Build: new sites by script; changes by `scripts/apply-changes.js` with a list of changes (**built**: wording swaps, opening hours, hero photo, news posts, menu add/remove/price/sold out; see `scripts/changes.js`). Anything else comes back as "needs a person", for Cameron or the agent.
 6. Checks and a Cloudflare Pages preview. **Cameron checks it first**, then the client sees it. Tweaks go back to step 5 (limit the free rounds).
 7. The client pays the Stripe link; payment puts it live. **Planned.**
 
@@ -74,7 +74,6 @@ The GitHub side (issue form, `approved` label, `change-request` workflow opening
 
 ## Next steps
 
-1. Change scripts for photos, menu items and news posts (stage 3 of the client flow).
-2. Request intake: sort new vs existing clients and email confirmation (stage 4).
-3. Switch on the parts that need accounts: receiving email, Stripe, automatic repo and Cloudflare setup, AI copy drafting (Gemini).
-4. Find the first 3 paying clients in one niche.
+1. Request intake: sort new vs existing clients and email confirmation (stage 4).
+2. Switch on the parts that need accounts: receiving email, Stripe, automatic repo and Cloudflare setup, AI copy drafting (Gemini).
+3. Find the first 3 paying clients in one niche.

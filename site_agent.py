@@ -42,7 +42,7 @@ def list_files() -> str:
 
 @tool
 def read_file(path: str) -> str:
-    """Read a source file, e.g. "src/site.config.ts"."""
+    """Read a source file, e.g. "src/data/site.json"."""
     return _in_src(path).read_text()
 
 
@@ -69,8 +69,9 @@ def build_site() -> str:
 
 SYSTEM_PROMPT = """You maintain a small-business website built with Astro 7 and Svelte 5 (runes syntax only).
 Where things live (sites made from the starter):
-- src/site.config.ts: business name, location, blurbs, opening hours and enquiry options.
-- src/modules/<name>/: add-on modules, e.g. src/modules/food/menu.ts for the menu (each item's name, description, price, tags, days, and art).
+- src/data/site.json: business name, location, blurbs, hero photo, opening hours and enquiry options (types in src/site.config.ts).
+- src/modules/<name>/: add-on modules, e.g. src/modules/food/menu.json for the menu (each item's name, description, price, tags, days, and optional art).
+- Prefer editing these data files over page code; keep the JSON valid.
 - src/content/journal/: news posts in Markdown (title, date, excerpt).
 Older demo sites may differ: call list_files first if unsure.
 Rules:

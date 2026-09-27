@@ -60,7 +60,7 @@
         {@const qty = order.quantities[bake.id] ?? 0}
         <li class="item" class:unavailable={status !== 'available'}>
           <div class="art">
-            <BakeArt art={bake.art} />
+            {#if bake.art}<BakeArt art={bake.art} />{/if}
             {#if bake.note && status === 'available'}<span class="hand">{bake.note}</span>{/if}
             {#if status === 'sold-out'}<span class="stamp">Sold out</span>{/if}
           </div>
