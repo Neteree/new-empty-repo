@@ -1,0 +1,33 @@
+{
+  "name": "Art Angel Florist",
+  "suburb": "Green Bay",
+  "city": "Auckland",
+  "description": "Art Angel Florist, Green Bay, Auckland. Fresh flowers and hand-tied bouquets for birthdays, weddings and every day.",
+  "heroNote": "Locally grown stems, arranged the same day.",
+  "heroTitle": "Flowers picked for the moment.",
+  "heroText": "Fresh flowers and hand-tied bouquets for birthdays, weddings and every day. Order in store or send us a message.",
+  "visitText": "24 Test Road, Mt Eden, Auckland. Parking out front.",
+  "hours": [
+    {
+      "days": "Monday to Friday",
+      "times": "9am - 5pm"
+    }
+  ],
+  "enquiry": {
+    "title": "Get in touch",
+    "intro": "Send us a message and we’ll get back to you.",
+    "options": [
+      "A custom bouquet",
+      "Wedding flowers",
+      "Delivery",
+      "Something else"
+    ]
+  },
+  "theme": "calm",
+  "modules": [],
+  "contact": {
+    "email": "neteree@gmail.com",
+    "phone": ""
+  },
+  "demo": false
+}
