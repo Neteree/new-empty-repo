@@ -1,11 +1,12 @@
 {
   "demoMenu": true,
   "section": {
-    "note": "Weekend of 26–27 September",
-    "title": "This weekend’s bake",
-    "intro": "Choose your day, add what you’d like, and pick it up warm. Pre-orders close Friday at 2pm."
+    "note": "Menu",
+    "title": "What’s on the menu",
+    "intro": ""
   },
-  "weekend": {
+  "preOrder": {
+    "enabled": false,
     "label": "Weekend of 26–27 September",
     "orderBy": "Friday at 2pm",
     "days": [

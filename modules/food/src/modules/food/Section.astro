@@ -1,16 +1,136 @@
 ---
-// Menu and pre-order section, added to the home page by the starter.
+// Menu section, added to the home page by the starter. With pre-ordering on
+// (menu.json preOrder.enabled) it's the interactive order form; otherwise a
+// plain menu with no JavaScript, grouped by each item's category.
 import PreOrder from './PreOrder.svelte';
-import { demoMenu, section } from './menu';
+import { bakes, demoMenu, preOrder, section } from './menu';
 import { site } from '../../site.config';
+
+const money = (n: number) => `$${n.toFixed(2)}`;
+const tagLabel = { vegan: 'Vegan', 'gluten-free': 'Gluten-free' };
+
+// Categories in the order they first appear; items without one go first.
+const groups = new Map<string, typeof bakes>();
+for (const item of bakes) {
+  const key = item.category ?? '';
+  groups.set(key, [...(groups.get(key) ?? []), item]);
+}
 ---
 
-<section id="order" class="section">
+<section id={preOrder.enabled ? 'order' : 'menu'} class="section">
   <div class="section-head">
-    <p class="hand-note">{section.note}</p>
+    <p class="hand-note">{preOrder.enabled ? preOrder.label : section.note}</p>
     <h2>{section.title}</h2>
-    <p class="intro">{section.intro}</p>
+    {section.intro && <p class="intro">{section.intro}</p>}
   </div>
   {demoMenu && !site.demo && <p class="intro">[PLACEHOLDER: the client's real menu goes in src/modules/food/menu.json]</p>}
-  <PreOrder client:load />
+  {preOrder.enabled ? (
+    <PreOrder client:load />
+  ) : (
+    <div class="menu">
+      {[...groups].map(([category, items]) => (
+        <div class="group">
+          {category && <h3>{category}</h3>}
+          <ul>
+            {items.map((item) => (
+              <li class:list={['item', { 'sold-out': item.soldOut?.length }]}>
+                <div class="line">
+                  <span class="name">{item.name}</span>
+                  <span class="dots" aria-hidden="true"></span>
+                  <span class="price">{money(item.price)}</span>
+                </div>
+                <p class="description">{item.description}</p>
+                {(item.tags.length > 0 || item.soldOut?.length) && (
+                  <p class="tags">
+                    {item.tags.map((tag) => <span class="tag">{tagLabel[tag]}</span>)}
+                    {item.soldOut?.length ? <span class="tag out">Sold out</span> : null}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  )}
 </section>
+
+<style>
+  .menu {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+    gap: 2rem 3rem;
+  }
+
+  .group h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 2px solid var(--ink);
+  }
+
+  .item {
+    display: grid;
+    gap: 0.25rem;
+    padding-block: 0.9rem;
+    border-bottom: 1.5px dashed var(--rule);
+  }
+
+  .line {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .name {
+    font-weight: 700;
+  }
+
+  .dots {
+    flex: 1;
+    border-bottom: 2px dotted var(--rule);
+    transform: translateY(-0.25rem);
+  }
+
+  .price {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .description {
+    margin: 0;
+    color: var(--ink-soft);
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0.2rem 0 0;
+  }
+
+  .tag {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.05rem 0.5rem;
+    border-radius: 999px;
+    background: var(--highlight);
+    color: var(--on-highlight);
+  }
+
+  .tag.out {
+    background: none;
+    border: 1px solid var(--ink-soft);
+    color: var(--ink-soft);
+  }
+
+  .sold-out .name,
+  .sold-out .price {
+    color: var(--ink-soft);
+  }
+</style>

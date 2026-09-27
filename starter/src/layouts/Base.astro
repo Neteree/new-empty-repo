@@ -53,10 +53,10 @@ const hasJournal = Object.keys(import.meta.glob('../content/journal/**/*.md')).l
           <span class="mark" aria-hidden="true"></span>{site.name}
         </a>
         <nav aria-label="Main">
+          {moduleNav.map(({ default: NavItem }) => <NavItem home={home} />)}
           {hasJournal && <a href={`${home}#journal`}>News</a>}
           <a href={`${home}#enquire`}>{site.enquiry.title}</a>
           <a href={`${home}#visit`}>Visit</a>
-          {moduleNav.map(({ default: NavItem }) => <NavItem home={home} />)}
         </nav>
       </header>
       <slot />

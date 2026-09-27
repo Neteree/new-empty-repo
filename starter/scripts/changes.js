@@ -6,9 +6,11 @@
 // A change is an object with a `type`:
 //   text           { current, new }                    swap wording (must match exactly once)
 //   hours          { hours: [{ days, times }] }        replace the opening hours
+//   form-key       { key }                             connect the enquiry form (the client's Web3Forms key)
 //   photo          { slot: 'hero', file, alt }         set the hero photo from an uploaded file
 //   news           { title, excerpt, body, date? }     add a news post (date defaults to today, NZ time)
-//   menu-add       { name, description, price, tags?, days? }
+//   menu-replace   { items: [{ name, description, price, tags?, category? }] }  the client's full real menu
+//   menu-add       { name, description, price, tags?, days?, category? }
 //   menu-remove    { name }
 //   menu-price     { name, price }
 //   menu-sold-out  { name, soldOut: true|false, days? }  days default to every menu day
@@ -107,6 +109,15 @@ function hours({ hours: rows }) {
   return `Opening hours are now: ${clean.map((row) => `${row.days} ${row.times}`).join('; ')}.`;
 }
 
+function formKey({ key }) {
+  // Web3Forms access keys look like a UUID.
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(key?.trim() ?? '')) needsPerson('That doesn’t look like a Web3Forms access key.');
+  const site = readJson(SITE_JSON);
+  site.formKey = key.trim();
+  writeJson(SITE_JSON, site);
+  return 'The enquiry form is connected.';
+}
+
 function photo({ slot, file, alt }) {
   if (slot !== 'hero') needsPerson(`The script only knows the hero photo, not “${slot}”.`);
   if (!file || !existsSync(file)) needsPerson('The photo file is missing.');
@@ -152,18 +163,38 @@ function price(value) {
 const TAGS = ['vegan', 'gluten-free'];
 
 const menuChanges = {
-  'menu-add'({ name, description, price: cost, tags = [], days }) {
+  'menu-replace'({ items }) {
+    const data = menu();
+    if (!items?.length) needsPerson('The new menu has no items.');
+    const before = data.items;
+    data.items = [];
+    writeJson(MENU_JSON, data);
+    try {
+      for (const item of items) menuChanges['menu-add'](item);
+    } catch (error) {
+      data.items = before;
+      writeJson(MENU_JSON, data);
+      throw error;
+    }
+    const done = menu();
+    done.demoMenu = false;
+    writeJson(MENU_JSON, done);
+    return `The menu now has ${items.length} item${items.length === 1 ? '' : 's'}.`;
+  },
+  'menu-add'({ name, description, price: cost, tags = [], days, category }) {
     const data = menu();
     if (!name?.trim() || !description?.trim()) needsPerson('A new menu item needs a name and a description.');
     if (data.items.some((item) => item.name.toLowerCase() === name.trim().toLowerCase())) needsPerson(`“${name}” is already on the menu.`);
-    const allDays = data.weekend.days.map((day) => day.id);
+    const allDays = data.preOrder.days.map((day) => day.id);
     const itemDays = days ?? allDays;
     if (!itemDays.length || itemDays.some((day) => !allDays.includes(day))) needsPerson(`Days must be some of: ${allDays.join(', ')}.`);
     const badTags = tags.filter((tag) => !TAGS.includes(tag));
     if (badTags.length) needsPerson(`Unknown tags: ${badTags.join(', ')}.`);
     let id = slugify(name);
     while (data.items.some((item) => item.id === id)) id += '-2';
-    data.items.push({ id, name: name.trim(), description: description.trim(), price: price(cost), tags, days: itemDays });
+    const item = { id, name: name.trim(), description: description.trim(), price: price(cost), tags, days: itemDays };
+    if (category?.trim()) item.category = category.trim();
+    data.items.push(item);
     writeJson(MENU_JSON, data);
     return `Added “${name.trim()}” at $${price(cost).toFixed(2)}.`;
   },
@@ -190,12 +221,12 @@ const menuChanges = {
     else item.soldOut = (item.soldOut ?? []).filter((day) => !target.includes(day));
     if (!item.soldOut.length) delete item.soldOut;
     writeJson(MENU_JSON, data);
-    const labels = target.map((day) => data.weekend.days.find((d) => d.id === day)?.label ?? day);
+    const labels = target.map((day) => data.preOrder.days.find((d) => d.id === day)?.label ?? day);
     return `“${item.name}” is ${soldOut ? 'sold out' : 'back on'} for ${labels.join(', ')}.`;
   },
 };
 
-const handlers = { text, hours, photo, news, ...menuChanges };
+const handlers = { text, hours, 'form-key': formKey, photo, news, ...menuChanges };
 export const changeTypes = Object.keys(handlers);
 
 /**

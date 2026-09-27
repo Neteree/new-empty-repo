@@ -69,6 +69,7 @@ const client = {
   },
   theme: answers.theme,
   modules: answers.modules ?? [],
+  ...(answers.preOrder ? { menu: { preOrder: true } } : {}),
   contact: answers.contact ?? {},
   demo: false,
 };

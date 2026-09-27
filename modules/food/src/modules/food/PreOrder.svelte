@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import BakeArt from './BakeArt.svelte';
-  import { bakes, weekend, MAX_EACH, type Bake, type Tag } from './menu';
+  import { bakes, preOrder, MAX_EACH, type Bake, type Tag } from './menu';
   import { order, restoreOnce } from './order.svelte';
 
   onMount(restoreOnce);
@@ -16,7 +16,7 @@
   ];
 
   const shown = $derived(bakes.filter((bake) => filter === 'all' || bake.tags.includes(filter)));
-  const dayLabel = $derived(weekend.days.find((d) => d.id === order.day)?.label ?? '');
+  const dayLabel = $derived(preOrder.days.find((d) => d.id === order.day)?.label ?? '');
 
   function availability(bake: Bake): 'available' | 'not-today' | 'sold-out' {
     if (!bake.days.includes(order.day)) return 'not-today';
@@ -31,7 +31,7 @@
   <div class="controls">
     <fieldset class="days">
       <legend class="visually-hidden">Pickup day</legend>
-      {#each weekend.days as day (day.id)}
+      {#each preOrder.days as day (day.id)}
         <label class="day" class:active={order.day === day.id}>
           <input
             type="radio"
@@ -91,7 +91,7 @@
           </div>
         </li>
       {:else}
-        <li class="empty-filter">Nothing matches that filter this weekend.</li>
+        <li class="empty-filter">Nothing matches that filter this preOrder.</li>
       {/each}
     </ul>
 
@@ -117,11 +117,11 @@
         <label class="pickup" for="pickup">
           Pickup on {dayLabel}
           <select id="pickup" bind:value={order.pickup} onchange={() => order.save()}>
-            {#each weekend.pickupTimes as time (time)}<option value={time}>{time}</option>{/each}
+            {#each preOrder.pickupTimes as time (time)}<option value={time}>{time}</option>{/each}
           </select>
         </label>
         <p class="total"><span>Total</span><span>{money(order.total)}</span></p>
-        <p class="fine">Order by {weekend.orderBy}. Prices include GST.</p>
+        <p class="fine">Order by {preOrder.orderBy}. Prices include GST.</p>
         <button class="button" type="button" onclick={() => (placed = true)}>Place pre-order</button>
       {/if}
     </aside>

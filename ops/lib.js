@@ -53,6 +53,10 @@ export function describeChange(change) {
       return `Opening hours: ${change.hours.map((row) => `${row.days} ${row.times}`).join('; ')}`;
     case 'news':
       return `Post news: “${change.title}”`;
+    case 'menu-replace':
+      return `Replace the menu with ${change.items.length} items`;
+    case 'form-key':
+      return 'Connect the enquiry form';
     case 'photo':
       return `New main photo: ${change.alt}`;
     case 'menu-add':

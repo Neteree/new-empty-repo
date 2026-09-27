@@ -1,13 +1,13 @@
-// The weekend pre-order, shared by every island on the page (the header badge
-// and the order form import this same module instance).
-import { bakes, type Day } from './menu';
+// The pre-order (when switched on in menu.json), shared by every island on the
+// page (the header badge and the order form import this same module instance).
+import { bakes, preOrder, type Day } from './menu';
 import { site } from '../../site.config';
 
 const STORAGE_KEY = `${site.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-order`;
 
 class Order {
-  day = $state<Day>('sat');
-  pickup = $state('7–9am');
+  day = $state<Day>(preOrder.days[0]?.id ?? '');
+  pickup = $state(preOrder.pickupTimes[0] ?? '');
   quantities = $state<Record<string, number>>({});
 
   lines = $derived(
@@ -22,7 +22,7 @@ class Order {
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null');
       if (saved) {
-        this.day = saved.day === 'sun' ? 'sun' : 'sat';
+        if (preOrder.days.some((d) => d.id === saved.day)) this.day = saved.day;
         this.pickup = typeof saved.pickup === 'string' ? saved.pickup : this.pickup;
         this.quantities = saved.quantities ?? {};
       }
