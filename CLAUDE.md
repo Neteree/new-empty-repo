@@ -66,6 +66,17 @@ The GitHub side (issue form, `approved` label, `change-request` workflow opening
 - `flower-shop/`: SvelteKit shop demo (`npm run build:preview` makes a single-file preview).
 - `site_agent.py`, `main_gemini.py`, `main.py`: Strands agents. Keys go in `.env` (see `.env.example`); `.env` is gitignored and isn't kept between sessions.
 
+## Clients
+
+- **Art Angel Florist** (first client): `starter/clients/art-angel-florist.json`, site in the private repo `Neteree/art-angel-florist` (base starter, Calm look, 6 gallery photos). Built from test answers with Cameron's email and Web3Forms key. Before launch: their real wording and email, their own Web3Forms key (`form-key` change), confirm the photos are theirs (two show another brand), then Cloudflare Pages. No new components needed.
+
+## Working in a cloud session
+
+- `.env` isn't kept: recreate it with `INTAKE_URL=https://cameron-belcher-intake.neteree.workers.dev` and `INTAKE_TOKEN` (Cameron has it; never commit it).
+- The environment allows `cameron-belcher-intake.neteree.workers.dev`; Node needs the proxy: `NODE_USE_ENV_PROXY=1 node ops/pull.js`.
+- Client sites live in their own repos: clone them next to this one (e.g. `/home/user/art-angel-florist`) and use them as `--site` for `ops/approve.js`. Push the site afterwards, or the change is lost.
+- Previews for Cameron: build the site and publish `dist/` as a private artifact.
+
 ## Related repos
 
 - `Neteree/cameron-belcher-web`: Cameron's own business site (Astro + Svelte). Portfolio screenshots are in `src/assets/work/`.
@@ -83,4 +94,4 @@ The GitHub side (issue form, `approved` label, `change-request` workflow opening
 1. When a client first asks to reorder or add sections: list each site's sections and their order in `site.json`, so layout changes become scripted too.
 2. Switch on the parts that need accounts: receiving and sending email (so intake and confirmations run by themselves), Stripe, automatic repo and Cloudflare setup, AI copy drafting (Gemini).
 3. Build the "news you edit yourself" add-on (Keystatic, free) when the first client buys it.
-4. Try the whole flow with family sites first, then find the first 3 paying clients in one niche.
+4. Try the whole flow with family sites first, then find the first 3 paying clients in one niche. (Tested end to end with test answers: onboarding with photos, then change requests for hours and photos.)
