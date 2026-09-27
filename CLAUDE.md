@@ -41,9 +41,9 @@ A side business building websites for local New Zealand businesses, with AI agen
 
 One pipeline for new clients and changes:
 
-1. Request: an email or the form on Cameron's site (texts get a reply with the form link). **Planned.**
-2. A script sorts it: new or existing client (matched against the client list). Existing clients confirm by clicking a link sent to their saved email, so nobody can make requests as someone else. **Planned.**
-3. **Cameron approves** and sets the price (small changes: fixed $20).
+1. Request: an email, the contact form, or `request.html` on Cameron's site (clients list their changes; texts get a reply with the link). **Built**; emails still have to be saved and fed in by hand until email receiving is set up.
+2. `node ops/intake.js <email>` sorts it into the queue (`ops/queue/`, not committed): new enquiry, onboarding answers, or a change request from a known client (matched on the saved `contact.email` in `starter/clients/`). Change requests wait for the client to confirm from their saved address (the email is written to `ops/outbox/` until an email service sends it; `ops/confirm.js` marks it confirmed). Unknown addresses and direct emails failing SPF/DKIM are flagged, never confirmed. **Built.** `node ops/queue.js` lists everything.
+3. **Cameron approves** and sets the price (small changes: fixed $20): `node ops/approve.js <id> --price 20 --site <folder>` (or `--close`).
 4. New clients fill in the onboarding form (`onboarding.html` on Cameron's site, linked privately, with agreed add-ons in the link, e.g. `?modules=food`). `starter/scripts/onboard.js` turns the emailed answers into the client JSON and site. **Built.** Blank headlines stay `[PLACEHOLDER]` for Cameron or AI copy drafting.
 5. Build: new sites by script; changes by `scripts/apply-changes.js` with a list of changes (**built**: wording swaps, opening hours, hero photo, news posts, menu add/remove/price/sold out; see `scripts/changes.js`). Anything else comes back as "needs a person", for Cameron or the agent.
 6. Checks and a Cloudflare Pages preview. **Cameron checks it first**, then the client sees it. Tweaks go back to step 5 (limit the free rounds).
@@ -54,6 +54,7 @@ The GitHub side (issue form, `approved` label, `change-request` workflow opening
 ## Repo layout
 
 - `starter/`: base starter and new-client script. `modules/`: add-on modules (`food/`).
+- `ops/`: the request queue scripts (intake, confirm, queue, approve).
 - `bakery-site/`: the Early Crust demo (portfolio piece). New client sites come from `starter/`, not from here.
 - `floristry-site/`: Astro demos (pastel `index.html`, dark `still-life.html`).
 - `demo-designs/`: single-file homepage designs (café, plumber, barber, physio) used as portfolio screenshots. Starting points for real clients.
@@ -70,10 +71,10 @@ The GitHub side (issue form, `approved` label, `change-request` workflow opening
 - **Web3Forms access key** for the contact form on `cameron-belcher-web` (`formKey` in `src/site.config.ts`). Until then the form sends nothing.
 - **Cloudflare Pages** for `cameron-belcher-web`: build `npm run build`, output `dist`. Needs a Cloudflare account; a custom domain costs money.
 - **Stripe account** (payment links and the webhook that puts a paid job live).
+- **Email service** for receiving requests into `ops/intake.js` and sending the confirmation emails (e.g. Cloudflare Email Routing and Workers, free).
 - **Per client repo, before change requests work:** add the `GEMINI_API_KEY` secret (only for non-wording requests), create an `approved` label, and turn on Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests".
 
 ## Next steps
 
-1. Request intake: sort new vs existing clients and email confirmation (stage 4).
-2. Switch on the parts that need accounts: receiving email, Stripe, automatic repo and Cloudflare setup, AI copy drafting (Gemini).
-3. Find the first 3 paying clients in one niche.
+1. Switch on the parts that need accounts: receiving and sending email (so intake and confirmations run by themselves), Stripe, automatic repo and Cloudflare setup, AI copy drafting (Gemini).
+2. Find the first 3 paying clients in one niche.
