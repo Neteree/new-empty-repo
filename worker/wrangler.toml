@@ -1,6 +1,8 @@
 # Cloudflare Worker for form submissions and photo uploads. Deployed by
 # .github/workflows/worker.yml; see worker/README.md for the one-time setup.
 name = "cameron-belcher-intake"
+# Cameron's Cloudflare account (not a secret: it only says which account to deploy to).
+account_id = "18b40b46e4593f13ace5f65c6c551b99"
 main = "src/index.js"
 compatibility_date = "2026-09-01"
 

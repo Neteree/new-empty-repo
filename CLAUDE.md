@@ -75,7 +75,7 @@ The GitHub side (issue form, `approved` label, `change-request` workflow opening
 - **Gemini API key** for `site_agent.py` and the other agents (paid key for client work, in `.env`).
 - **Custom domain** for `cameron-belcher-web` (costs money). The site is live at https://cameron-belcher-web.pages.dev.
 - **Stripe account** (payment links and the webhook that puts a paid job live).
-- **Intake Worker setup** (R2, an API token, three GitHub secrets): see `worker/README.md`. Built and tested; not deployed yet.
+- **Intake Worker setup** (R2 is on and the bucket exists; still needed: an API token and two GitHub secrets): see `worker/README.md`. Built and tested; not deployed yet.
 - **Email service** for sending the confirmation emails (and receiving direct emails): needs a custom domain for Cloudflare Email Routing.
 - **Per client repo, before change requests work:** add the `GEMINI_API_KEY` secret (only for non-wording requests), create an `approved` label, and turn on Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests".
 

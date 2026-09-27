@@ -9,17 +9,15 @@ day; R2: 10 GB).
 
 1. **Turn on R2:** Cloudflare dashboard → R2 Object Storage → turn it on (the
    free plan; Cloudflare may ask for a card).
-2. **Copy your Account ID:** Cloudflare dashboard → Workers & Pages → it's in
-   the right-hand column.
+2. **Account ID:** already in `wrangler.toml` (it isn't secret).
 3. **Create an API token:** Cloudflare → My Profile → API Tokens → Create Token
    → "Edit Cloudflare Workers" template → add the permission
    *Account · Workers R2 Storage · Edit* → Continue → Create. Copy the token.
 4. **Make an admin password:** any long random password (a password manager
    can make one). It protects the list of submissions.
-5. **Add three GitHub secrets:** github.com/Neteree/new-empty-repo → Settings →
+5. **Add two GitHub secrets:** github.com/Neteree/new-empty-repo → Settings →
    Secrets and variables → Actions → New repository secret:
    - `CLOUDFLARE_API_TOKEN`: the token from step 3
-   - `CLOUDFLARE_ACCOUNT_ID`: the ID from step 2
    - `INTAKE_ADMIN_TOKEN`: the password from step 4
 6. **Deploy:** Actions → Intake worker → Run workflow. The log shows the
    Worker's address (`https://cameron-belcher-intake.<something>.workers.dev`).
