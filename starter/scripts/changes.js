@@ -19,7 +19,7 @@
 //   menu-remove    { name }
 //   menu-price     { name, price }
 //   menu-sold-out  { name, soldOut: true|false, days? }  days default to every menu day
-import { copyFileSync, existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
 
 const SITE_JSON = 'src/data/site.json';
@@ -313,13 +313,24 @@ const handlers = {
 };
 export const changeTypes = Object.keys(handlers);
 
+// Photos that site.json no longer mentions (removed from the gallery, or a
+// replaced logo or hero photo) are deleted, so they aren't published.
+function removeUnusedPhotos() {
+  const dir = 'src/assets/photos';
+  if (!existsSync(dir) || !existsSync(SITE_JSON)) return;
+  const used = readFileSync(SITE_JSON, 'utf8');
+  for (const name of readdirSync(dir)) {
+    if (!name.startsWith('.') && !used.includes(`"${name}"`)) rmSync(join(dir, name));
+  }
+}
+
 /**
  * Apply a list of changes in the current site folder. Each result is
  * { change, done: true, summary } or { change, done: false, reason }. A change
  * that needs a person leaves the files as they were for that change.
  */
 export function applyChanges(changes) {
-  return changes.map((change) => {
+  const results = changes.map((change) => {
     const handler = handlers[change?.type];
     if (!handler) return { change, done: false, reason: `No script for “${change?.type}” changes yet.` };
     try {
@@ -329,4 +340,6 @@ export function applyChanges(changes) {
       throw error;
     }
   });
+  removeUnusedPhotos();
+  return results;
 }
