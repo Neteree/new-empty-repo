@@ -12,7 +12,7 @@ function walk(dir) {
     if (statSync(path).isDirectory()) walk(path);
     else if (name.endsWith('.html')) {
       const toRoot = relative(dirname(path), dist) || '.';
-      const html = readFileSync(path, 'utf8').replace(/(["'(])\/assets\//g, `$1${toRoot}/assets/`);
+      const html = readFileSync(path, 'utf8').replace(/(["'(]|,\s*)\/assets\//g, `$1${toRoot}/assets/`);
       writeFileSync(path, html);
     }
   }
