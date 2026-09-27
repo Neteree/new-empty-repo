@@ -55,6 +55,12 @@ for (const submission of items) {
     // Photos added through the request form point at their upload by number.
     const photos = files.filter((file) => file.slot === 'photos');
     for (const change of payload.changes ?? []) {
+      // A new main photo points at its upload the same way.
+      if (change.type === 'photo' && change.upload !== undefined) {
+        if (photos[change.upload]) change.file = photos[change.upload].path;
+        delete change.upload;
+        continue;
+      }
       if (change.type !== 'gallery-add') continue;
       change.photos = (change.photos ?? [])
         .filter((photo) => photos[photo.upload])

@@ -21,6 +21,12 @@ export interface Site {
   /** Photos for the gallery section, in order. The section only shows once there's at least one. */
   gallery: { file: string; alt: string }[];
   visitText: string;
+  /** Optional street address for a map link, e.g. '12 Main Road, Green Bay, Auckland'. Blank hides the link. */
+  address: string;
+  /** Optional public phone number shown on the site as a tap-to-call link. Blank hides it. */
+  phone: string;
+  /** Optional social pages, as full links. Blank ones are hidden. */
+  social: { instagram: string; facebook: string };
   hours: { days: string; times: string }[];
   enquiry: { title: string; intro: string; options: string[] };
   /** Look preset from src/themes.ts: bold, classic, calm or warm. */
