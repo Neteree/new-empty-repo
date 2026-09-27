@@ -25,5 +25,7 @@
   "formKey": null,
   "url": null,
   "demo": true,
-  "heroPhoto": null
+  "heroPhoto": null,
+  "logo": null,
+  "gallery": []
 }

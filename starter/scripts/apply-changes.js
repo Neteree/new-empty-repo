@@ -34,8 +34,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
   const parsed = JSON.parse(readFileSync(input, 'utf8'));
   const base = dirname(resolve(input));
-  const changes = (Array.isArray(parsed) ? parsed : parsed.changes).map((change) =>
-    change.type === 'photo' && change.file ? { ...change, file: resolve(base, change.file) } : change,
-  );
+  // File and folder paths in changes.json are relative to it.
+  const at = (path) => (path ? resolve(base, path) : path);
+  const changes = (Array.isArray(parsed) ? parsed : parsed.changes).map((change) => ({
+    ...change,
+    ...(change.file && ['photo', 'logo'].includes(change.type) ? { file: at(change.file) } : {}),
+    ...(change.folder ? { folder: at(change.folder) } : {}),
+    ...(change.photos ? { photos: change.photos.map((photo) => ({ ...photo, file: at(photo.file) })) } : {}),
+  }));
   report(applyChanges(changes));
 }

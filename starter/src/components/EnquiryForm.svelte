@@ -99,7 +99,9 @@
     {#if status === 'failed'}
       <p class="error" role="alert">Sorry, that didn't send. Please try again in a moment.</p>
     {/if}
-    {#if !site.formKey}<p class="note">Not connected yet: this form doesn't send anything.</p>{/if}
+    {#if !site.formKey && site.demo}<p class="note">Not connected yet: this form doesn't send anything.</p>{/if}
+    <!-- A real client's site can't go live until its form sends: the checks catch this placeholder. -->
+    {#if !site.formKey && !site.demo}<p class="note">[PLACEHOLDER: connect this form with the client's Web3Forms key (a "form-key" change)]</p>{/if}
   </form>
 {/if}
 

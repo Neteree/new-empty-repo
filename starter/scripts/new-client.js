@@ -54,6 +54,13 @@ for (const name of modules) {
   const module = join(modulesDir, name);
   cpSync(join(module, 'src'), join(target, 'src'), { recursive: true });
   cpSync(join(module, 'README.md'), join(target, 'src/modules', name, 'README.md'));
+  // Pre-ordering is off unless the client JSON asks for it: "menu": { "preOrder": true }.
+  const menuPath = join(target, 'src/modules', name, 'menu.json');
+  if (name === 'food' && details.menu?.preOrder) {
+    const menu = JSON.parse(readFileSync(menuPath, 'utf8'));
+    menu.preOrder.enabled = true;
+    writeFileSync(menuPath, `${JSON.stringify(menu, null, 2)}\n`);
+  }
   const words = join(module, 'cspell-words.txt');
   if (existsSync(words)) appendFileSync(join(target, 'cspell-words.txt'), readFileSync(words, 'utf8'));
 }
@@ -66,9 +73,11 @@ appendFileSync(join(target, 'cspell-words.txt'), `${names.join('\n')}\n`);
 cpSync(resolve(starter, '../site_agent.py'), join(target, 'scripts/site_agent.py'));
 
 // `contact` (the client's own email and phone) is for Cameron only, never the site.
-const { modules: _, contact: __, ...config } = {
+const { modules: _, contact: __, menu: ___, ...config } = {
   heroNote: '',
   heroPhoto: null,
+  logo: null,
+  gallery: [],
   ...details,
   theme,
   formKey: details.formKey ?? null,

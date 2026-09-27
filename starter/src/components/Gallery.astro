@@ -1,0 +1,41 @@
+---
+// Photo gallery, shown once the site has photos (site.json "gallery").
+import { Image } from 'astro:assets';
+import { site } from '../site.config';
+import { photo } from '../lib/photos';
+---
+
+{site.gallery.length > 0 && (
+  <section id="gallery" class="section">
+    <div class="section-head">
+      <p class="hand-note">Gallery</p>
+      <h2>Have a look around</h2>
+    </div>
+    <ul class="gallery">
+      {site.gallery.map((item) => (
+        <li>
+          <Image src={photo(item.file)} alt={item.alt} widths={[400, 800]} sizes="(max-width: 40rem) 100vw, 33vw" />
+        </li>
+      ))}
+    </ul>
+  </section>
+)}
+
+<style>
+  .gallery {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 1rem;
+  }
+  .gallery :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 0.75rem;
+  }
+</style>

@@ -1,8 +1,10 @@
 ---
-// Pre-order badge with a live item count, added to the site menu.
+// The menu's link in the site menu: a pre-order badge with a live item count
+// when pre-ordering is on, otherwise a plain "Menu" link.
 import OrderBadge from './OrderBadge.svelte';
+import { preOrder } from './menu';
 
 const { home } = Astro.props as { home: string };
 ---
 
-<OrderBadge client:load href={`${home}#order`} />
+{preOrder.enabled ? <OrderBadge client:load href={`${home}#order`} /> : <a href={`${home}#menu`}>Menu</a>}

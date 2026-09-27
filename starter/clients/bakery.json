@@ -8,15 +8,33 @@
   "heroText": "A made-up bakery that shows the starter with the food module. Order ahead and it's packed and waiting for you.",
   "visitText": "A short walk from the Devonport ferry (this bakery isn't real).",
   "hours": [
-    { "days": "Saturday", "times": "6am – 1pm" },
-    { "days": "Sunday", "times": "7am – 12pm" },
-    { "days": "Monday to Friday", "times": "Closed" }
+    {
+      "days": "Saturday",
+      "times": "6am – 1pm"
+    },
+    {
+      "days": "Sunday",
+      "times": "7am – 12pm"
+    },
+    {
+      "days": "Monday to Friday",
+      "times": "Closed"
+    }
   ],
   "enquiry": {
     "title": "Cakes and catering",
     "intro": "Tell us what you're planning and we'll get back to you with ideas and a price.",
-    "options": ["Celebration cake", "Morning tea for the office", "Something else"]
+    "options": [
+      "Celebration cake",
+      "Morning tea for the office",
+      "Something else"
+    ]
   },
-  "modules": ["food"],
-  "demo": true
+  "modules": [
+    "food"
+  ],
+  "demo": true,
+  "menu": {
+    "preOrder": true
+  }
 }

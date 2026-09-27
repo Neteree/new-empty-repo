@@ -6,14 +6,21 @@
 // A change is an object with a `type`:
 //   text           { current, new }                    swap wording (must match exactly once)
 //   hours          { hours: [{ days, times }] }        replace the opening hours
+//   form-key       { key }                             connect the enquiry form (the client's Web3Forms key)
 //   photo          { slot: 'hero', file, alt }         set the hero photo from an uploaded file
+//   logo           { file }                            show a logo in the header instead of the name
+//   gallery-add    { photos?: [{ file, alt? }], folder? }  add photos (a folder adds every image in it)
+//   gallery-describe { file, alt }                     describe a gallery photo
+//   gallery-remove { file }                            take a photo out of the gallery
+//   gallery-order  { files: [...] }                    put the gallery in a new order
 //   news           { title, excerpt, body, date? }     add a news post (date defaults to today, NZ time)
-//   menu-add       { name, description, price, tags?, days? }
+//   menu-replace   { items: [{ name, description, price, tags?, category? }] }  the client's full real menu
+//   menu-add       { name, description, price, tags?, days?, category? }
 //   menu-remove    { name }
 //   menu-price     { name, price }
 //   menu-sold-out  { name, soldOut: true|false, days? }  days default to every menu day
 import { copyFileSync, existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
-import { extname, join } from 'node:path';
+import { basename, extname, join } from 'node:path';
 
 const SITE_JSON = 'src/data/site.json';
 const MENU_JSON = 'src/modules/food/menu.json';
@@ -107,18 +114,94 @@ function hours({ hours: rows }) {
   return `Opening hours are now: ${clean.map((row) => `${row.days} ${row.times}`).join('; ')}.`;
 }
 
+function formKey({ key }) {
+  // Web3Forms access keys look like a UUID.
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(key?.trim() ?? '')) needsPerson('That doesn’t look like a Web3Forms access key.');
+  const site = readJson(SITE_JSON);
+  site.formKey = key.trim();
+  writeJson(SITE_JSON, site);
+  return 'The enquiry form is connected.';
+}
+
+const IMAGE_TYPES = ['.jpg', '.jpeg', '.png', '.webp', '.avif'];
+const PLACEHOLDER_ALT = '[PLACEHOLDER: describe this photo for people who can’t see it]';
+let copies = 0;
+
+/** Copies an image into src/assets/photos/ under a new, unique name and returns that name. */
+function copyImage(file, prefix, types = IMAGE_TYPES) {
+  if (!file || !existsSync(file)) needsPerson(`The file ${file ?? ''} is missing.`);
+  const ext = extname(file).toLowerCase();
+  if (!types.includes(ext)) needsPerson(`“${basename(file)}” isn’t a supported image. Use ${types.map((t) => t.slice(1).toUpperCase()).join(', ')}.`);
+  const name = `${prefix}-${Date.now()}-${++copies}${ext}`;
+  copyFileSync(file, join('src/assets/photos', name));
+  return name;
+}
+
 function photo({ slot, file, alt }) {
   if (slot !== 'hero') needsPerson(`The script only knows the hero photo, not “${slot}”.`);
-  if (!file || !existsSync(file)) needsPerson('The photo file is missing.');
-  const ext = extname(file).toLowerCase();
-  if (!['.jpg', '.jpeg', '.png', '.webp', '.avif'].includes(ext)) needsPerson(`“${ext}” photos aren’t supported. Use JPG, PNG or WebP.`);
   if (!alt?.trim()) needsPerson('The photo needs a short description for people who can’t see it.');
-  const name = `hero-${Date.now()}${ext}`;
-  copyFileSync(file, join('src/assets/photos', name));
+  const name = copyImage(file, 'hero');
   const site = readJson(SITE_JSON);
   site.heroPhoto = { file: name, alt: alt.trim() };
   writeJson(SITE_JSON, site);
   return `The main photo is now ${name} (“${alt.trim()}”).`;
+}
+
+function logo({ file }) {
+  const name = copyImage(file, 'logo', [...IMAGE_TYPES, '.svg']);
+  const site = readJson(SITE_JSON);
+  site.logo = { file: name };
+  writeJson(SITE_JSON, site);
+  return 'The logo now shows in the header.';
+}
+
+// Photos come as a list, a folder of images, or both. A photo without a
+// description gets a placeholder, so the checks stop it going live undescribed.
+function galleryAdd({ photos = [], folder }) {
+  const list = [...photos];
+  if (folder) {
+    if (!existsSync(folder) || !statSync(folder).isDirectory()) needsPerson(`The folder ${folder} is missing.`);
+    for (const name of readdirSync(folder).sort()) {
+      if (IMAGE_TYPES.includes(extname(name).toLowerCase())) list.push({ file: join(folder, name) });
+    }
+  }
+  if (!list.length) needsPerson('There are no photos to add.');
+  for (const item of list) if (!item.file || !existsSync(item.file)) needsPerson(`The file ${item.file ?? ''} is missing.`);
+  const site = readJson(SITE_JSON);
+  const added = list.map((item) => ({ file: copyImage(item.file, 'gallery'), alt: item.alt?.trim() || PLACEHOLDER_ALT }));
+  site.gallery = [...(site.gallery ?? []), ...added];
+  writeJson(SITE_JSON, site);
+  const undescribed = added.filter((item) => item.alt === PLACEHOLDER_ALT).length;
+  return `Added ${added.length} photo${added.length === 1 ? '' : 's'} to the gallery${undescribed ? ` (${undescribed} still need a description: see src/data/site.json)` : ''}.`;
+}
+
+function galleryRemove({ file }) {
+  const site = readJson(SITE_JSON);
+  const before = site.gallery ?? [];
+  site.gallery = before.filter((item) => item.file !== file);
+  if (site.gallery.length === before.length) needsPerson(`There's no gallery photo called ${file}.`);
+  writeJson(SITE_JSON, site);
+  return `Removed ${file} from the gallery.`;
+}
+
+function galleryDescribe({ file, alt }) {
+  if (!alt?.trim()) needsPerson('The description is missing.');
+  const site = readJson(SITE_JSON);
+  const item = (site.gallery ?? []).find((photo) => photo.file === file);
+  if (!item) needsPerson(`There's no gallery photo called ${file}.`);
+  item.alt = alt.trim();
+  writeJson(SITE_JSON, site);
+  return `Described ${file} as “${item.alt}”.`;
+}
+
+function galleryOrder({ files }) {
+  const site = readJson(SITE_JSON);
+  const current = site.gallery ?? [];
+  const same = files?.length === current.length && current.every((item) => files.includes(item.file));
+  if (!same) needsPerson('The new order must list every gallery photo exactly once.');
+  site.gallery = files.map((file) => current.find((item) => item.file === file));
+  writeJson(SITE_JSON, site);
+  return 'The gallery is in the new order.';
 }
 
 function news({ title, excerpt, body, date }) {
@@ -152,18 +235,38 @@ function price(value) {
 const TAGS = ['vegan', 'gluten-free'];
 
 const menuChanges = {
-  'menu-add'({ name, description, price: cost, tags = [], days }) {
+  'menu-replace'({ items }) {
+    const data = menu();
+    if (!items?.length) needsPerson('The new menu has no items.');
+    const before = data.items;
+    data.items = [];
+    writeJson(MENU_JSON, data);
+    try {
+      for (const item of items) menuChanges['menu-add'](item);
+    } catch (error) {
+      data.items = before;
+      writeJson(MENU_JSON, data);
+      throw error;
+    }
+    const done = menu();
+    done.demoMenu = false;
+    writeJson(MENU_JSON, done);
+    return `The menu now has ${items.length} item${items.length === 1 ? '' : 's'}.`;
+  },
+  'menu-add'({ name, description, price: cost, tags = [], days, category }) {
     const data = menu();
     if (!name?.trim() || !description?.trim()) needsPerson('A new menu item needs a name and a description.');
     if (data.items.some((item) => item.name.toLowerCase() === name.trim().toLowerCase())) needsPerson(`“${name}” is already on the menu.`);
-    const allDays = data.weekend.days.map((day) => day.id);
+    const allDays = data.preOrder.days.map((day) => day.id);
     const itemDays = days ?? allDays;
     if (!itemDays.length || itemDays.some((day) => !allDays.includes(day))) needsPerson(`Days must be some of: ${allDays.join(', ')}.`);
     const badTags = tags.filter((tag) => !TAGS.includes(tag));
     if (badTags.length) needsPerson(`Unknown tags: ${badTags.join(', ')}.`);
     let id = slugify(name);
     while (data.items.some((item) => item.id === id)) id += '-2';
-    data.items.push({ id, name: name.trim(), description: description.trim(), price: price(cost), tags, days: itemDays });
+    const item = { id, name: name.trim(), description: description.trim(), price: price(cost), tags, days: itemDays };
+    if (category?.trim()) item.category = category.trim();
+    data.items.push(item);
     writeJson(MENU_JSON, data);
     return `Added “${name.trim()}” at $${price(cost).toFixed(2)}.`;
   },
@@ -190,12 +293,24 @@ const menuChanges = {
     else item.soldOut = (item.soldOut ?? []).filter((day) => !target.includes(day));
     if (!item.soldOut.length) delete item.soldOut;
     writeJson(MENU_JSON, data);
-    const labels = target.map((day) => data.weekend.days.find((d) => d.id === day)?.label ?? day);
+    const labels = target.map((day) => data.preOrder.days.find((d) => d.id === day)?.label ?? day);
     return `“${item.name}” is ${soldOut ? 'sold out' : 'back on'} for ${labels.join(', ')}.`;
   },
 };
 
-const handlers = { text, hours, photo, news, ...menuChanges };
+const handlers = {
+  text,
+  hours,
+  'form-key': formKey,
+  photo,
+  logo,
+  'gallery-add': galleryAdd,
+  'gallery-describe': galleryDescribe,
+  'gallery-remove': galleryRemove,
+  'gallery-order': galleryOrder,
+  news,
+  ...menuChanges,
+};
 export const changeTypes = Object.keys(handlers);
 
 /**

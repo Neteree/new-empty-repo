@@ -92,7 +92,8 @@ for (const page of pages) {
     const report = await tab.evaluate(() => ({
       overflow: document.documentElement.scrollWidth - window.innerWidth,
       brokenImages: [...document.images].filter((img) => !img.naturalWidth).map((img) => img.currentSrc || img.src),
-      text: `${document.title}\n${document.querySelector('meta[name=description]')?.content ?? ''}\n${document.body.innerText}`,
+      // Image descriptions count as page text too, so undescribed photos get caught.
+      text: `${document.title}\n${document.querySelector('meta[name=description]')?.content ?? ''}\n${document.body.innerText}\n${[...document.images].map((img) => img.alt).join('\n')}`,
       links: [...document.querySelectorAll('a[href]')].map((a) => a.getAttribute('href')),
     }));
     if (device === 'phone') {
