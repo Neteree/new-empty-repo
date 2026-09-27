@@ -57,8 +57,12 @@ export function describeChange(change) {
       return `Replace the menu with ${change.items.length} items`;
     case 'logo':
       return 'New logo';
-    case 'gallery-add':
-      return 'Add photos to the gallery';
+    case 'gallery-add': {
+      const count = change.photos?.length ?? 0;
+      return count ? `Add ${count} photo${count === 1 ? '' : 's'} to the gallery` : 'Add photos to the gallery';
+    }
+    case 'theme':
+      return `Change the look to ${change.theme ?? '?'}`;
     case 'gallery-describe':
       return `Describe gallery photo ${change.file}`;
     case 'gallery-remove':
