@@ -139,12 +139,16 @@ for (const page of pages) {
         const onRequest = (request) => request.method() === 'POST' && sent.push(request.url());
         tab.on('request', onRequest);
         await form.scrollIntoViewIfNeeded();
+        // Interactive parts start working once hydrated (some only when scrolled into
+        // view). Wait for that, or a slow machine clicks before the form is ready.
+        await tab.waitForFunction(() => !document.querySelector('astro-island[ssr]'), null, { timeout: 15000 }).catch(() => {});
         // A multi-step form starts with Next rather than a submit button.
         const button = form.locator('[type=submit]:visible, button:visible:text-matches("^(Next|Continue)$", "i")').first();
         await button.click();
-        await tab.waitForTimeout(300);
+        const flagged = await tab
+          .waitForFunction(() => document.querySelectorAll('form [aria-invalid="true"], form :invalid').length > 0, null, { timeout: 3000 })
+          .then(() => true, () => false);
         tab.off('request', onRequest);
-        const flagged = await tab.locator('form [aria-invalid="true"], form :invalid').count();
         if (!flagged) fail(area, `form ${i + 1}: an empty submit showed no errors`);
         if (sent.length) fail(area, `form ${i + 1}: an empty submit sent a request to ${sent[0]}`);
       }
