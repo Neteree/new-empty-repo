@@ -71,20 +71,20 @@
     overflow: visible;
   }
   .tint {
-    fill: var(--yellow);
+    fill: var(--highlight);
     opacity: 0.45;
   }
   .dot {
-    fill: var(--yellow);
+    fill: var(--highlight);
   }
   .line {
     fill: none;
-    stroke: var(--blue);
+    stroke: var(--accent);
     stroke-width: 3;
     stroke-linecap: round;
     stroke-linejoin: round;
   }
   .chip {
-    fill: var(--blue);
+    fill: var(--accent);
   }
 </style>

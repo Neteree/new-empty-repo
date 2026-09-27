@@ -11,17 +11,21 @@
 //    on the site points at a page and section that exist.
 // 4. Forms: sending an empty form shows errors instead of sending.
 // 5. No [PLACEHOLDER: ...] text is left on any page.
+// 6. Accessibility in light and dark mode (axe-core): colour contrast, labels,
+//    headings and other WCAG AA basics.
 //
 // Full-page screenshots go in check-output/. Exits with 1 if anything fails.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { extname, join, relative } from 'node:path';
 import { launch } from './browser.js';
 
 const dist = 'dist';
 const out = 'check-output';
 const viewports = { phone: { width: 390, height: 844 }, desktop: { width: 1440, height: 900 } };
+const axeSource = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8');
 const failures = [];
 const fail = (area, message) => failures.push(`${area}: ${message}`);
 
@@ -98,6 +102,18 @@ for (const page of pages) {
 
     if (device === 'phone') {
       texts.push(report.text);
+
+      // 6. Accessibility, in both colour schemes.
+      await tab.addScriptTag({ content: axeSource });
+      for (const colorScheme of ['light', 'dark']) {
+        await tab.emulateMedia({ colorScheme });
+        const problems = await tab.evaluate(async () => {
+          const { violations } = await window.axe.run(document, { runOnly: ['wcag2a', 'wcag2aa'] });
+          return violations.map((v) => `${v.help} (${v.nodes.slice(0, 3).map((n) => n.target.join(' ')).join(', ')})`);
+        });
+        for (const problem of problems) fail(area, `accessibility, ${colorScheme} mode: ${problem}`);
+      }
+      await tab.emulateMedia({ colorScheme: 'light' });
       // Links to pages and sections on this site must exist.
       for (const href of report.links) {
         if (/^(https?:|mailto:|tel:)/.test(href) || href === '#') continue;

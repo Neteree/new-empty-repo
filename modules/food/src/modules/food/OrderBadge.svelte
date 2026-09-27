@@ -25,16 +25,16 @@
     background: var(--paper);
   }
   .badge:hover {
-    background: var(--yellow);
-    color: #16213e;
+    background: var(--highlight);
+    color: var(--on-highlight);
   }
   .count {
     min-width: 1.7rem;
     height: 1.7rem;
     padding-inline: 0.4rem;
     border-radius: 999px;
-    background: var(--blue);
-    color: var(--on-blue);
+    background: var(--accent);
+    color: var(--on-accent);
     display: inline-grid;
     place-items: center;
     font-size: 0.85rem;

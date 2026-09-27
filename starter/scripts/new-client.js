@@ -9,6 +9,7 @@
 // still the starter's: edit those next.
 import { appendFileSync, cpSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
+import { themes } from '../src/themes.ts';
 
 const [detailsPath, target] = process.argv.slice(2);
 if (!detailsPath || !target) {
@@ -25,6 +26,12 @@ const required = ['name', 'suburb', 'city', 'description', 'heroNote', 'heroTitl
 const missing = required.filter((key) => details[key] === undefined);
 if (missing.length) {
   console.error(`${detailsPath} is missing: ${missing.join(', ')}`);
+  process.exit(1);
+}
+
+const theme = details.theme ?? 'bold';
+if (!themes[theme]) {
+  console.error(`No such theme: ${theme}. Choose one of: ${Object.keys(themes).join(', ')}.`);
   process.exit(1);
 }
 
@@ -58,7 +65,7 @@ appendFileSync(join(target, 'cspell-words.txt'), `${names.join('\n')}\n`);
 // The change-request workflow runs the agent from the site itself.
 cpSync(resolve(starter, '../site_agent.py'), join(target, 'scripts/site_agent.py'));
 
-const { modules: _, ...config } = { ...details, formKey: details.formKey ?? null, url: details.url ?? null, demo: details.demo ?? false };
+const { modules: _, ...config } = { ...details, theme, formKey: details.formKey ?? null, url: details.url ?? null, demo: details.demo ?? false };
 const body = JSON.stringify(config, null, 2)
   .replace('"formKey": null', '"formKey": null as string | null')
   .replace('"url": null', '"url": null as string | null');

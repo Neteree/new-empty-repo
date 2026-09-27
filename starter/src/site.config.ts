@@ -17,6 +17,8 @@ export const site = {
     intro: '[PLACEHOLDER: what to send and how soon they reply]',
     options: ['[PLACEHOLDER: enquiry type]', 'Something else'],
   },
+  /** Look preset from src/themes.ts: bold, classic, calm or warm. */
+  theme: 'bold',
   /** Web3Forms access key (web3forms.com), tied to the inbox it emails. While null, the form sends nothing. */
   formKey: null as string | null,
   /** The live address, e.g. 'https://example.co.nz', once known. */
