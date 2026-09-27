@@ -1,6 +1,8 @@
-// The menu and pre-order details. Kept as typed data so a CMS or an agent can
-// update the menu each week without touching components. These items are the
-// Early Crust demo's: replace them with the client's real menu and prices.
+// The menu and pre-order details, typed. The data itself lives in menu.json so
+// the change scripts can add, remove and reprice items without touching code.
+// The items there start as the Early Crust demo's: replace them with the
+// client's real menu and prices, then set demoMenu to false.
+import data from './menu.json';
 
 export type Day = 'sat' | 'sun';
 export type Tag = 'vegan' | 'gluten-free';
@@ -11,88 +13,24 @@ export interface Bake {
   name: string;
   description: string;
   price: number;
-  art: Art;
+  /** Optional illustration. */
+  art?: Art;
   tags: Tag[];
   days: Day[];
   soldOut?: Day[];
   note?: string;
 }
 
-/** Wording for the menu section on the home page. */
-export const section = {
-  note: 'Weekend of 26–27 September',
-  title: 'This weekend’s bake',
-  intro: 'Choose your day, add what you’d like, and pick it up warm. Pre-orders close Friday at 2pm.',
-};
+interface Menu {
+  /** True while these are still the demo items. */
+  demoMenu: boolean;
+  /** Wording for the menu section on the home page. */
+  section: { note: string; title: string; intro: string };
+  weekend: { label: string; orderBy: string; days: { id: Day; label: string }[]; pickupTimes: string[] };
+  maxEach: number;
+  items: Bake[];
+}
 
-export const weekend = {
-  label: 'Weekend of 26–27 September',
-  orderBy: 'Friday at 2pm',
-  days: [
-    { id: 'sat', label: 'Saturday 26' },
-    { id: 'sun', label: 'Sunday 27' },
-  ] as { id: Day; label: string }[],
-  pickupTimes: ['7–9am', '9–11am', '11am–1pm'],
-};
-
-export const bakes: Bake[] = [
-  {
-    id: 'country-sourdough',
-    name: 'Country sourdough',
-    description: '36-hour ferment, wholemeal and rye, dark crackly crust.',
-    price: 12,
-    art: 'loaf',
-    tags: ['vegan'],
-    days: ['sat', 'sun'],
-    note: 'our bestseller',
-  },
-  {
-    id: 'butter-croissant',
-    name: 'Butter croissant',
-    description: 'Laminated over three days with cultured butter.',
-    price: 6,
-    art: 'croissant',
-    tags: [],
-    days: ['sat', 'sun'],
-    soldOut: ['sat'],
-  },
-  {
-    id: 'cardamom-bun',
-    name: 'Cardamom bun',
-    description: 'Knotted and rolled in cardamom sugar. Sticky fingers guaranteed.',
-    price: 5.5,
-    art: 'bun',
-    tags: [],
-    days: ['sat', 'sun'],
-    note: 'still warm at 7am',
-  },
-  {
-    id: 'seeded-baguette',
-    name: 'Seeded baguette',
-    description: 'Sesame, sunflower and linseed, baked in small batches all morning.',
-    price: 7,
-    art: 'baguette',
-    tags: ['vegan'],
-    days: ['sat'],
-  },
-  {
-    id: 'brown-butter-cookie',
-    name: 'Brown butter cookie',
-    description: 'Dark chocolate chunks and flaky salt. Chewy middle, crisp edge.',
-    price: 4.5,
-    art: 'cookie',
-    tags: [],
-    days: ['sat', 'sun'],
-  },
-  {
-    id: 'rhubarb-tart',
-    name: 'Rhubarb almond tart',
-    description: 'Almond frangipane with the first spring rhubarb. Made without wheat.',
-    price: 9,
-    art: 'tart',
-    tags: ['gluten-free'],
-    days: ['sun'],
-  },
-];
-
-export const MAX_EACH = 12;
+const menu = data as Menu;
+export const { demoMenu, section, weekend, items: bakes } = menu;
+export const MAX_EACH = menu.maxEach;

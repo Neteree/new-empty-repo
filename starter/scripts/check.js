@@ -9,19 +9,24 @@
 // 3. Every page, on a phone (390px) and a desktop (1440px): no sideways
 //    scrolling, no broken images or files, no script errors, and every link
 //    on the site points at a page and section that exist.
-// 4. Forms: sending an empty form shows errors instead of sending.
+// 4. Forms: sending an empty form (or pressing Next on step one) shows errors
+//    instead of sending.
 // 5. No [PLACEHOLDER: ...] text is left on any page.
+// 6. Accessibility in light and dark mode (axe-core): colour contrast, labels,
+//    headings and other WCAG AA basics.
 //
 // Full-page screenshots go in check-output/. Exits with 1 if anything fails.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { extname, join, relative } from 'node:path';
 import { launch } from './browser.js';
 
 const dist = 'dist';
 const out = 'check-output';
 const viewports = { phone: { width: 390, height: 844 }, desktop: { width: 1440, height: 900 } };
+const axeSource = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8');
 const failures = [];
 const fail = (area, message) => failures.push(`${area}: ${message}`);
 
@@ -90,7 +95,9 @@ for (const page of pages) {
       text: `${document.title}\n${document.querySelector('meta[name=description]')?.content ?? ''}\n${document.body.innerText}`,
       links: [...document.querySelectorAll('a[href]')].map((a) => a.getAttribute('href')),
     }));
-    if (device === 'phone' && report.text.includes('[PLACEHOLDER')) fail(area, 'still has [PLACEHOLDER: ...] text');
+    if (device === 'phone') {
+      for (const gap of new Set(report.text.match(/\[PLACEHOLDER[^\]]*\]/g) ?? [])) fail(area, `still needs ${gap}`);
+    }
     if (report.overflow > 0) fail(area, `scrolls sideways by ${report.overflow}px`);
     for (const src of report.brokenImages) fail(area, `image didn't load: ${src}`);
     for (const error of errors) fail(area, `error: ${error}`);
@@ -98,6 +105,18 @@ for (const page of pages) {
 
     if (device === 'phone') {
       texts.push(report.text);
+
+      // 6. Accessibility, in both colour schemes.
+      await tab.addScriptTag({ content: axeSource });
+      for (const colorScheme of ['light', 'dark']) {
+        await tab.emulateMedia({ colorScheme });
+        const problems = await tab.evaluate(async () => {
+          const { violations } = await window.axe.run(document, { runOnly: ['wcag2a', 'wcag2aa'] });
+          return violations.map((v) => `${v.help} (${v.nodes.slice(0, 3).map((n) => n.target.join(' ')).join(', ')})`);
+        });
+        for (const problem of problems) fail(area, `accessibility, ${colorScheme} mode: ${problem}`);
+      }
+      await tab.emulateMedia({ colorScheme: 'light' });
       // Links to pages and sections on this site must exist.
       for (const href of report.links) {
         if (/^(https?:|mailto:|tel:)/.test(href) || href === '#') continue;
@@ -120,10 +139,16 @@ for (const page of pages) {
         const onRequest = (request) => request.method() === 'POST' && sent.push(request.url());
         tab.on('request', onRequest);
         await form.scrollIntoViewIfNeeded();
-        await form.locator('[type=submit]').first().click();
-        await tab.waitForTimeout(300);
+        // Interactive parts start working once hydrated (some only when scrolled into
+        // view). Wait for that, or a slow machine clicks before the form is ready.
+        await tab.waitForFunction(() => !document.querySelector('astro-island[ssr]'), null, { timeout: 15000 }).catch(() => {});
+        // A multi-step form starts with Next rather than a submit button.
+        const button = form.locator('[type=submit]:visible, button:visible:text-matches("^(Next|Continue)$", "i")').first();
+        await button.click();
+        const flagged = await tab
+          .waitForFunction(() => document.querySelectorAll('form [aria-invalid="true"], form :invalid').length > 0, null, { timeout: 3000 })
+          .then(() => true, () => false);
         tab.off('request', onRequest);
-        const flagged = await tab.locator('form [aria-invalid="true"], form :invalid').count();
         if (!flagged) fail(area, `form ${i + 1}: an empty submit showed no errors`);
         if (sent.length) fail(area, `form ${i + 1}: an empty submit sent a request to ${sent[0]}`);
       }

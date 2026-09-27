@@ -182,6 +182,6 @@
   .big {
     font-family: var(--display);
     font-size: 1.8rem;
-    font-weight: 800;
+    font-weight: var(--display-weight);
   }
 </style>

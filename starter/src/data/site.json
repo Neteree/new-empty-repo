@@ -1,0 +1,29 @@
+{
+  "name": "[PLACEHOLDER: business name]",
+  "suburb": "[PLACEHOLDER: suburb]",
+  "city": "Auckland",
+  "description": "[PLACEHOLDER: one sentence for search results]",
+  "heroNote": "",
+  "heroTitle": "[PLACEHOLDER: headline]",
+  "heroText": "[PLACEHOLDER: two sentences on what the business does and for whom]",
+  "visitText": "[PLACEHOLDER: where to find the business]",
+  "hours": [
+    {
+      "days": "[PLACEHOLDER: days]",
+      "times": "[PLACEHOLDER: times]"
+    }
+  ],
+  "enquiry": {
+    "title": "Get in touch",
+    "intro": "[PLACEHOLDER: what to send and how soon they reply]",
+    "options": [
+      "[PLACEHOLDER: enquiry type]",
+      "Something else"
+    ]
+  },
+  "theme": "bold",
+  "formKey": null,
+  "url": null,
+  "demo": true,
+  "heroPhoto": null
+}

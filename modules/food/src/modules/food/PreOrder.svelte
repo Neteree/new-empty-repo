@@ -60,7 +60,7 @@
         {@const qty = order.quantities[bake.id] ?? 0}
         <li class="item" class:unavailable={status !== 'available'}>
           <div class="art">
-            <BakeArt art={bake.art} />
+            {#if bake.art}<BakeArt art={bake.art} />{/if}
             {#if bake.note && status === 'available'}<span class="hand">{bake.note}</span>{/if}
             {#if status === 'sold-out'}<span class="stamp">Sold out</span>{/if}
           </div>
@@ -164,7 +164,7 @@
   }
 
   .day:has(input:focus-visible) {
-    outline: 3px solid var(--blue);
+    outline: 3px solid var(--accent);
     outline-offset: 3px;
   }
 
@@ -179,9 +179,9 @@
   }
 
   .day.active {
-    background: var(--blue);
-    border-color: var(--blue);
-    color: var(--on-blue);
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
   }
 
   .filters button {
@@ -190,9 +190,9 @@
   }
 
   .filters button.active {
-    background: var(--yellow);
-    border-color: var(--yellow);
-    color: #16213e;
+    background: var(--highlight);
+    border-color: var(--highlight);
+    color: var(--on-highlight);
   }
 
   .layout {
@@ -218,9 +218,20 @@
     border-bottom: 1.5px dashed var(--rule);
   }
 
-  .item.unavailable .art :global(.bake-art),
-  .item.unavailable .info {
+  /* Unavailable items fade their picture, but their text stays readable. */
+  .item.unavailable .art :global(.bake-art) {
     opacity: 0.45;
+  }
+
+  .item.unavailable .info,
+  .item.unavailable .info :global(p) {
+    color: var(--ink-soft);
+  }
+
+  .item.unavailable .tag {
+    background: none;
+    border: 1px solid var(--ink-soft);
+    color: var(--ink-soft);
   }
 
   .art {
@@ -234,7 +245,7 @@
     font-family: var(--hand);
     font-size: 1.15rem;
     line-height: 1;
-    color: var(--blue);
+    color: var(--accent);
     transform: rotate(-6deg);
     white-space: nowrap;
   }
@@ -243,10 +254,10 @@
     position: absolute;
     inset: 50% auto auto 50%;
     transform: translate(-50%, -50%) rotate(-12deg);
-    border: 2px solid var(--blue);
-    color: var(--blue);
+    border: 2px solid var(--accent);
+    color: var(--accent);
     padding: 0.1rem 0.5rem;
-    font-weight: 800;
+    font-weight: 700;
     text-transform: uppercase;
     font-size: 0.75rem;
     letter-spacing: 0.08em;
@@ -280,8 +291,8 @@
     font-weight: 700;
     padding: 0.05rem 0.5rem;
     border-radius: 999px;
-    background: var(--yellow);
-    color: #16213e;
+    background: var(--highlight);
+    color: var(--on-highlight);
   }
 
   .add {
@@ -295,8 +306,8 @@
   }
 
   .add:hover {
-    background: var(--blue);
-    border-color: var(--blue);
+    background: var(--accent);
+    border-color: var(--accent);
   }
 
   .stepper {
@@ -345,7 +356,7 @@
     position: sticky;
     top: calc(env(safe-area-inset-top, 0px) + 1rem);
     background: var(--ticket);
-    color: #16213e;
+    color: var(--ticket-ink);
     padding: 1.75rem 1.5rem 1.5rem;
     box-shadow: 0 16px 30px -18px rgb(22 33 62 / 0.45);
     clip-path: polygon(0 6px, 4% 0, 8% 6px, 12% 0, 16% 6px, 20% 0, 24% 6px, 28% 0, 32% 6px, 36% 0, 40% 6px, 44% 0, 48% 6px, 52% 0, 56% 6px, 60% 0, 64% 6px, 68% 0, 72% 6px, 76% 0, 80% 6px, 84% 0, 88% 6px, 92% 0, 96% 6px, 100% 0, 100% 100%, 0 100%);
@@ -358,12 +369,12 @@
     font-family: var(--hand);
     font-size: 1.6rem;
     line-height: 1;
-    color: #2350c8;
+    color: var(--ticket-accent);
   }
 
   .empty {
     margin: 0;
-    color: #4b5470;
+    color: var(--ticket-soft);
   }
 
   .lines {
@@ -386,15 +397,15 @@
     display: grid;
     gap: 0.35rem;
     font-weight: 700;
-    border-top: 1.5px dashed #b9bfd0;
+    border-top: 1.5px dashed var(--ticket-rule);
     padding-top: 0.9rem;
   }
 
   select {
-    border: 2px solid #16213e;
+    border: 2px solid var(--ticket-ink);
     border-radius: 0.5rem;
     background: #fff;
-    color: #16213e;
+    color: var(--ticket-ink);
     padding: 0.45rem 0.6rem;
     font-weight: 500;
   }
@@ -403,15 +414,15 @@
     margin: 0;
     font-family: var(--display);
     font-size: 1.5rem;
-    font-weight: 800;
-    border-top: 2px solid #16213e;
+    font-weight: var(--display-weight);
+    border-top: 2px solid var(--ticket-ink);
     padding-top: 0.75rem;
   }
 
   .fine {
     margin: 0;
     font-size: 0.85rem;
-    color: #4b5470;
+    color: var(--ticket-soft);
   }
 
   .ticket .button {
@@ -430,7 +441,7 @@
   .big {
     font-family: var(--display);
     font-size: 1.6rem;
-    font-weight: 800;
+    font-weight: var(--display-weight);
   }
 
   @media (max-width: 56rem) {
