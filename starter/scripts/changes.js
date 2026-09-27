@@ -7,6 +7,7 @@
 //   text           { current, new }                    swap wording (must match exactly once)
 //   hours          { hours: [{ days, times }] }        replace the opening hours
 //   form-key       { key }                             connect the enquiry form (the client's Web3Forms key)
+//   theme          { theme }                           switch the look (bold, classic, calm or warm; see src/themes.ts)
 //   photo          { slot: 'hero', file, alt }         set the hero photo from an uploaded file
 //   logo           { file }                            show a logo in the header instead of the name
 //   gallery-add    { photos?: [{ file, alt? }], folder? }  add photos (a folder adds every image in it)
@@ -121,6 +122,17 @@ function formKey({ key }) {
   site.formKey = key.trim();
   writeJson(SITE_JSON, site);
   return 'The enquiry form is connected.';
+}
+
+function theme({ theme: name }) {
+  // The looks are the top-level keys of src/themes.ts.
+  const looks = [...readFileSync('src/themes.ts', 'utf8').matchAll(/^  (\w+): \{/gm)].map((match) => match[1]);
+  const wanted = name?.trim().toLowerCase();
+  if (!looks.includes(wanted)) needsPerson(`“${name}” isn’t one of the looks (${looks.join(', ')}).`);
+  const site = readJson(SITE_JSON);
+  site.theme = wanted;
+  writeJson(SITE_JSON, site);
+  return `The site now uses the ${wanted[0].toUpperCase()}${wanted.slice(1)} look.`;
 }
 
 const IMAGE_TYPES = ['.jpg', '.jpeg', '.png', '.webp', '.avif'];
@@ -302,6 +314,7 @@ const handlers = {
   text,
   hours,
   'form-key': formKey,
+  theme,
   photo,
   logo,
   'gallery-add': galleryAdd,

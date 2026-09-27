@@ -51,7 +51,17 @@ for (const submission of items) {
   const payload = submission.payload ?? {};
   let outcome;
   if (submission.kind === 'onboarding') outcome = queueOnboarding(item, payload, { files });
-  else if (submission.kind === 'request') outcome = queueChangeRequest(item, payload);
+  else if (submission.kind === 'request') {
+    // Photos added through the request form point at their upload by number.
+    const photos = files.filter((file) => file.slot === 'photos');
+    for (const change of payload.changes ?? []) {
+      if (change.type !== 'gallery-add') continue;
+      change.photos = (change.photos ?? [])
+        .filter((photo) => photos[photo.upload])
+        .map((photo) => ({ file: photos[photo.upload].path, ...(photo.alt ? { alt: photo.alt } : {}) }));
+    }
+    outcome = queueChangeRequest(item, payload);
+  }
   else {
     const given = (value) => value && value !== '-';
     const text = [given(payload.need) && `Needs: ${payload.need}`, given(payload.business) && `Business: ${payload.business}`, given(payload.message) && payload.message]
