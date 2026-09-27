@@ -71,7 +71,6 @@ The GitHub side (issue form, `approved` label, `change-request` workflow opening
 ## Parked (Cameron to set up later)
 
 - **Gemini API key** for `site_agent.py` and the other agents (paid key for client work, in `.env`).
-- **Web3Forms access key** for the contact form on `cameron-belcher-web` (`formKey` in `src/site.config.ts`). Until then the form sends nothing.
 - **Cloudflare Pages** for `cameron-belcher-web`: build `npm run build`, output `dist`. Needs a Cloudflare account; a custom domain costs money.
 - **Stripe account** (payment links and the webhook that puts a paid job live).
 - **Email service** for receiving requests into `ops/intake.js` and sending the confirmation emails (e.g. Cloudflare Email Routing and Workers, free).
