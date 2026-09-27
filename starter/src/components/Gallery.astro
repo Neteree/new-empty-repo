@@ -28,7 +28,20 @@ import { photo } from '../lib/photos';
     padding: 0;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-    gap: 1rem;
+    gap: 1.5rem;
+  }
+  /* Framed like the site's cards, so photos of mixed quality still look like a set. */
+  .gallery li {
+    border: 2px solid var(--ink);
+    border-radius: 1rem;
+    overflow: hidden;
+    background: var(--paper);
+    box-shadow: 6px 6px 0 var(--highlight);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .gallery li:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0 var(--highlight);
   }
   .gallery :global(img) {
     display: block;
@@ -37,6 +50,10 @@ import { photo } from '../lib/photos';
     /* Square tiles crop phone photos (usually tall) far less than wide ones. */
     aspect-ratio: 1;
     object-fit: cover;
-    border-radius: 0.75rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .gallery li {
+      transition: none;
+    }
   }
 </style>
