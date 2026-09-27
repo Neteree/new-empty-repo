@@ -12,6 +12,7 @@ A side business building websites for local New Zealand businesses, with AI agen
 - **No AI at the front for now:** forms sort requests by type and Cameron approves everything. Add an AI step only if free-text requests become common, and then only to translate them into the scripts' change format for Cameron to approve.
 - **Payments:** Stripe (payment links; a paid invoice triggers go-live), with bank transfer as a manual fallback.
 - **Stack:** Astro 7 with Svelte 5 islands, static output. Svelte 5 runes syntax only (`$state`, `$derived`, `$props`). Plain Astro everywhere else, with no JavaScript. SvelteKit only for a client who needs a real web app.
+- **Stay on Astro + Svelte;** reconsider only if something keeps getting in the way.
 - **Shops:** a few products means Stripe Checkout. A real catalogue means Shopify behind an Astro front end. Not a focus yet.
 - **Not WordPress,** unless a client already runs on it or needs its plugins.
 - **Content:** client details live in `src/data/site.json` (typed by `src/site.config.ts`), module lists in their JSON, and news posts in Markdown content collections.
@@ -45,7 +46,7 @@ One pipeline for new clients and changes:
 
 1. Request: an email, the contact form, or `request.html` on Cameron's site (clients list their changes; texts get a reply with the link). **Built**; emails still have to be saved and fed in by hand until email receiving is set up.
 2. `node ops/intake.js <email>` sorts it into the queue (`ops/queue/`, not committed): new enquiry, onboarding answers, or a change request from a known client (matched on the saved `contact.email` in `starter/clients/`). Change requests wait for the client to confirm from their saved address (the email is written to `ops/outbox/` until an email service sends it; `ops/confirm.js` marks it confirmed). Unknown addresses and direct emails failing SPF/DKIM are flagged, never confirmed. **Built.** `node ops/queue.js` lists everything.
-3. **Cameron approves** and sets the price (small changes: fixed $20): `node ops/approve.js <id> --price 20 --site <folder>` (or `--close`).
+3. **Cameron approves** and sets the price (small changes: fixed $20; `--price 0` for free family or testimonial work): `node ops/approve.js <id> --price 20 --site <folder>` (or `--close`).
 4. New clients fill in the onboarding form (`onboarding.html` on Cameron's site, linked privately, with agreed add-ons in the link, e.g. `?modules=food`). `starter/scripts/onboard.js` turns the emailed answers into the client JSON and site. **Built.** Blank headlines stay `[PLACEHOLDER]` for Cameron or AI copy drafting.
 5. Build: new sites by script; changes by `scripts/apply-changes.js` with a list of changes (**built**: wording swaps, opening hours, hero photo, news posts, menu add/remove/price/sold out; see `scripts/changes.js`). Anything else comes back as "needs a person", for Cameron or the agent.
 6. Checks and a Cloudflare Pages preview. **Cameron checks it first**, then the client sees it. Tweaks go back to step 5 (limit the free rounds).
@@ -80,4 +81,5 @@ The GitHub side (issue form, `approved` label, `change-request` workflow opening
 
 1. When a client first asks to reorder or add sections: list each site's sections and their order in `site.json`, so layout changes become scripted too.
 2. Switch on the parts that need accounts: receiving and sending email (so intake and confirmations run by themselves), Stripe, automatic repo and Cloudflare setup, AI copy drafting (Gemini).
-3. Find the first 3 paying clients in one niche.
+3. Build the "news you edit yourself" add-on (Keystatic, free) when the first client buys it.
+4. Try the whole flow with family sites first, then find the first 3 paying clients in one niche.

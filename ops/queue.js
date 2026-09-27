@@ -21,7 +21,7 @@ for (const [status, title] of groups) {
   for (const item of matching) {
     const who =
       item.status === 'unknown-sender' ? `${item.claimed} (says they're ${item.business})` : (item.business ?? item.from ?? 'someone');
-    const price = item.price ? ` ($${item.price})` : '';
+    const price = item.free ? ' (free)' : item.price ? ` ($${item.price})` : '';
     console.log(`  ${item.id}  ${item.kind} from ${who}${price}`);
     for (const change of item.changes ?? []) console.log(`      - ${describeChange(change)}`);
     for (const left of item.needsPerson ?? []) console.log(`      Still needs you: ${left}`);
