@@ -16,6 +16,10 @@ export interface Site {
   heroText: string;
   /** Optional photo beside the headline: a file in src/assets/photos/ and its description. */
   heroPhoto: { file: string; alt: string } | null;
+  /** Optional logo shown in the header instead of the name: a file in src/assets/photos/. */
+  logo: { file: string } | null;
+  /** Photos for the gallery section, in order. The section only shows once there's at least one. */
+  gallery: { file: string; alt: string }[];
   visitText: string;
   hours: { days: string; times: string }[];
   enquiry: { title: string; intro: string; options: string[] };

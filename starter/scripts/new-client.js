@@ -76,6 +76,8 @@ cpSync(resolve(starter, '../site_agent.py'), join(target, 'scripts/site_agent.py
 const { modules: _, contact: __, menu: ___, ...config } = {
   heroNote: '',
   heroPhoto: null,
+  logo: null,
+  gallery: [],
   ...details,
   theme,
   formKey: details.formKey ?? null,

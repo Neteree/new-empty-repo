@@ -1,6 +1,8 @@
 ---
 import { site } from '../site.config';
+import { Image } from 'astro:assets';
 import { themes } from '../themes';
+import { photo } from '../lib/photos';
 
 interface Props {
   title: string;
@@ -50,10 +52,15 @@ const hasJournal = Object.keys(import.meta.glob('../content/journal/**/*.md')).l
     <div class="page">
       <header class="masthead">
         <a class="wordmark" href={home}>
-          <span class="mark" aria-hidden="true"></span>{site.name}
+          {site.logo ? (
+            <Image class="logo" src={photo(site.logo.file)} alt={site.name} height={96} />
+          ) : (
+            <><span class="mark" aria-hidden="true"></span>{site.name}</>
+          )}
         </a>
         <nav aria-label="Main">
           {moduleNav.map(({ default: NavItem }) => <NavItem home={home} />)}
+          {site.gallery.length > 0 && <a href={`${home}#gallery`}>Gallery</a>}
           {hasJournal && <a href={`${home}#journal`}>News</a>}
           <a href={`${home}#enquire`}>{site.enquiry.title}</a>
           <a href={`${home}#visit`}>Visit</a>
@@ -196,6 +203,12 @@ const hasJournal = Object.keys(import.meta.glob('../content/journal/**/*.md')).l
     font-size: 1.6rem;
     letter-spacing: -0.03em;
     text-decoration: none;
+  }
+
+  .logo {
+    display: block;
+    height: 3rem;
+    width: auto;
   }
 
   .mark {

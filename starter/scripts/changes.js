@@ -8,6 +8,11 @@
 //   hours          { hours: [{ days, times }] }        replace the opening hours
 //   form-key       { key }                             connect the enquiry form (the client's Web3Forms key)
 //   photo          { slot: 'hero', file, alt }         set the hero photo from an uploaded file
+//   logo           { file }                            show a logo in the header instead of the name
+//   gallery-add    { photos?: [{ file, alt? }], folder? }  add photos (a folder adds every image in it)
+//   gallery-describe { file, alt }                     describe a gallery photo
+//   gallery-remove { file }                            take a photo out of the gallery
+//   gallery-order  { files: [...] }                    put the gallery in a new order
 //   news           { title, excerpt, body, date? }     add a news post (date defaults to today, NZ time)
 //   menu-replace   { items: [{ name, description, price, tags?, category? }] }  the client's full real menu
 //   menu-add       { name, description, price, tags?, days?, category? }
@@ -15,7 +20,7 @@
 //   menu-price     { name, price }
 //   menu-sold-out  { name, soldOut: true|false, days? }  days default to every menu day
 import { copyFileSync, existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
-import { extname, join } from 'node:path';
+import { basename, extname, join } from 'node:path';
 
 const SITE_JSON = 'src/data/site.json';
 const MENU_JSON = 'src/modules/food/menu.json';
@@ -118,18 +123,85 @@ function formKey({ key }) {
   return 'The enquiry form is connected.';
 }
 
+const IMAGE_TYPES = ['.jpg', '.jpeg', '.png', '.webp', '.avif'];
+const PLACEHOLDER_ALT = '[PLACEHOLDER: describe this photo for people who can’t see it]';
+let copies = 0;
+
+/** Copies an image into src/assets/photos/ under a new, unique name and returns that name. */
+function copyImage(file, prefix, types = IMAGE_TYPES) {
+  if (!file || !existsSync(file)) needsPerson(`The file ${file ?? ''} is missing.`);
+  const ext = extname(file).toLowerCase();
+  if (!types.includes(ext)) needsPerson(`“${basename(file)}” isn’t a supported image. Use ${types.map((t) => t.slice(1).toUpperCase()).join(', ')}.`);
+  const name = `${prefix}-${Date.now()}-${++copies}${ext}`;
+  copyFileSync(file, join('src/assets/photos', name));
+  return name;
+}
+
 function photo({ slot, file, alt }) {
   if (slot !== 'hero') needsPerson(`The script only knows the hero photo, not “${slot}”.`);
-  if (!file || !existsSync(file)) needsPerson('The photo file is missing.');
-  const ext = extname(file).toLowerCase();
-  if (!['.jpg', '.jpeg', '.png', '.webp', '.avif'].includes(ext)) needsPerson(`“${ext}” photos aren’t supported. Use JPG, PNG or WebP.`);
   if (!alt?.trim()) needsPerson('The photo needs a short description for people who can’t see it.');
-  const name = `hero-${Date.now()}${ext}`;
-  copyFileSync(file, join('src/assets/photos', name));
+  const name = copyImage(file, 'hero');
   const site = readJson(SITE_JSON);
   site.heroPhoto = { file: name, alt: alt.trim() };
   writeJson(SITE_JSON, site);
   return `The main photo is now ${name} (“${alt.trim()}”).`;
+}
+
+function logo({ file }) {
+  const name = copyImage(file, 'logo', [...IMAGE_TYPES, '.svg']);
+  const site = readJson(SITE_JSON);
+  site.logo = { file: name };
+  writeJson(SITE_JSON, site);
+  return 'The logo now shows in the header.';
+}
+
+// Photos come as a list, a folder of images, or both. A photo without a
+// description gets a placeholder, so the checks stop it going live undescribed.
+function galleryAdd({ photos = [], folder }) {
+  const list = [...photos];
+  if (folder) {
+    if (!existsSync(folder) || !statSync(folder).isDirectory()) needsPerson(`The folder ${folder} is missing.`);
+    for (const name of readdirSync(folder).sort()) {
+      if (IMAGE_TYPES.includes(extname(name).toLowerCase())) list.push({ file: join(folder, name) });
+    }
+  }
+  if (!list.length) needsPerson('There are no photos to add.');
+  for (const item of list) if (!item.file || !existsSync(item.file)) needsPerson(`The file ${item.file ?? ''} is missing.`);
+  const site = readJson(SITE_JSON);
+  const added = list.map((item) => ({ file: copyImage(item.file, 'gallery'), alt: item.alt?.trim() || PLACEHOLDER_ALT }));
+  site.gallery = [...(site.gallery ?? []), ...added];
+  writeJson(SITE_JSON, site);
+  const undescribed = added.filter((item) => item.alt === PLACEHOLDER_ALT).length;
+  return `Added ${added.length} photo${added.length === 1 ? '' : 's'} to the gallery${undescribed ? ` (${undescribed} still need a description: see src/data/site.json)` : ''}.`;
+}
+
+function galleryRemove({ file }) {
+  const site = readJson(SITE_JSON);
+  const before = site.gallery ?? [];
+  site.gallery = before.filter((item) => item.file !== file);
+  if (site.gallery.length === before.length) needsPerson(`There's no gallery photo called ${file}.`);
+  writeJson(SITE_JSON, site);
+  return `Removed ${file} from the gallery.`;
+}
+
+function galleryDescribe({ file, alt }) {
+  if (!alt?.trim()) needsPerson('The description is missing.');
+  const site = readJson(SITE_JSON);
+  const item = (site.gallery ?? []).find((photo) => photo.file === file);
+  if (!item) needsPerson(`There's no gallery photo called ${file}.`);
+  item.alt = alt.trim();
+  writeJson(SITE_JSON, site);
+  return `Described ${file} as “${item.alt}”.`;
+}
+
+function galleryOrder({ files }) {
+  const site = readJson(SITE_JSON);
+  const current = site.gallery ?? [];
+  const same = files?.length === current.length && current.every((item) => files.includes(item.file));
+  if (!same) needsPerson('The new order must list every gallery photo exactly once.');
+  site.gallery = files.map((file) => current.find((item) => item.file === file));
+  writeJson(SITE_JSON, site);
+  return 'The gallery is in the new order.';
 }
 
 function news({ title, excerpt, body, date }) {
@@ -226,7 +298,19 @@ const menuChanges = {
   },
 };
 
-const handlers = { text, hours, 'form-key': formKey, photo, news, ...menuChanges };
+const handlers = {
+  text,
+  hours,
+  'form-key': formKey,
+  photo,
+  logo,
+  'gallery-add': galleryAdd,
+  'gallery-describe': galleryDescribe,
+  'gallery-remove': galleryRemove,
+  'gallery-order': galleryOrder,
+  news,
+  ...menuChanges,
+};
 export const changeTypes = Object.keys(handlers);
 
 /**
