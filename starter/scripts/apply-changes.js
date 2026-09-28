@@ -38,7 +38,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const at = (path) => (path ? resolve(base, path) : path);
   const changes = (Array.isArray(parsed) ? parsed : parsed.changes).map((change) => ({
     ...change,
-    ...(change.file && ['photo', 'logo'].includes(change.type) ? { file: at(change.file) } : {}),
+    ...(change.file && ['photo', 'logo', 'price-photo'].includes(change.type) ? { file: at(change.file) } : {}),
+    ...(change.photo?.file ? { photo: { ...change.photo, file: at(change.photo.file) } } : {}),
+    ...(change.items ? { items: change.items.map((item) => (item.photo?.file ? { ...item, photo: { ...item.photo, file: at(item.photo.file) } } : item)) } : {}),
     ...(change.folder ? { folder: at(change.folder) } : {}),
     ...(change.photos ? { photos: change.photos.map((photo) => ({ ...photo, file: at(photo.file) })) } : {}),
   }));
