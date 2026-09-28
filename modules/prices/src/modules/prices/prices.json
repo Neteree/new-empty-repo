@@ -1,0 +1,41 @@
+{
+  "demoPrices": true,
+  "section": {
+    "note": "Prices",
+    "title": "What it costs",
+    "intro": "",
+    "footnote": ""
+  },
+  "items": [
+    {
+      "id": "example-sizes",
+      "name": "Example with sizes",
+      "description": "An example item. Real prices replace these.",
+      "category": "Example group",
+      "sizes": [
+        { "label": "Small", "price": 45 },
+        { "label": "Medium", "price": 65 },
+        { "label": "Large", "price": 90 }
+      ]
+    },
+    {
+      "id": "example-from",
+      "name": "Example with a starting price",
+      "description": "For work priced to suit, like custom orders.",
+      "category": "Example group",
+      "price": 120,
+      "from": true
+    },
+    {
+      "id": "example-one-price",
+      "name": "Example with one price",
+      "category": "Another example group",
+      "price": 30
+    },
+    {
+      "id": "example-ask",
+      "name": "Example priced on request",
+      "category": "Another example group"
+    }
+  ]
+}

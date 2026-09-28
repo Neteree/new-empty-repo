@@ -24,7 +24,9 @@
     ]
   },
   "theme": "calm",
-  "modules": [],
+  "modules": [
+    "prices"
+  ],
   "contact": {
     "email": "neteree@gmail.com",
     "phone": ""

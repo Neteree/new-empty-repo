@@ -22,11 +22,19 @@
 //   menu-remove    { name }
 //   menu-price     { name, price }
 //   menu-sold-out  { name, soldOut: true|false, days? }  days default to every menu day
+//   prices-replace { items: [{ name, description?, category?, price?, from?, sizes? }], footnote? }  the client's full price list
+//   price-add      { name, description?, category?, price?, from?, sizes?: [{ label, price }], photo?: { file | gallery, alt? } }
+//   price-change   { name, price?, from?, sizes?, description? }  new price (one price, or sizes)
+//   price-remove   { name }
+//   price-available { name, available: true|false }  hide an item for now, or show it again
+//   price-photo    { name, file | gallery, alt? } or { name, remove: true }
+//   price-note     { footnote }                        the line under the list ('' removes it)
 import { copyFileSync, existsSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
 
 const SITE_JSON = 'src/data/site.json';
 const MENU_JSON = 'src/modules/food/menu.json';
+const PRICES_JSON = 'src/modules/prices/prices.json';
 
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
 const writeJson = (path, data) => writeFileSync(path, `${JSON.stringify(data, null, 2)}\n`);
@@ -363,6 +371,129 @@ const menuChanges = {
   },
 };
 
+function priceList() {
+  if (!existsSync(PRICES_JSON)) needsPerson('This site has no price list.');
+  return readJson(PRICES_JSON);
+}
+
+function findPriceItem(data, name) {
+  const matches = data.items.filter((item) => item.name.toLowerCase() === name?.trim().toLowerCase());
+  if (matches.length !== 1) needsPerson(`Couldn’t find exactly one price list item called “${name}”.`);
+  return matches[0];
+}
+
+/** Sets one price, sizes, or neither ("Ask us") on an item, replacing what was there. */
+function setPricing(item, { price: cost, from, sizes }) {
+  delete item.price;
+  delete item.from;
+  delete item.sizes;
+  if (sizes?.length) {
+    item.sizes = sizes.map((size) => {
+      if (!size.label?.trim()) needsPerson('Each size needs a name, like “Small”.');
+      return { label: size.label.trim(), price: price(size.price) };
+    });
+  } else if (cost !== undefined && cost !== '') {
+    item.price = price(cost);
+    if (from) item.from = true;
+  }
+}
+
+/** A photo for a price list item: a new file or one already in the gallery. */
+function itemPhoto({ file, gallery, alt }, name) {
+  if (gallery) {
+    const match = (readJson(SITE_JSON).gallery ?? []).find((photo) => photo.file === gallery);
+    if (!match) needsPerson(`There's no gallery photo called ${gallery}.`);
+    return { file: gallery, alt: alt?.trim() || match.alt };
+  }
+  return { file: copyImage(file, 'price'), alt: alt?.trim() || PLACEHOLDER_ALT };
+}
+
+const dollars = (n) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
+const describePrice = (item) =>
+  item.sizes ? item.sizes.map((size) => `${size.label} ${dollars(size.price)}`).join(', ') : item.price !== undefined ? `${item.from ? 'from ' : ''}${dollars(item.price)}` : 'ask us';
+
+const priceChanges = {
+  'prices-replace'({ items, footnote }) {
+    const data = priceList();
+    if (!items?.length) needsPerson('The new price list has no items.');
+    const before = structuredClone(data);
+    data.items = [];
+    writeJson(PRICES_JSON, data);
+    try {
+      for (const item of items) priceChanges['price-add'](item);
+    } catch (error) {
+      writeJson(PRICES_JSON, before);
+      throw error;
+    }
+    const done = priceList();
+    done.demoPrices = false;
+    if (footnote !== undefined) done.section.footnote = footnote.trim();
+    writeJson(PRICES_JSON, done);
+    return `The price list now has ${items.length} item${items.length === 1 ? '' : 's'}.`;
+  },
+  'price-add'({ name, description, category, price: cost, from, sizes, photo }) {
+    const data = priceList();
+    if (!name?.trim()) needsPerson('A new price list item needs a name.');
+    if (data.items.some((item) => item.name.toLowerCase() === name.trim().toLowerCase())) needsPerson(`“${name}” is already on the price list.`);
+    let id = slugify(name);
+    while (data.items.some((item) => item.id === id)) id += '-2';
+    const item = { id, name: name.trim() };
+    if (description?.trim()) item.description = description.trim();
+    if (category?.trim()) item.category = category.trim();
+    setPricing(item, { price: cost, from, sizes });
+    if (photo && (photo.file || photo.gallery)) item.photo = itemPhoto(photo, name);
+    // Adding a real item on top of the examples starts the real list.
+    if (data.demoPrices) {
+      data.items = [];
+      data.demoPrices = false;
+    }
+    data.items.push(item);
+    writeJson(PRICES_JSON, data);
+    return `Added “${item.name}” (${describePrice(item)}).`;
+  },
+  'price-change'({ name, price: cost, from, sizes, description }) {
+    const data = priceList();
+    const item = findPriceItem(data, name);
+    if (cost !== undefined || sizes !== undefined) setPricing(item, { price: cost, from, sizes });
+    if (description !== undefined) {
+      if (description.trim()) item.description = description.trim();
+      else delete item.description;
+    }
+    writeJson(PRICES_JSON, data);
+    return `“${item.name}” is now ${describePrice(item)}.`;
+  },
+  'price-remove'({ name }) {
+    const data = priceList();
+    const item = findPriceItem(data, name);
+    data.items = data.items.filter((other) => other !== item);
+    writeJson(PRICES_JSON, data);
+    return `Removed “${item.name}” from the price list.`;
+  },
+  'price-available'({ name, available }) {
+    const data = priceList();
+    const item = findPriceItem(data, name);
+    if (available) delete item.unavailable;
+    else item.unavailable = true;
+    writeJson(PRICES_JSON, data);
+    return `“${item.name}” is ${available ? 'back on' : 'hidden from'} the price list.`;
+  },
+  'price-photo'({ name, file, gallery, alt, remove }) {
+    const data = priceList();
+    const item = findPriceItem(data, name);
+    if (remove) delete item.photo;
+    else if (file || gallery) item.photo = itemPhoto({ file, gallery, alt }, name);
+    else needsPerson('Choose a photo, or say to remove it.');
+    writeJson(PRICES_JSON, data);
+    return remove ? `“${item.name}” has no photo now.` : `“${item.name}” now shows ${item.photo.file}.`;
+  },
+  'price-note'({ footnote }) {
+    const data = priceList();
+    data.section.footnote = (footnote ?? '').trim();
+    writeJson(PRICES_JSON, data);
+    return data.section.footnote ? `The note under the price list is now “${data.section.footnote}”.` : 'Removed the note under the price list.';
+  },
+};
+
 const handlers = {
   text,
   hours,
@@ -377,6 +508,7 @@ const handlers = {
   'gallery-order': galleryOrder,
   news,
   ...menuChanges,
+  ...priceChanges,
 };
 export const changeTypes = Object.keys(handlers);
 
@@ -385,7 +517,14 @@ export const changeTypes = Object.keys(handlers);
 function removeUnusedPhotos() {
   const dir = 'src/assets/photos';
   if (!existsSync(dir) || !existsSync(SITE_JSON)) return;
-  const used = readFileSync(SITE_JSON, 'utf8');
+  // Photos can be named in site.json or in a module's data (e.g. price list items).
+  const moduleData = existsSync('src/modules')
+    ? readdirSync('src/modules').flatMap((name) => {
+        const dir = join('src/modules', name);
+        return statSync(dir).isDirectory() ? readdirSync(dir).filter((f) => f.endsWith('.json')).map((f) => readFileSync(join(dir, f), 'utf8')) : [];
+      })
+    : [];
+  const used = [readFileSync(SITE_JSON, 'utf8'), ...moduleData].join('\n');
   for (const name of readdirSync(dir)) {
     if (!name.startsWith('.') && !used.includes(`"${name}"`)) rmSync(join(dir, name));
   }

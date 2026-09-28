@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        client: [example, bakery]
+        client: [example, bakery, florist-demo]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

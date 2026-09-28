@@ -73,6 +73,20 @@ export function describeChange(change) {
       return 'Connect the enquiry form';
     case 'photo':
       return change.gallery ? `Use gallery photo ${change.gallery} as the main photo` : `New main photo: ${change.alt}`;
+    case 'prices-replace':
+      return `Replace the price list with ${change.items.length} items`;
+    case 'price-add':
+      return `Add “${change.name}” to the price list`;
+    case 'price-change':
+      return `Change the price of “${change.name}”`;
+    case 'price-remove':
+      return `Remove “${change.name}” from the price list`;
+    case 'price-available':
+      return `${change.available ? 'Show' : 'Hide'} “${change.name}” on the price list`;
+    case 'price-photo':
+      return change.remove ? `Remove the photo from “${change.name}”` : `New photo for “${change.name}”`;
+    case 'price-note':
+      return change.footnote ? `Price list note: “${change.footnote}”` : 'Remove the price list note';
     case 'contact':
       return `Contact details: ${['phone', 'address', 'instagram', 'facebook'].filter((key) => change[key] !== undefined).map((key) => `${key} ${change[key] || '(remove)'}`).join('; ')}`;
     case 'menu-add':

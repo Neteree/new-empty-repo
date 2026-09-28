@@ -1,0 +1,8 @@
+---
+// The price list's link in the site menu.
+import { items } from './prices';
+
+const { home } = Astro.props as { home: string };
+---
+
+{items.length > 0 && <a href={`${home}#prices`}>Prices</a>}
