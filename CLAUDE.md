@@ -57,6 +57,14 @@ One pipeline for new clients and changes:
 
 The GitHub side (issue form, `approved` label, `change-request` workflow opening a pull request) is built into every starter site. Never let a request go straight from the public to live: Cameron approves every job and every preview. `site_agent.py` at the root is the one to edit; new-client copies it into each site.
 
+## Working with Cameron
+
+- Keep replies short. Don't explain after each step; give one short summary at the end, never a wall of text. Cameron is often on a phone (on the bus), so previews go up as private artifacts.
+- After a piece of work: commit, push, open a PR and squash-merge it, unless Cameron says otherwise. Work on the session's branch, reset from `origin/main` first (`git checkout -B <branch> origin/main`, then force-push), since merged branches only hold old history.
+- Art Angel Florist's site stays on its `claude/remaining-work-3am1ua` branch (not merged to `main`) until the client's real details arrive. It is up to date with the starter; its only failing check is the example price list, as intended.
+- Demo sites (`"demo": true`) keep everything example-only: shop Buy buttons stay on the page instead of opening Stripe, and search engines are kept out.
+- Not wanted for now: an AI classifier at the front (no Jev); Rust; a second framework.
+
 ## Repo layout
 
 - `starter/`: base starter, new-client, onboard and update-site scripts. `modules/`: add-on modules (`food/`, `prices/`, `bouquet/`, `booking/`, `minigolf/`, `reviews/`, `faq/`, `shop/`).
@@ -70,7 +78,7 @@ The GitHub side (issue form, `approved` label, `change-request` workflow opening
 
 ## Clients
 
-- **Art Angel Florist** (first client): `starter/clients/art-angel-florist.json`, site in the private repo `Neteree/art-angel-florist` (base starter with the prices module, Calm look, 6 gallery photos; the price list still has the example items). Built from test answers with Cameron's email and Web3Forms key. Before launch: their real wording and email, their own Web3Forms key (`form-key` change), confirm the photos are theirs (two show another brand), then Cloudflare Pages. No new components needed.
+- **Art Angel Florist** (first client): `starter/clients/art-angel-florist.json`, site in the private repo `Neteree/art-angel-florist` on branch `claude/remaining-work-3am1ua` (base starter with the prices module, Calm look, 6 gallery photos; the price list still has the example items). Built from test answers with Cameron's email and Web3Forms key. Before launch: their real wording and email, their own Web3Forms key (`form-key` change), confirm the photos are theirs (two show another brand), then Cloudflare Pages. No new components needed.
 
 ## Working in a cloud session
 
