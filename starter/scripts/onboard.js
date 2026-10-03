@@ -85,6 +85,7 @@ const client = {
   theme: answers.theme,
   modules: answers.modules ?? [],
   ...(answers.preOrder ? { menu: { preOrder: true } } : {}),
+  ...(answers.quote ? { booking: { kind: 'quote' } } : {}),
   contact: answers.contact ?? {},
   demo: false,
 };

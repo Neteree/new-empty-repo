@@ -1,0 +1,27 @@
+---
+// Booking or quote section shell, added to the home page by the starter. The
+// form is an island, like the enquiry form.
+import BookingForm from './BookingForm.svelte';
+import { booking } from './booking';
+---
+
+<section id="book" class="section">
+  <div class="section-head">
+    <p class="hand-note">{booking.section.note}</p>
+    <h2>{booking.section.title}</h2>
+    {booking.section.intro && <p class="intro">{booking.section.intro}</p>}
+  </div>
+  <div class="form-card">
+    <BookingForm client:visible settings={booking} />
+  </div>
+</section>
+
+<style>
+  .form-card {
+    max-width: 44rem;
+    border: 2px solid var(--ink);
+    border-radius: 1.25rem;
+    padding: clamp(1.25rem, 3vw, 2rem);
+    box-shadow: 8px 8px 0 var(--accent);
+  }
+</style>

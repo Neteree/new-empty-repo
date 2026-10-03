@@ -29,12 +29,14 @@
 //   price-available { name, available: true|false }  hide an item for now, or show it again
 //   price-photo    { name, file | gallery, alt? } or { name, remove: true }
 //   price-note     { footnote }                        the line under the list ('' removes it)
+//   booking        { options?, times?, askAddress?, leadDays? }  the booking or quote form's choices
 import { copyFileSync, existsSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
 
 const SITE_JSON = 'src/data/site.json';
 const MENU_JSON = 'src/modules/food/menu.json';
 const PRICES_JSON = 'src/modules/prices/prices.json';
+const BOOKING_JSON = 'src/modules/booking/booking.json';
 
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
 const writeJson = (path, data) => writeFileSync(path, `${JSON.stringify(data, null, 2)}\n`);
@@ -494,6 +496,37 @@ const priceChanges = {
   },
 };
 
+function bookingSettings({ options, times, askAddress, leadDays }) {
+  if (!existsSync(BOOKING_JSON)) needsPerson('This site has no booking or quote form.');
+  const data = readJson(BOOKING_JSON);
+  const list = (value, what) => {
+    const clean = (value ?? []).map((item) => String(item).trim()).filter(Boolean);
+    if (!clean.length) needsPerson(`The list of ${what} is empty.`);
+    return [...new Set(clean)];
+  };
+  const done = [];
+  if (options !== undefined) {
+    data.options = list(options, data.kind === 'quote' ? 'kinds of job' : 'things to book');
+    done.push(`choices: ${data.options.join(', ')}`);
+  }
+  if (times !== undefined) {
+    data.times = list(times, 'times of day');
+    done.push(`times: ${data.times.join(', ')}`);
+  }
+  if (askAddress !== undefined) {
+    data.askAddress = Boolean(askAddress);
+    done.push(data.askAddress ? 'asks for an address' : 'no address');
+  }
+  if (leadDays !== undefined) {
+    if (!Number.isInteger(leadDays) || leadDays < 0 || leadDays > 60) needsPerson(`“${leadDays}” isn’t a number of days from 0 to 60.`);
+    data.leadDays = leadDays;
+    done.push(`earliest day: ${leadDays === 0 ? 'today' : `${leadDays} day${leadDays === 1 ? '' : 's'} ahead`}`);
+  }
+  if (!done.length) needsPerson('Nothing to change on the booking form.');
+  writeJson(BOOKING_JSON, data);
+  return `The ${data.kind === 'quote' ? 'quote' : 'booking'} form now has ${done.join('; ')}.`;
+}
+
 const handlers = {
   text,
   hours,
@@ -509,6 +542,7 @@ const handlers = {
   news,
   ...menuChanges,
   ...priceChanges,
+  booking: bookingSettings,
 };
 export const changeTypes = Object.keys(handlers);
 

@@ -1,0 +1,12 @@
+{
+  "kind": "booking",
+  "section": {
+    "note": "Bookings",
+    "title": "Book a time",
+    "intro": "Choose what you’d like and when suits you. We’ll confirm by email."
+  },
+  "options": ["[PLACEHOLDER: what customers can book]"],
+  "times": ["Morning", "Afternoon", "Evening"],
+  "askAddress": false,
+  "leadDays": 1
+}

@@ -1,0 +1,26 @@
+{
+  "name": "Tōtara Plumbing",
+  "suburb": "Henderson",
+  "city": "Auckland",
+  "description": "A demo plumber in Henderson, Auckland, showing the quote form add-on.",
+  "heroNote": "demo plumber",
+  "heroTitle": "Leaks fixed, done properly.",
+  "heroText": "A made-up plumber that shows the base starter with the quote form add-on. Every detail here is example text.",
+  "visitText": "This plumber isn't real, so there's no one to call out.",
+  "hours": [
+    { "days": "Monday to Friday", "times": "Example hours" },
+    { "days": "Saturday and Sunday", "times": "Closed" }
+  ],
+  "enquiry": {
+    "title": "Get in touch",
+    "intro": "Questions that aren't a job? Send us a message.",
+    "options": ["A question", "Something else"]
+  },
+  "theme": "bold",
+  "modules": ["booking"],
+  "booking": {
+    "kind": "quote",
+    "options": ["Leak or burst pipe", "Hot water", "Bathroom or kitchen", "Something else"]
+  },
+  "demo": true
+}

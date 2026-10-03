@@ -1,8 +1,9 @@
 <script lang="ts">
-  // Enquiry form. Sends through Web3Forms, which emails the enquiry to the
-  // address behind `site.formKey`. Without a key it sends nothing. The
+  // Enquiry form. Sends through Web3Forms (lib/send.ts), which emails the
+  // enquiry to the address behind `site.formKey`. Without a key it sends nothing. The
   // "What do you need?" choices come from `site.enquiry.options`.
   import { site } from '../site.config';
+  import { sendForm } from '../lib/send';
 
   let name = $state('');
   let email = $state('');
@@ -28,26 +29,14 @@
       return;
     }
     status = 'sending';
-    try {
-      const response = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({
-          access_key: site.formKey,
-          subject: `Website enquiry from ${name.trim()}`,
-          from_name: site.name,
-          name: name.trim(),
-          email,
-          need,
-          message: message.trim() || '-',
-          botcheck,
-        }),
-      });
-      const result = await response.json();
-      status = result.success ? 'sent' : 'failed';
-    } catch {
-      status = 'failed';
-    }
+    const sent = await sendForm(`Website enquiry from ${name.trim()}`, {
+      name: name.trim(),
+      email,
+      need,
+      message: message.trim() || '-',
+      botcheck,
+    });
+    status = sent ? 'sent' : 'failed';
   }
 
   function reset() {
@@ -57,7 +46,7 @@
 </script>
 
 {#if status === 'sent'}
-  <div class="sent" role="status">
+  <div class="form-sent" role="status">
     <p class="big">Thanks, {name.trim().split(' ')[0]}.</p>
     {#if site.formKey}
       <p>Your enquiry is on its way. We'll get back to you soon.</p>
@@ -67,7 +56,7 @@
     <button class="button" type="button" onclick={reset}>Back to the form</button>
   </div>
 {:else}
-  <form novalidate onsubmit={submit}>
+  <form class="site-form" novalidate onsubmit={submit}>
     <div class="row">
       <div class="field">
         <label for="enq-name">Your name</label>
@@ -104,86 +93,3 @@
     {#if !site.formKey && !site.demo}<p class="note">[PLACEHOLDER: connect this form with the client's Web3Forms key (a "form-key" change)]</p>{/if}
   </form>
 {/if}
-
-<style>
-  form {
-    display: grid;
-    gap: 1.1rem;
-  }
-
-  .row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-    gap: 1.1rem;
-  }
-
-  .field {
-    display: grid;
-    gap: 0.35rem;
-  }
-
-  label {
-    font-weight: 700;
-  }
-
-  .optional {
-    font-weight: 400;
-    color: var(--ink-soft);
-  }
-
-  input,
-  select,
-  textarea {
-    width: 100%;
-    border: 2px solid var(--ink);
-    border-radius: 0.6rem;
-    background: var(--paper);
-    padding: 0.6rem 0.75rem;
-  }
-
-  [aria-invalid='true'] {
-    border-color: var(--error);
-  }
-
-  .error {
-    margin: 0;
-    color: var(--error);
-    font-size: 0.9rem;
-    font-weight: 600;
-  }
-
-  form .button {
-    justify-self: start;
-  }
-
-  form .button:disabled {
-    opacity: 0.6;
-    cursor: wait;
-  }
-
-  .botcheck {
-    display: none;
-  }
-
-  .note {
-    margin: 0;
-    font-size: 0.85rem;
-    color: var(--ink-soft);
-  }
-
-  .sent {
-    display: grid;
-    gap: 0.75rem;
-    justify-items: start;
-  }
-
-  .sent p {
-    margin: 0;
-  }
-
-  .big {
-    font-family: var(--display);
-    font-size: 1.8rem;
-    font-weight: var(--display-weight);
-  }
-</style>

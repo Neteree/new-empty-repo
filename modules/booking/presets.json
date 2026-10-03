@@ -1,0 +1,12 @@
+{
+  "quote": {
+    "kind": "quote",
+    "section": {
+      "note": "Quotes",
+      "title": "Get a quote",
+      "intro": "Tell us about the job and we’ll get back to you with a price."
+    },
+    "options": ["[PLACEHOLDER: the kinds of job the business does]"],
+    "askAddress": true
+  }
+}
