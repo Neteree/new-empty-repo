@@ -5,5 +5,50 @@
     "intro": "Turn it with the slider, or make a new one. It's a drawing, not one of our real arrangements."
   },
   "flowers": 7,
-  "colours": ["#f7a8c4", "#ffffff", "#fbe3ea", "#e8475f", "#f6c94c", "#c39bf0", "#ff9a6b"]
+  "colours": [
+    "#f7a8c4",
+    "#ffffff",
+    "#fbe3ea",
+    "#e8475f",
+    "#f6c94c",
+    "#c39bf0",
+    "#ff9a6b"
+  ],
+  "game": {
+    "title": "Make the bunch",
+    "intro": "Customers are waiting. Tap the flowers each order asks for before time runs out. Pick the wrong colour and you lose a few seconds.",
+    "seconds": 60,
+    "flowers": [
+      {
+        "name": "Pink",
+        "colour": "#f7a8c4"
+      },
+      {
+        "name": "White",
+        "colour": "#ffffff"
+      },
+      {
+        "name": "Red",
+        "colour": "#e8475f"
+      },
+      {
+        "name": "Yellow",
+        "colour": "#f6c94c"
+      },
+      {
+        "name": "Purple",
+        "colour": "#c39bf0"
+      }
+    ],
+    "customers": [
+      "Aroha",
+      "Sam",
+      "Priya",
+      "Wiremu",
+      "Grace",
+      "Tom",
+      "Mere",
+      "Leilani"
+    ]
+  }
 }

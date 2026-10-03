@@ -92,14 +92,15 @@ fillJson(join(site, 'src/data/site.json'), join(starter, 'src/data/site.json'), 
 const siteModules = existsSync(join(site, 'src/modules')) ? readdirSync(join(site, 'src/modules')) : [];
 const extraDeps = {};
 for (const name of siteModules) {
-  const source = join(modulesDir, name, 'src/modules', name);
-  if (!existsSync(source)) {
+  if (!existsSync(join(modulesDir, name, 'src/modules', name))) {
     report.notFromStarter.push(`src/modules/${name}/ (no such module in the starter)`);
     continue;
   }
+  // A module's whole src/ (its section, and any pages it adds, e.g. src/pages/game.astro).
+  const source = join(modulesDir, name, 'src');
   for (const path of walk(source)) {
-    const to = join(site, 'src/modules', name, path);
-    if (path.endsWith('.json')) fillJson(to, join(source, path), `${name}/${path}`);
+    const to = join(site, 'src', path);
+    if (path.startsWith(`modules/${name}/`) && path.endsWith('.json')) fillJson(to, join(source, path), `${name}/${path.split('/').pop()}`);
     else put(join(source, path), to);
   }
   put(join(modulesDir, name, 'README.md'), join(site, 'src/modules', name, 'README.md'));

@@ -19,5 +19,11 @@ page elements beside it.
   (`client:visible`), so three.js only loads when someone scrolls to it. The
   rest of the page stays plain HTML. `Flowers.svelte` is the scene itself and
   can be reused in any other Threlte canvas.
+- It also adds a game page, `game.html` ("Make the bunch": tap the flowers each
+  customer orders before time runs out), linked from the menu and the section.
+  Its wording, length, flower kinds and customer names are under `game` in
+  `bouquet.json`; the rules are plain functions in `game.ts`, the 3D garden is
+  `Garden.svelte`, and the order, timer, score and pick buttons are page
+  elements in `Game.svelte`. Both use `Flower.svelte`, one 3D flower.
 - The bunch only moves when someone drags it, and flowers are placed so they
   never touch each other.

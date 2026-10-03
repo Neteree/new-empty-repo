@@ -12,4 +12,15 @@ import { bouquet } from './bouquet';
     {bouquet.section.intro && <p class="intro">{bouquet.section.intro}</p>}
   </div>
   <Bouquet client:visible count={bouquet.flowers} colours={bouquet.colours} />
+  <p class="play"><a href="game.html">Play the flower game: {bouquet.game.title}</a></p>
 </section>
+
+<style>
+  .play {
+    margin: 1.5rem 0 0;
+    font-weight: 700;
+  }
+  .play a {
+    color: var(--accent);
+  }
+</style>

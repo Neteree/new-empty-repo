@@ -1,0 +1,26 @@
+---
+// The flower game page (from the bouquet module). Its own page, so three.js
+// only loads here and on the bouquet section, never on the rest of the site.
+import Base from '../layouts/Base.astro';
+import Game from '../modules/bouquet/Game.svelte';
+import { bouquet } from '../modules/bouquet/bouquet';
+import { site } from '../site.config';
+---
+
+<Base title={`${bouquet.game.title} · ${site.name}`} description={`A little flower game from ${site.name}.`}>
+  <main class="section">
+    <div class="section-head">
+      <p class="hand-note">Just for fun</p>
+      <h1>{bouquet.game.title}</h1>
+      <p class="intro">{bouquet.game.intro}</p>
+    </div>
+    <Game client:load game={bouquet.game} />
+  </main>
+</Base>
+
+<style>
+  h1 {
+    font-size: clamp(2.4rem, 6vw, 3.8rem);
+    margin-top: 0.3rem;
+  }
+</style>

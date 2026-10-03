@@ -8,6 +8,17 @@ interface Bouquet {
   flowers: number;
   /** Petal colours to pick from (any CSS colour). */
   colours: string[];
+  /** The flower game on game.html. */
+  game: {
+    title: string;
+    intro: string;
+    /** Length of a game. */
+    seconds: number;
+    /** The kinds of flower in the game, each with a name customers ask for. */
+    flowers: { name: string; colour: string }[];
+    /** Names of the (made-up) customers placing orders. */
+    customers: string[];
+  };
 }
 
 export const bouquet = data as Bouquet;
