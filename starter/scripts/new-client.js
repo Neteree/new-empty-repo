@@ -4,8 +4,8 @@
 //
 // Copies the starter (without build output or installed packages), adds each
 // module listed in the client's "modules" (from ../modules/<name>/), writes
-// the client's details into src/data/site.json, and names the package after
-// the folder. Colours, fonts and any module data (e.g. the food menu) are
+// the client's details into src/data/site.json, adds any packages a module
+// needs (its module.json), and names the package after the folder. Colours, fonts and any module data (e.g. the food menu) are
 // still the starter's: edit those next.
 import { appendFileSync, cpSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
@@ -93,7 +93,15 @@ writeFileSync(join(target, 'src/data/site.json'), `${JSON.stringify(config, null
 const pkgPath = join(target, 'package.json');
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
 pkg.name = basename(resolve(target));
+// Packages a module needs (e.g. three.js for a 3D one) are listed in its module.json.
+const extra = {};
+for (const name of modules) {
+  const manifest = join(modulesDir, name, 'module.json');
+  if (existsSync(manifest)) Object.assign(extra, JSON.parse(readFileSync(manifest, 'utf8')).dependencies);
+}
+pkg.dependencies = { ...pkg.dependencies, ...extra };
 writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
 
 const added = modules.length ? ` with ${modules.join(', ')}` : '';
-console.log(`Created ${target} for ${details.name}${added}. Next: cd ${target} && npm install && npm run check`);
+const packages = Object.keys(extra).length ? ` (adds ${Object.keys(extra).join(', ')})` : '';
+console.log(`Created ${target} for ${details.name}${added}${packages}. Next: cd ${target} && npm install && npm run check`);

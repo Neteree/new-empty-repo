@@ -5,7 +5,8 @@ import { chromium } from 'playwright';
 
 export async function launch() {
   const proxy = process.env.HTTPS_PROXY;
-  const browser = await chromium.launch();
+  // WebGL in headless Chromium needs the software renderer allowed, so 3D sections draw in checks.
+  const browser = await chromium.launch({ args: ['--enable-unsafe-swiftshader'] });
   return {
     browser,
     async newPage(options = {}) {

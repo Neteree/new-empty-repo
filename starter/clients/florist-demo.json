@@ -2,10 +2,10 @@
   "name": "Rātā Flowers",
   "suburb": "Ponsonby",
   "city": "Auckland",
-  "description": "A demo florist in Ponsonby, Auckland, showing the price list add-on.",
+  "description": "A demo florist in Ponsonby, Auckland, showing the price list and 3D bouquet add-ons.",
   "heroNote": "demo florist",
   "heroTitle": "Flowers for every occasion.",
-  "heroText": "A made-up florist that shows the base starter with the price list add-on. Every detail here is example text.",
+  "heroText": "A made-up florist that shows the base starter with the price list and 3D bouquet add-ons. Every detail here is example text.",
   "visitText": "This florist isn't real, so there's nowhere to visit.",
   "hours": [
     { "days": "Monday to Saturday", "times": "Example hours" },
@@ -17,6 +17,6 @@
     "options": ["A bouquet", "Wedding flowers", "Something else"]
   },
   "theme": "calm",
-  "modules": ["prices"],
+  "modules": ["prices", "bouquet"],
   "demo": true
 }

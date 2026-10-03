@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "three": "^0.186.1",
+    "@threlte/core": "^8.6.1"
+  }
+}
