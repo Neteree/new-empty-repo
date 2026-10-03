@@ -293,6 +293,88 @@ const hasJournal = Object.keys(import.meta.glob('../content/journal/**/*.md')).l
     color: var(--ink-soft);
   }
 
+  /* Forms (enquiry, bookings and quotes), shared so every form on the site matches. */
+  .site-form {
+    display: grid;
+    gap: 1.1rem;
+  }
+
+  .site-form .row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: 1.1rem;
+  }
+
+  .site-form .field {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .site-form label {
+    font-weight: 700;
+  }
+
+  .site-form .optional {
+    font-weight: 400;
+    color: var(--ink-soft);
+  }
+
+  .site-form input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  .site-form select,
+  .site-form textarea {
+    width: 100%;
+    border: 2px solid var(--ink);
+    border-radius: 0.6rem;
+    background: var(--paper);
+    padding: 0.6rem 0.75rem;
+  }
+
+  .site-form [aria-invalid='true'] {
+    border-color: var(--error);
+  }
+
+  .site-form .error {
+    margin: 0;
+    color: var(--error);
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .site-form .button {
+    justify-self: start;
+  }
+
+  .site-form .button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+
+  .site-form .botcheck {
+    display: none;
+  }
+
+  .site-form .note {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+  }
+
+  .form-sent {
+    display: grid;
+    gap: 0.75rem;
+    justify-items: start;
+  }
+
+  .form-sent p {
+    margin: 0;
+  }
+
+  .form-sent .big {
+    font-family: var(--display);
+    font-size: 1.8rem;
+    font-weight: var(--display-weight);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     * {
       transition: none !important;

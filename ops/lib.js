@@ -87,6 +87,8 @@ export function describeChange(change) {
       return change.remove ? `Remove the photo from “${change.name}”` : `New photo for “${change.name}”`;
     case 'price-note':
       return change.footnote ? `Price list note: “${change.footnote}”` : 'Remove the price list note';
+    case 'booking':
+      return `Booking form: ${[change.options && `choices ${change.options.join(', ')}`, change.times && `times ${change.times.join(', ')}`, change.askAddress !== undefined && (change.askAddress ? 'ask for an address' : 'no address'), change.leadDays !== undefined && `earliest ${change.leadDays} days ahead`].filter(Boolean).join('; ')}`;
     case 'contact':
       return `Contact details: ${['phone', 'address', 'instagram', 'facebook'].filter((key) => change[key] !== undefined).map((key) => `${key} ${change[key] || '(remove)'}`).join('; ')}`;
     case 'menu-add':

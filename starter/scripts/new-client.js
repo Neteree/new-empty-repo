@@ -61,6 +61,13 @@ for (const name of modules) {
     menu.preOrder.enabled = true;
     writeFileSync(menuPath, `${JSON.stringify(menu, null, 2)}\n`);
   }
+  // Booking or quote form: "booking": { "kind": "quote", "options": [...] } in the client JSON.
+  const bookingPath = join(target, 'src/modules', name, 'booking.json');
+  if (name === 'booking' && details.booking) {
+    const presets = JSON.parse(readFileSync(join(module, 'presets.json'), 'utf8'));
+    const settings = { ...JSON.parse(readFileSync(bookingPath, 'utf8')), ...presets[details.booking.kind], ...details.booking };
+    writeFileSync(bookingPath, `${JSON.stringify(settings, null, 2)}\n`);
+  }
   const words = join(module, 'cspell-words.txt');
   if (existsSync(words)) appendFileSync(join(target, 'cspell-words.txt'), readFileSync(words, 'utf8'));
 }
@@ -74,7 +81,7 @@ cpSync(resolve(starter, '../site_agent.py'), join(target, 'scripts/site_agent.py
 
 // `contact` (the client's own email and phone) is for Cameron only, never the site;
 // `phone`, `address` and `social` are the public ones.
-const { modules: _, contact: __, menu: ___, ...config } = {
+const { modules: _, contact: __, menu: ___, booking: ____, ...config } = {
   heroNote: '',
   address: '',
   phone: '',
