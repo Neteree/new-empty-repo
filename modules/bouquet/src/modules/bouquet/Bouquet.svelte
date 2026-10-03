@@ -11,16 +11,42 @@
   let seed = $state(1);
   const flowers = $derived(bunch(seed, count, colours));
   let turn = $state(0);
-  let dragging: number | null = null;
+  // A drag only turns the bunch once it's clearly sideways; an up-or-down
+  // swipe is left to the page, so scrolling past on a phone never turns it.
+  let start: { x: number; y: number } | null = null;
+  let turning = false;
+  let last = 0;
 
   function down(event: PointerEvent) {
-    dragging = event.clientX;
-    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    start = { x: event.clientX, y: event.clientY };
+    turning = false;
   }
   function move(event: PointerEvent) {
-    if (dragging === null) return;
-    turn += (event.clientX - dragging) * 0.01;
-    dragging = event.clientX;
+    if (!start) return;
+    if (!turning) {
+      const dx = event.clientX - start.x;
+      const dy = event.clientY - start.y;
+      if (Math.hypot(dx, dy) < 8) return;
+      if (Math.abs(dy) > Math.abs(dx)) {
+        start = null;
+        return;
+      }
+      turning = true;
+      last = event.clientX;
+      (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    }
+    turn += (event.clientX - last) * 0.01;
+    last = event.clientX;
+  }
+  function end() {
+    start = null;
+    turning = false;
+  }
+  function key(event: KeyboardEvent) {
+    if (event.key === 'ArrowLeft') turn -= 0.3;
+    else if (event.key === 'ArrowRight') turn += 0.3;
+    else return;
+    event.preventDefault();
   }
 </script>
 
@@ -28,11 +54,13 @@
   <div
     class="window"
     role="img"
-    aria-label="A 3D drawing of a bunch of flowers"
+    aria-label="A 3D drawing of a bunch of flowers. Drag sideways or use the arrow keys to turn it."
+    tabindex="0"
     onpointerdown={down}
     onpointermove={move}
-    onpointerup={() => (dragging = null)}
-    onpointercancel={() => (dragging = null)}
+    onpointerup={end}
+    onpointercancel={end}
+    onkeydown={key}
   >
     <Canvas createRenderer={(canvas) => new WebGLRenderer({ canvas, alpha: true, antialias: true })}>
       <Flowers {flowers} {turn} />
