@@ -1,0 +1,15 @@
+---
+// Reviews section shell, added to the home page by the starter. No JavaScript.
+import Reviews from './Reviews.svelte';
+import { reviews } from './reviews';
+---
+
+{reviews.items.length > 0 && (
+  <section id="reviews" class="section">
+    <div class="section-head">
+      <p class="hand-note">{reviews.section.note}</p>
+      <h2>{reviews.section.title}</h2>
+    </div>
+    <Reviews items={reviews.items} />
+  </section>
+)}

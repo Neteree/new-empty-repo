@@ -13,10 +13,15 @@ import Visit from '../components/Visit.svelte';
 import { picture } from '../lib/images';
 import { mapLink, phoneLink, phoneText } from '../lib/contact';
 import { site } from '../site.config';
+import { sectionOrder } from '../lib/sections';
 
 // Add-on modules (menu and pre-order, price list…) each add a section
-// with a Section.astro in src/modules/<name>/.
-const modules = Object.values(import.meta.glob<{ default: any }>('../modules/*/Section.astro', { eager: true }));
+// with a Section.astro in src/modules/<name>/. The order of the sections
+// comes from site.json "sections" (see lib/sections.ts).
+const modules = Object.fromEntries(
+  Object.entries(import.meta.glob<{ default: any }>('../modules/*/Section.astro', { eager: true })).map(([path, mod]) => [path.split('/')[2], mod.default]),
+);
+const order = sectionOrder(site.sections, Object.keys(modules));
 
 // Skip the collection while there are no posts, so the build doesn't warn.
 const hasPosts = Object.keys(import.meta.glob('../content/journal/**/*.md')).length > 0;
@@ -46,24 +51,27 @@ const galleryImages = await Promise.all(site.gallery.map((item) => picture(item.
       image={heroImage}
     />
 
-    {modules.map(({ default: Section }) => <Section />)}
-
-    <Gallery images={galleryImages} />
-
-    <Journal name={site.name} {posts} />
-
-    <section id="enquire" class="section enquire">
-      <Visit
-        enquiry={site.enquiry}
-        visitText={site.visitText}
-        phone={phoneLink ? { href: phoneLink, text: phoneText } : null}
-        map={mapLink}
-        hours={site.hours}
-      />
-      <div class="form-card">
-        <EnquiryForm client:visible />
-      </div>
-    </section>
+    {order.map((id) => {
+      if (id === 'gallery') return <Gallery images={galleryImages} />;
+      if (id === 'news') return <Journal name={site.name} {posts} />;
+      if (id === 'enquire')
+        return (
+          <section id="enquire" class="section enquire">
+            <Visit
+              enquiry={site.enquiry}
+              visitText={site.visitText}
+              phone={phoneLink ? { href: phoneLink, text: phoneText } : null}
+              map={mapLink}
+              hours={site.hours}
+            />
+            <div class="form-card">
+              <EnquiryForm client:visible />
+            </div>
+          </section>
+        );
+      const Section = modules[id];
+      return <Section />;
+    })}
   </main>
 </Base>
 

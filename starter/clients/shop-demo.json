@@ -1,0 +1,39 @@
+{
+  "name": "Harbour Gifts",
+  "suburb": "Devonport",
+  "city": "Auckland",
+  "description": "A demo gift shop in Devonport, Auckland, showing the online shop add-on with reviews and questions.",
+  "heroNote": "demo gift shop",
+  "heroTitle": "Little gifts, made locally.",
+  "heroText": "A made-up gift shop that shows the base starter with the shop, reviews and questions add-ons. Every detail here is example text, and nothing is for sale.",
+  "visitText": "This shop isn't real, so there's no door to walk through.",
+  "hours": [
+    { "days": "Every day", "times": "Example hours" }
+  ],
+  "enquiry": {
+    "title": "Get in touch",
+    "intro": "Looking for something you can't see? Ask us.",
+    "options": ["A question", "A custom order", "Something else"]
+  },
+  "theme": "warm",
+  "modules": ["shop", "reviews", "faq"],
+  "sections": ["shop", "gallery", "reviews", "faq", "news", "enquire"],
+  "shop": {
+    "products": [
+      { "id": "candle", "name": "Example candle", "description": "An example product. Real products and Stripe links replace these.", "price": 28, "link": "" },
+      { "id": "mug", "name": "Example mug", "description": "Another example, shown as sold out.", "price": 35, "link": "", "soldOut": true },
+      { "id": "print", "name": "Example print", "description": "An example with a starting point for custom work.", "price": 60, "link": "" }
+    ]
+  },
+  "reviews": {
+    "items": [
+      { "quote": "Example review: lovely wrapping and quick delivery.", "name": "Example customer", "stars": 5 }
+    ]
+  },
+  "faq": {
+    "questions": [
+      { "question": "Do you deliver?", "answer": "Example answer: around Auckland, or pick up from the shop." }
+    ]
+  },
+  "demo": true
+}

@@ -1,0 +1,40 @@
+{
+  "name": "Kōwhai Cuts",
+  "suburb": "Ponsonby",
+  "city": "Auckland",
+  "description": "A demo barber in Ponsonby, Auckland, showing bookings, a price list, reviews and questions.",
+  "heroNote": "demo barber",
+  "heroTitle": "Sharp cuts, no fuss.",
+  "heroText": "A made-up barber that shows the base starter with the booking, prices, reviews and questions add-ons. Every detail here is example text.",
+  "visitText": "This barber isn't real, so there's no chair waiting.",
+  "hours": [
+    { "days": "Tuesday to Saturday", "times": "Example hours" },
+    { "days": "Sunday and Monday", "times": "Closed" }
+  ],
+  "enquiry": {
+    "title": "Get in touch",
+    "intro": "Questions that aren't a booking? Send us a message.",
+    "options": ["A question", "Something else"]
+  },
+  "notice": { "text": "Example notice: closed for the long weekend.", "until": "" },
+  "theme": "classic",
+  "modules": ["booking", "prices", "reviews", "faq"],
+  "booking": {
+    "kind": "booking",
+    "options": ["Haircut", "Beard trim", "Cut and beard", "Kids' cut"]
+  },
+  "reviews": {
+    "items": [
+      { "quote": "Example review: quick, friendly and a great fade.", "name": "Example customer", "source": "Google", "stars": 5 },
+      { "quote": "Example review: the only barber my son sits still for.", "name": "Another example", "stars": 5 },
+      { "quote": "Example review: easy to book and always on time.", "name": "A third example", "source": "Facebook", "stars": 4 }
+    ]
+  },
+  "faq": {
+    "questions": [
+      { "question": "Do I need to book?", "answer": "Example answer: walk-ins are welcome, but booking means no wait." },
+      { "question": "How do I pay?", "answer": "Example answer: card or cash.\n\nThis barber is made up, so there's nothing to pay." }
+    ]
+  },
+  "demo": true
+}

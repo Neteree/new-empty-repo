@@ -89,6 +89,32 @@ export function describeChange(change) {
       return change.footnote ? `Price list note: “${change.footnote}”` : 'Remove the price list note';
     case 'booking':
       return `Booking form: ${[change.options && `choices ${change.options.join(', ')}`, change.times && `times ${change.times.join(', ')}`, change.askAddress !== undefined && (change.askAddress ? 'ask for an address' : 'no address'), change.leadDays !== undefined && `earliest ${change.leadDays} days ahead`].filter(Boolean).join('; ')}`;
+    case 'notice':
+      return change.text ? `Notice on every page: “${change.text}”${change.until ? ` until ${change.until}` : ''}` : 'Remove the notice';
+    case 'sections':
+      return `Reorder the home page: ${(change.order ?? []).join(', ')}`;
+    case 'review-add':
+      return `Add a review from ${change.name}`;
+    case 'review-remove':
+      return `Remove the review from ${change.name}`;
+    case 'faq-add':
+      return `Add the question “${change.question}”`;
+    case 'faq-remove':
+      return `Remove the question “${change.question}”`;
+    case 'faq-replace':
+      return `Replace the questions with ${change.questions?.length ?? 0}`;
+    case 'product-add':
+      return `Add “${change.name}” to the shop at ${change.price}`;
+    case 'product-remove':
+      return `Remove “${change.name}” from the shop`;
+    case 'product-price':
+      return `Change the price of “${change.name}” to ${change.price}`;
+    case 'product-link':
+      return `New payment link for “${change.name}”`;
+    case 'product-sold-out':
+      return `Mark “${change.name}” as ${change.soldOut ? 'sold out' : 'back in stock'}`;
+    case 'product-photo':
+      return change.remove ? `Remove the photo from “${change.name}”` : `New photo for “${change.name}”`;
     case 'contact':
       return `Contact details: ${['phone', 'address', 'instagram', 'facebook'].filter((key) => change[key] !== undefined).map((key) => `${key} ${change[key] || '(remove)'}`).join('; ')}`;
     case 'menu-add':

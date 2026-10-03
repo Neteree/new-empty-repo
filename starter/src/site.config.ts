@@ -35,6 +35,16 @@ export interface Site {
   formKey: string | null;
   /** The live address, e.g. 'https://example.co.nz', once known. */
   url: string | null;
+  /**
+   * Optional notice across the top of every page, e.g. 'Closed 24 December to 5 January'.
+   * It stops showing after `until` (YYYY-MM-DD, NZ time), or never if that's blank. Blank text hides it.
+   */
+  notice: { text: string; until: string };
+  /**
+   * The order of the home page sections after the hero: 'gallery', 'news', 'enquire' and any
+   * module names (e.g. 'prices'). Sections left out follow in their usual order. Empty = usual order.
+   */
+  sections: string[];
   /** Shows the "this is a demo" footer note. False for a real client. */
   demo: boolean;
 }
