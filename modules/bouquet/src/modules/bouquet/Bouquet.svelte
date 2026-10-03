@@ -84,14 +84,49 @@
   .turn {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    flex: 1 1 14rem;
-    max-width: 24rem;
+    gap: 1rem;
+    flex: 1 1 18rem;
+    max-width: 34rem;
     font-weight: 700;
+    font-size: 1.1rem;
   }
+  /* A big, easy-to-grab slider in the theme's colours. */
   .turn input {
     flex: 1;
-    min-height: 2.75rem;
-    accent-color: var(--accent);
+    height: 3rem;
+    margin: 0;
+    background: none;
+    appearance: none;
+    cursor: pointer;
+  }
+  .turn input::-webkit-slider-runnable-track {
+    height: 0.75rem;
+    border-radius: 999px;
+    background: var(--rule);
+    border: 2px solid var(--ink);
+  }
+  .turn input::-moz-range-track {
+    height: 0.75rem;
+    border-radius: 999px;
+    background: var(--rule);
+    border: 2px solid var(--ink);
+  }
+  .turn input::-webkit-slider-thumb {
+    appearance: none;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-top: calc(-1.125rem + 0.25rem);
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid var(--paper);
+    box-shadow: 0 0 0 2px var(--ink), 3px 3px 0 var(--highlight);
+  }
+  .turn input::-moz-range-thumb {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid var(--paper);
+    box-shadow: 0 0 0 2px var(--ink), 3px 3px 0 var(--highlight);
   }
 </style>
