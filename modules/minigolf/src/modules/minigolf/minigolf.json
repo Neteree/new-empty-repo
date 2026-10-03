@@ -1,0 +1,49 @@
+{
+  "section": {
+    "note": "Play online",
+    "title": "Try a round before you come",
+    "intro": "Four holes of 3D mini golf, right here on the site. Our real course is bigger."
+  },
+  "game": {
+    "title": "Mini golf",
+    "intro": "Drag back from the ball on the green and let go to putt: the further you pull, the harder you hit. Or use the aim and power sliders."
+  },
+  "holes": [
+    {
+      "name": "Straight shot",
+      "par": 2,
+      "start": [1, 5.4],
+      "cup": [1, 0.7],
+      "edge": [[0, 0], [2, 0], [2, 6], [0, 6]],
+      "blocks": [],
+      "bumpers": []
+    },
+    {
+      "name": "Dog leg",
+      "par": 3,
+      "start": [0.8, 5.4],
+      "cup": [4.2, 0.8],
+      "edge": [[0, 0], [5, 0], [5, 1.8], [1.6, 1.8], [1.6, 6], [0, 6]],
+      "blocks": [],
+      "bumpers": []
+    },
+    {
+      "name": "The wall",
+      "par": 3,
+      "start": [1.5, 5.4],
+      "cup": [1.5, 0.7],
+      "edge": [[0, 0], [3, 0], [3, 6], [0, 6]],
+      "blocks": [[0.4, 2.8, 2.2, 0.3]],
+      "bumpers": []
+    },
+    {
+      "name": "Pinball",
+      "par": 3,
+      "start": [1.5, 5.5],
+      "cup": [1.5, 0.6],
+      "edge": [[0, 0], [3, 0], [3, 6.2], [0, 6.2]],
+      "blocks": [],
+      "bumpers": [[1.5, 3.1, 0.35], [0.7, 1.9, 0.25], [2.3, 1.9, 0.25], [0.8, 4.2, 0.2], [2.2, 4.2, 0.2]]
+    }
+  ]
+}

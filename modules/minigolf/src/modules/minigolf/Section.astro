@@ -1,0 +1,65 @@
+---
+// Mini golf section shell, added to the home page by the starter: a taste of
+// the online course and a link to play it. No 3D here, so the home page stays
+// light; the game itself is on play.html.
+import { minigolf } from './golf';
+
+const par = minigolf.holes.reduce((sum, hole) => sum + hole.par, 0);
+---
+
+<section id="play" class="section">
+  <div class="section-head">
+    <p class="hand-note">{minigolf.section.note}</p>
+    <h2>{minigolf.section.title}</h2>
+    {minigolf.section.intro && <p class="intro">{minigolf.section.intro}</p>}
+  </div>
+  <ol class="holes">
+    {minigolf.holes.map((hole, i) => (
+      <li>
+        <span class="number">{i + 1}</span>
+        <span class="name">{hole.name}</span>
+        <span class="par">Par {hole.par}</span>
+      </li>
+    ))}
+  </ol>
+  <p class="go"><a class="button" href="play.html">Play {minigolf.holes.length} holes (par {par})</a></p>
+</section>
+
+<style>
+  .holes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .holes li {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.8rem 1rem;
+    border: 2px solid var(--ink);
+    border-radius: 0.8rem;
+  }
+  .number {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: 700;
+  }
+  .name {
+    flex: 1;
+    font-weight: 700;
+  }
+  .par {
+    color: var(--ink-soft);
+  }
+  .go {
+    margin: 1.75rem 0 0;
+  }
+</style>
