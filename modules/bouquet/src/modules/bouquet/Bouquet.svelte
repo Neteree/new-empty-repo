@@ -12,7 +12,6 @@
   const flowers = $derived(bunch(seed, count, colours));
   let turn = $state(0);
   let dragging: number | null = null;
-  const still = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function down(event: PointerEvent) {
     dragging = event.clientX;
@@ -36,7 +35,7 @@
     onpointercancel={() => (dragging = null)}
   >
     <Canvas createRenderer={(canvas) => new WebGLRenderer({ canvas, alpha: true, antialias: true })}>
-      <Flowers {flowers} {turn} spin={!still && dragging === null} />
+      <Flowers {flowers} {turn} />
     </Canvas>
   </div>
   <button class="button" type="button" onclick={() => (seed += 1)}>New bunch</button>

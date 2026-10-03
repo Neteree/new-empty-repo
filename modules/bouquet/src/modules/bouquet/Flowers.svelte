@@ -1,24 +1,25 @@
 <script lang="ts">
   // The 3D scene: a bunch of flowers made from simple shapes (see bunch() in
   // bouquet.ts). Goes inside any Threlte <Canvas>.
-  import { T, useTask } from '@threlte/core';
+  import { T } from '@threlte/core';
   import type { Flower } from './bouquet';
 
-  let { flowers, turn = 0, spin = true }: { flowers: Flower[]; turn?: number; spin?: boolean } = $props();
+  // `turn` is how far the bunch has been turned (by dragging); it doesn't move on its own.
+  let { flowers, turn = 0 }: { flowers: Flower[]; turn?: number } = $props();
 
-  let auto = $state(0);
-  useTask((delta) => {
-    if (spin) auto += delta * 0.3;
-  });
+  // Step the camera back for a wide bunch, so it always fits the window, even
+  // on a square phone screen. It looks slightly down at the middle of the flowers.
+  const reach = $derived(Math.max(...flowers.map((f) => Math.hypot(f.x, f.z) + 0.42 * f.size)));
+  const distance = $derived(Math.max(2.6, reach * 3.1));
 </script>
 
-<T.PerspectiveCamera makeDefault position={[0, 1.3, 3.4]} fov={40} oncreate={(ref) => ref.lookAt(0, 0.9, 0)} />
+<T.PerspectiveCamera makeDefault position={[0, 1.1, distance]} rotation.x={-Math.atan2(0.75, distance)} fov={40} />
 <T.HemisphereLight args={['#ffffff', '#6a8f6a', 1.6]} />
 <T.DirectionalLight position={[2, 4, 3]} intensity={1.8} />
 
-<T.Group rotation.y={auto + turn}>
+<T.Group rotation.y={turn}>
   {#each flowers as f, i (i)}
-    <T.Group position={[f.x, -0.45, f.z]} rotation.z={f.lean} scale={f.size * 0.8}>
+    <T.Group position={[f.x, -0.45, f.z]} scale={f.size}>
       <T.Mesh position.y={f.height / 2}>
         <T.CylinderGeometry args={[0.03, 0.04, f.height, 8]} />
         <T.MeshStandardMaterial color="#4f8a4a" />

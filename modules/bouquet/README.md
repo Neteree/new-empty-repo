@@ -17,4 +17,5 @@ page elements beside it.
   (`client:visible`), so three.js only loads when someone scrolls to it. The
   rest of the page stays plain HTML. `Flowers.svelte` is the scene itself and
   can be reused in any other Threlte canvas.
-- People who ask for less motion get a still bunch (no slow turning).
+- The bunch only moves when someone drags it, and flowers are placed so they
+  never touch each other.

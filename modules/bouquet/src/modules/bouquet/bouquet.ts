@@ -26,7 +26,6 @@ export interface Flower {
   x: number;
   z: number;
   height: number;
-  lean: number;
   size: number;
   petals: number;
   layers: number;
@@ -36,24 +35,41 @@ export interface Flower {
 }
 
 const CENTRES = ['#f6c94c', '#7a4a1f', '#ffe08a', '#3a2a14'];
+/** How far a flower reaches from its stem (petals and leaves), at size 1. */
+const REACH = 0.42;
 
-/** The flowers in a bunch: plain data, so any renderer can draw them. */
+/**
+ * The flowers in a bunch: plain data, so any renderer can draw them. Stems
+ * stand upright and each flower is placed so nothing touches another flower
+ * (its petals, leaves and stem stay clear of every other one).
+ */
 export function bunch(seed: number, count: number, colours: string[]): Flower[] {
   const r = seeded(seed);
-  return Array.from({ length: count }, (_, i) => {
-    const angle = (i / count) * Math.PI * 2 + r();
-    const spread = count === 1 ? 0 : 0.3 + r() * 0.35;
-    return {
-      x: Math.cos(angle) * spread,
-      z: Math.sin(angle) * spread,
+  const placed: Flower[] = [];
+  for (let i = 0; i < count; i++) {
+    const size = 0.6 + r() * 0.25;
+    const reach = REACH * size;
+    let x = 0;
+    let z = 0;
+    // Try spots close to the middle first, moving outwards until one is clear.
+    for (let tries = 0; tries < 400; tries++) {
+      const angle = r() * Math.PI * 2;
+      const distance = placed.length ? Math.sqrt(r()) * (0.2 + tries * 0.01) : 0;
+      x = Math.cos(angle) * distance;
+      z = Math.sin(angle) * distance;
+      if (placed.every((f) => Math.hypot(f.x - x, f.z - z) >= REACH * f.size + reach + 0.02)) break;
+    }
+    placed.push({
+      x,
+      z,
       height: 1.1 + r() * 0.7,
-      lean: (r() - 0.5) * 0.5,
-      size: 0.8 + r() * 0.5,
+      size,
       petals: 5 + Math.floor(r() * 8),
       layers: r() < 0.5 ? 2 : 1,
       petal: colours[Math.floor(r() * colours.length)] ?? '#f7a8c4',
       centre: CENTRES[Math.floor(r() * CENTRES.length)],
       cup: 0.2 + r() * 0.5,
-    };
-  });
+    });
+  }
+  return placed;
 }
