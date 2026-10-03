@@ -1,8 +1,9 @@
 # Bouquet module
 
 Adds a live 3D bunch of flowers to a starter site: a `#bouquet` section on the
-home page that people can turn by dragging sideways (or with the arrow keys),
-with a "New bunch" button. Up-and-down swipes still scroll the page. The
+home page that people turn with a slider (or by dragging with a mouse), with a
+"New bunch" button. On a phone, touching the 3D just scrolls the page, so
+turning never fights scrolling. The
 first 3D module, and the pattern for others: the scene is drawn on a canvas
 (Threlte, three.js in Svelte) and everything people read or tap is ordinary
 page elements beside it.
