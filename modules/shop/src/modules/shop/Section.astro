@@ -1,9 +1,11 @@
 ---
 // Shop section shell, added to the home page by the starter: prepares the
 // products (price, optimised photos) for Products.svelte. No JavaScript.
+// On a demo site, Buy buttons stay on the page instead of opening Stripe.
 import Products from './Products.svelte';
 import { money, shop } from './shop';
 import { picture } from '../../lib/images';
+import { site } from '../../site.config';
 
 const items = await Promise.all(
   shop.products.map(async (product) => ({
@@ -11,7 +13,7 @@ const items = await Promise.all(
     name: product.name,
     description: product.description,
     price: money(product.price),
-    link: product.link,
+    link: product.link && site.demo ? '#shop' : product.link,
     soldOut: Boolean(product.soldOut),
     image: product.photo ? await picture(product.photo.file, product.photo.alt, [400, 800], '(max-width: 40rem) 100vw, 25vw') : null,
   })),
