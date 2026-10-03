@@ -1,0 +1,6 @@
+---
+// The flower game's link in the site menu.
+const { home } = Astro.props as { home: string };
+---
+
+<a href={home.replace('index.html', 'game.html')}>Game</a>
