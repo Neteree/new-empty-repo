@@ -31,7 +31,8 @@ jobs:
       - name: Check it
         working-directory: ${{ runner.temp }}/site
         run: |
-          npm ci
+          # install, not ci: a module can add packages (module.json) that the starter's lock file doesn't list
+          npm install --no-audit --no-fund
           npx playwright install --with-deps chromium
           npm run check
       - uses: actions/upload-artifact@v4

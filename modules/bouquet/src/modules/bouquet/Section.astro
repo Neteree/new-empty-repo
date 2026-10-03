@@ -1,0 +1,15 @@
+---
+// Bouquet section shell, added to the home page by the starter. The 3D part
+// is an island that only loads when someone scrolls to it.
+import Bouquet from './Bouquet.svelte';
+import { bouquet } from './bouquet';
+---
+
+<section id="bouquet" class="section">
+  <div class="section-head">
+    <p class="hand-note">{bouquet.section.note}</p>
+    <h2>{bouquet.section.title}</h2>
+    {bouquet.section.intro && <p class="intro">{bouquet.section.intro}</p>}
+  </div>
+  <Bouquet client:visible count={bouquet.flowers} colours={bouquet.colours} />
+</section>

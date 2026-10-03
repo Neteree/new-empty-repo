@@ -1,88 +1,65 @@
 ---
+// The home page shell: gathers the site's data and optimised photos, then
+// hands them to the Svelte sections, which hold all the markup. Interactive
+// pieces (the enquiry form, module islands) are placed here, since only an
+// .astro file can decide when they load.
 import { getCollection } from 'astro:content';
-import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import EnquiryForm from '../components/EnquiryForm.svelte';
-import HeroArt from '../components/HeroArt.astro';
-import Gallery from '../components/Gallery.astro';
-import { photo } from '../lib/photos';
+import Hero from '../components/Hero.svelte';
+import Gallery from '../components/Gallery.svelte';
+import Journal from '../components/Journal.svelte';
+import Visit from '../components/Visit.svelte';
+import { picture } from '../lib/images';
 import { mapLink, phoneLink, phoneText } from '../lib/contact';
 import { site } from '../site.config';
 
-// Add-on modules (menu and pre-order, booking, gallery…) each add a section
+// Add-on modules (menu and pre-order, price list…) each add a section
 // with a Section.astro in src/modules/<name>/.
 const modules = Object.values(import.meta.glob<{ default: any }>('../modules/*/Section.astro', { eager: true }));
 
 // Skip the collection while there are no posts, so the build doesn't warn.
 const hasPosts = Object.keys(import.meta.glob('../content/journal/**/*.md')).length > 0;
-const heroPhoto = site.heroPhoto && photo(site.heroPhoto.file);
+const posts = (hasPosts ? await getCollection('journal') : [])
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .map((post) => ({
+    href: `journal/${post.id}.html`,
+    date: post.data.date.toLocaleDateString('en-NZ', { day: 'numeric', month: 'long', timeZone: 'Pacific/Auckland' }),
+    title: post.data.title,
+    excerpt: post.data.excerpt,
+  }));
 
-const posts = (hasPosts ? await getCollection('journal') : []).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
-const formatDate = (date: Date) =>
-  date.toLocaleDateString('en-NZ', { day: 'numeric', month: 'long', timeZone: 'Pacific/Auckland' });
+const heroImage = site.heroPhoto
+  ? await picture(site.heroPhoto.file, site.heroPhoto.alt, [480, 800, 1200], '(max-width: 52rem) 100vw, 40vw', 'eager')
+  : null;
+const galleryImages = await Promise.all(site.gallery.map((item) => picture(item.file, item.alt, [400, 800], '(max-width: 40rem) 100vw, 33vw')));
 ---
 
 <Base title={site.name} description={site.description}>
   <main>
-    <section class="hero">
-      <div>
-        <p class="hand-note">{site.suburb}, {site.city}{site.heroNote && ` · ${site.heroNote}`}</p>
-        <h1>{site.heroTitle}</h1>
-        <p class="lede">{site.heroText}</p>
-        <a class="button" href="#enquire">{site.enquiry.title}</a>
-      </div>
-      {heroPhoto && site.heroPhoto ? (
-        <Image class="hero-photo" src={heroPhoto} alt={site.heroPhoto.alt} widths={[480, 800, 1200]} sizes="(max-width: 52rem) 100vw, 40vw" loading="eager" />
-      ) : (
-        <HeroArt />
-      )}
-    </section>
+    <Hero
+      name={site.name}
+      note={`${site.suburb}, ${site.city}${site.heroNote && ` · ${site.heroNote}`}`}
+      title={site.heroTitle}
+      text={site.heroText}
+      button={{ label: site.enquiry.title, href: '#enquire' }}
+      image={heroImage}
+    />
 
     {modules.map(({ default: Section }) => <Section />)}
 
-    <Gallery />
+    <Gallery images={galleryImages} />
 
-    {posts.length > 0 && (
-      <section id="journal" class="section">
-        <div class="section-head">
-          <p class="hand-note">News</p>
-          <h2>Latest from {site.name}</h2>
-        </div>
-        <div class="posts">
-          {posts.map((post) => (
-            <a class="post-card" href={`journal/${post.id}.html`}>
-              <p class="post-date">{formatDate(post.data.date)}</p>
-              <h3>{post.data.title}</h3>
-              <p>{post.data.excerpt}</p>
-            </a>
-          ))}
-        </div>
-      </section>
-    )}
+    <Journal name={site.name} {posts} />
 
     <section id="enquire" class="section enquire">
-      <div class="enquire-info">
-        <div class="section-head">
-          <p class="hand-note">Enquiries</p>
-          <h2>{site.enquiry.title}</h2>
-          <p class="intro">{site.enquiry.intro}</p>
-        </div>
-        <div id="visit" class="visit">
-          <h3>Find us</h3>
-          <p class="intro">{site.visitText}</p>
-          {(phoneLink || mapLink) && (
-            <p class="contact-links">
-              {phoneLink && <a href={phoneLink}>{`Call\u00a0${phoneText}`}</a>}
-              {mapLink && <a href={mapLink}>Open in Google Maps</a>}
-            </p>
-          )}
-          <dl class="hours">
-            {site.hours.map((row) => (
-              <div><dt>{row.days}</dt><dd>{row.times}</dd></div>
-            ))}
-          </dl>
-        </div>
-      </div>
+      <Visit
+        enquiry={site.enquiry}
+        visitText={site.visitText}
+        phone={phoneLink ? { href: phoneLink, text: phoneText } : null}
+        map={mapLink}
+        hours={site.hours}
+      />
       <div class="form-card">
         <EnquiryForm client:visible />
       </div>
@@ -91,71 +68,6 @@ const formatDate = (date: Date) =>
 </Base>
 
 <style>
-  .hero {
-    display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-    align-items: center;
-    gap: 2rem 3rem;
-    padding-block: clamp(1.5rem, 5vw, 3.5rem) 0;
-  }
-
-  .hero-photo {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 4 / 3;
-    object-fit: cover;
-    border-radius: 1rem;
-    box-shadow: 8px 8px 0 var(--highlight);
-  }
-
-  .hero h1 {
-    font-size: clamp(2.8rem, 8vw, 5.6rem);
-    margin-block: 0.5rem 1.4rem;
-  }
-
-  .lede {
-    max-width: 44ch;
-    font-size: 1.2rem;
-    color: var(--ink-soft);
-    margin: 0 0 2rem;
-  }
-
-  .posts {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
-    gap: 2rem;
-  }
-
-  .post-card {
-    display: block;
-    text-decoration: none;
-    border: 2px solid var(--ink);
-    border-radius: 1rem;
-    padding: 1.5rem;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-
-  .post-card:hover {
-    transform: translate(-3px, -3px);
-    box-shadow: 6px 6px 0 var(--highlight);
-  }
-
-  .post-date {
-    margin: 0 0 0.3rem;
-    font-weight: 700;
-    color: var(--accent);
-  }
-
-  .post-card h3 {
-    font-size: 1.6rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .post-card p:last-child {
-    margin: 0;
-    color: var(--ink-soft);
-  }
-
   .enquire {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
@@ -170,61 +82,7 @@ const formatDate = (date: Date) =>
     box-shadow: 8px 8px 0 var(--accent);
   }
 
-  .enquire-info {
-    display: grid;
-    gap: 2rem;
-  }
-
-  .enquire-info .section-head {
-    margin-bottom: 0;
-  }
-
-  .visit h3 {
-    font-size: 1.6rem;
-    margin-bottom: 0.4rem;
-  }
-
-  .visit .intro {
-    margin: 0 0 1rem;
-  }
-
-  .contact-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1.4rem;
-    margin: 0 0 1rem;
-  }
-
-  .contact-links a {
-    font-weight: 700;
-    color: var(--accent);
-  }
-
-  .hours {
-    margin: 0;
-    border-top: 2px solid var(--ink);
-  }
-
-  .hours div {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 0.2rem 1rem;
-    padding-block: 0.85rem;
-    border-bottom: 1.5px dashed var(--rule);
-  }
-
-  .hours dt {
-    font-weight: 700;
-  }
-
-  .hours dd {
-    margin: 0;
-    color: var(--ink-soft);
-  }
-
   @media (max-width: 52rem) {
-    .hero,
     .enquire {
       grid-template-columns: 1fr;
     }

@@ -1,7 +1,8 @@
 # Prices module
 
 Adds a price list to a starter site: a `#prices` section on the home page and
-a "Prices" item in the menu. For anything sold at set prices: bouquets,
+a "Prices" item in the menu. `Section.astro` prepares the items and photos;
+`PriceList.svelte` draws them. For anything sold at set prices: bouquets,
 haircuts, cakes, classes.
 
 - Add it with `"modules": ["prices"]` in the client's JSON (or `?modules=prices`

@@ -1,0 +1,9 @@
+{
+  "section": {
+    "note": "Just for fun",
+    "title": "Build a bunch",
+    "intro": "Turn it with the slider, or make a new one. It's a drawing, not one of our real arrangements."
+  },
+  "flowers": 7,
+  "colours": ["#f7a8c4", "#ffffff", "#fbe3ea", "#e8475f", "#f6c94c", "#c39bf0", "#ff9a6b"]
+}

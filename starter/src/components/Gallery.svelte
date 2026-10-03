@@ -1,25 +1,24 @@
----
-// Photo gallery, shown once the site has photos (site.json "gallery").
-import { Image } from 'astro:assets';
-import { site } from '../site.config';
-import { photo } from '../lib/photos';
----
+<script lang="ts">
+  // Photo gallery, shown once the site has photos (site.json "gallery").
+  import type { Picture as PictureData } from '../lib/images';
+  import Picture from './Picture.svelte';
 
-{site.gallery.length > 0 && (
+  let { images }: { images: PictureData[] } = $props();
+</script>
+
+{#if images.length}
   <section id="gallery" class="section">
     <div class="section-head">
       <p class="hand-note">Gallery</p>
       <h2>Have a look around</h2>
     </div>
     <ul class="gallery">
-      {site.gallery.map((item) => (
-        <li>
-          <Image src={photo(item.file)} alt={item.alt} widths={[400, 800]} sizes="(max-width: 40rem) 100vw, 33vw" />
-        </li>
-      ))}
+      {#each images as image (image.src)}
+        <li><Picture {image} /></li>
+      {/each}
     </ul>
   </section>
-)}
+{/if}
 
 <style>
   .gallery {
