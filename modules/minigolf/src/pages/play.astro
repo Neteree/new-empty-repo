@@ -1,0 +1,26 @@
+---
+// The mini golf game page (from the minigolf module). Its own page, so
+// three.js only loads here, never on the rest of the site.
+import Base from '../layouts/Base.astro';
+import Golf from '../modules/minigolf/Golf.svelte';
+import { minigolf } from '../modules/minigolf/golf';
+import { site } from '../site.config';
+---
+
+<Base title={`${minigolf.game.title} · ${site.name}`} description={`Play ${minigolf.holes.length} holes of 3D mini golf from ${site.name}.`}>
+  <main class="section">
+    <div class="section-head">
+      <p class="hand-note">{minigolf.section.note}</p>
+      <h1>{minigolf.game.title}</h1>
+      <p class="intro">{minigolf.game.intro}</p>
+    </div>
+    <Golf client:load holes={minigolf.holes} title={minigolf.game.title} />
+  </main>
+</Base>
+
+<style>
+  h1 {
+    font-size: clamp(2.4rem, 6vw, 3.8rem);
+    margin-top: 0.3rem;
+  }
+</style>

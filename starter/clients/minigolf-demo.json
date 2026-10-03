@@ -1,0 +1,21 @@
+{
+  "name": "Pūkeko Putt",
+  "suburb": "Orewa",
+  "city": "Auckland",
+  "description": "A demo mini golf course in Orewa, Auckland, showing the 3D mini golf game add-on.",
+  "heroNote": "demo mini golf",
+  "heroTitle": "Eighteen holes of family fun.",
+  "heroText": "A made-up mini golf course that shows the base starter with a playable 3D mini golf game. Every detail here is example text.",
+  "visitText": "This course isn't real, so there's nowhere to visit.",
+  "hours": [
+    { "days": "Every day", "times": "Example hours" }
+  ],
+  "enquiry": {
+    "title": "Get in touch",
+    "intro": "Birthday parties, groups and school holidays: tell us what you're planning.",
+    "options": ["A birthday party", "A group booking", "Something else"]
+  },
+  "theme": "warm",
+  "modules": ["minigolf"],
+  "demo": true
+}

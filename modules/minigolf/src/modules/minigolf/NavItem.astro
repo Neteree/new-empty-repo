@@ -1,0 +1,6 @@
+---
+// The mini golf game's link in the site menu.
+const { home } = Astro.props as { home: string };
+---
+
+<a href={home.replace('index.html', 'play.html')}>Play</a>
