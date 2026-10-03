@@ -12,6 +12,8 @@ From the Early Crust demo.
   data: replace them with the client's real menu and prices, never invent
   any, then set `demoMenu` to false. The change scripts can add, remove,
   reprice and mark items sold out.
+- `Section.astro` is the shell: the plain menu is `Menu.svelte`, the pre-order
+  form `PreOrder.svelte`.
 - `BakeArt.svelte` draws bakery illustrations for items that have an `art`
   value; items without one show no picture.
 - Placing an order isn't connected: it shows a demo message. Real orders and
