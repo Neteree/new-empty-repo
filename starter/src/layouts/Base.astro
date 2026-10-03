@@ -4,6 +4,8 @@ import { Image } from 'astro:assets';
 import { themes } from '../themes';
 import { photo } from '../lib/photos';
 import { mapLink, phoneLink, phoneText, socialLinks } from '../lib/contact';
+import { stillShowing } from '../lib/dates';
+import Notice from '../components/Notice.svelte';
 
 interface Props {
   title: string;
@@ -29,6 +31,23 @@ const themeCss = `
   @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) { ${vars(theme.dark)} color-scheme: dark; } }
   :root[data-theme='dark'] { ${vars(theme.dark)} color-scheme: dark; }`;
 const hasJournal = Object.keys(import.meta.glob('../content/journal/**/*.md')).length > 0;
+const notice = site.notice?.text && stillShowing(site.notice.until) ? site.notice : null;
+const hideOldNotice = `document.querySelectorAll('[data-until]').forEach((n) => { if (n.dataset.until < new Date().toLocaleDateString('en-CA', { timeZone: 'Pacific/Auckland' })) n.hidden = true; });`;
+
+// What search engines read about the business ("local search basics"): its
+// name, area, address, phone and social pages, as schema.org data.
+const business = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  name: site.name,
+  description: site.description,
+  ...(site.url ? { url: `${site.url}/` } : {}),
+  ...(site.phone ? { telephone: site.phone } : {}),
+  address: site.address
+    ? { '@type': 'PostalAddress', streetAddress: site.address, addressLocality: site.suburb, addressRegion: site.city, addressCountry: 'NZ' }
+    : { '@type': 'PostalAddress', addressLocality: site.suburb, addressRegion: site.city, addressCountry: 'NZ' },
+  ...(socialLinks.length ? { sameAs: socialLinks.map((link) => link.url) } : {}),
+};
 ---
 
 <!doctype html>
@@ -44,12 +63,20 @@ const hasJournal = Object.keys(import.meta.glob('../content/journal/**/*.md')).l
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     {site.url && <meta property="og:url" content={`${site.url}/`} />}
+    {site.url && <link rel="canonical" href={`${site.url}${Astro.url.pathname.replace(/\/index\.html$/, '/')}`} />}
+    {!site.demo && <script type="application/ld+json" is:inline set:html={JSON.stringify(business)} />}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?family=${theme.fonts}&display=swap`} />
     <style is:inline set:html={themeCss} />
   </head>
   <body>
+    {notice && (
+      <>
+        <Notice text={notice.text} until={notice.until} />
+        <script is:inline set:html={hideOldNotice} />
+      </>
+    )}
     <div class="page">
       <header class="masthead">
         <a class="wordmark" href={home}>

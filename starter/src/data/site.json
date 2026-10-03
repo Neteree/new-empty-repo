@@ -33,5 +33,10 @@
   "demo": true,
   "heroPhoto": null,
   "logo": null,
-  "gallery": []
+  "gallery": [],
+  "notice": {
+    "text": "",
+    "until": ""
+  },
+  "sections": []
 }

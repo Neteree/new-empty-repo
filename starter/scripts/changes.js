@@ -9,6 +9,8 @@
 //   form-key       { key }                             connect the enquiry form (the client's Web3Forms key)
 //   theme          { theme }                           switch the look (bold, classic, calm or warm; see src/themes.ts)
 //   contact        { phone?, address?, instagram?, facebook? }  public contact details ('' removes one)
+//   notice         { text, until? }                    a notice across the top of every page until a date ('' text removes it)
+//   sections       { order: [...] }                    the order of the home page sections (see src/lib/sections.ts)
 //   photo          { slot: 'hero', file, alt }         set the hero photo from an uploaded file
 //                  { slot: 'hero', gallery, alt? }     …or use a gallery photo (by file name)
 //   logo           { file }                            show a logo in the header instead of the name
@@ -30,6 +32,17 @@
 //   price-photo    { name, file | gallery, alt? } or { name, remove: true }
 //   price-note     { footnote }                        the line under the list ('' removes it)
 //   booking        { options?, times?, askAddress?, leadDays? }  the booking or quote form's choices
+//   review-add     { quote, name, source?, stars? }    a real customer review, word for word
+//   review-remove  { name }
+//   faq-add        { question, answer }                a question and the business's own answer
+//   faq-remove     { question }
+//   faq-replace    { questions: [{ question, answer }] }  the full list
+//   product-add    { name, description, price, link?, photo?: { file | gallery, alt? } }  a shop product
+//   product-remove { name }
+//   product-price  { name, price }
+//   product-link   { name, link }                      its Stripe payment link ('' shows "Ask us")
+//   product-sold-out { name, soldOut: true|false }
+//   product-photo  { name, file | gallery, alt? } or { name, remove: true }
 import { copyFileSync, existsSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
 
@@ -37,6 +50,10 @@ const SITE_JSON = 'src/data/site.json';
 const MENU_JSON = 'src/modules/food/menu.json';
 const PRICES_JSON = 'src/modules/prices/prices.json';
 const BOOKING_JSON = 'src/modules/booking/booking.json';
+const REVIEWS_JSON = 'src/modules/reviews/reviews.json';
+const FAQ_JSON = 'src/modules/faq/faq.json';
+const SHOP_JSON = 'src/modules/shop/shop.json';
+const isPlaceholder = (text) => String(text ?? '').startsWith('[PLACEHOLDER');
 
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
 const writeJson = (path, data) => writeFileSync(path, `${JSON.stringify(data, null, 2)}\n`);
@@ -190,6 +207,29 @@ function contact({ phone, address, instagram, facebook }) {
   if (!done.length) needsPerson('No contact details were given.');
   writeJson(SITE_JSON, site);
   return `Contact details: ${done.join('; ')}.`;
+}
+
+function notice({ text, until }) {
+  const site = readJson(SITE_JSON);
+  const clean = (text ?? '').trim();
+  const end = (until ?? '').trim();
+  if (end && !/^\d{4}-\d{2}-\d{2}$/.test(end)) needsPerson(`“${until}” isn’t a date like 2026-12-24.`);
+  site.notice = { text: clean, until: clean ? end : '' };
+  writeJson(SITE_JSON, site);
+  return clean ? `The notice “${clean}” shows on every page${end ? ` until ${end}` : ''}.` : 'The notice is gone.';
+}
+
+function sections({ order }) {
+  const modules = existsSync('src/modules') ? readdirSync('src/modules').filter((name) => existsSync(join('src/modules', name, 'Section.astro'))) : [];
+  const known = [...modules, 'gallery', 'news', 'enquire'];
+  const wanted = (order ?? []).map((id) => String(id).trim().toLowerCase());
+  const unknown = wanted.filter((id) => !known.includes(id));
+  if (!wanted.length) needsPerson('No section order was given.');
+  if (unknown.length) needsPerson(`This site has no ${unknown.join(', ')} section. It has: ${known.join(', ')}.`);
+  const site = readJson(SITE_JSON);
+  site.sections = [...new Set(wanted)];
+  writeJson(SITE_JSON, site);
+  return `The home page sections now go: ${site.sections.join(', ')} (then any others).`;
 }
 
 const IMAGE_TYPES = ['.jpg', '.jpeg', '.png', '.webp', '.avif'];
@@ -527,12 +567,130 @@ function bookingSettings({ options, times, askAddress, leadDays }) {
   return `The ${data.kind === 'quote' ? 'quote' : 'booking'} form now has ${done.join('; ')}.`;
 }
 
+function moduleData(path, what) {
+  if (!existsSync(path)) needsPerson(`This site has no ${what}.`);
+  return readJson(path);
+}
+
+const contentChanges = {
+  'review-add'({ quote, name, source, stars }) {
+    if (!quote?.trim() || !name?.trim()) needsPerson('A review needs the customer’s words and how they’re happy to be named.');
+    if (stars !== undefined && !(Number.isInteger(stars) && stars >= 1 && stars <= 5)) needsPerson(`“${stars}” isn’t 1 to 5 stars.`);
+    const data = moduleData(REVIEWS_JSON, 'reviews section');
+    data.items = data.items.filter((item) => !isPlaceholder(item.quote));
+    data.items.push({ quote: quote.trim().replace(/^["“]|["”]$/g, ''), name: name.trim(), ...(source?.trim() ? { source: source.trim() } : {}), ...(stars ? { stars } : {}) });
+    writeJson(REVIEWS_JSON, data);
+    return `Added a review from ${name.trim()}.`;
+  },
+  'review-remove'({ name }) {
+    const data = moduleData(REVIEWS_JSON, 'reviews section');
+    const left = data.items.filter((item) => item.name.toLowerCase() !== name?.trim().toLowerCase());
+    if (left.length === data.items.length) needsPerson(`There's no review from “${name}”.`);
+    data.items = left;
+    writeJson(REVIEWS_JSON, data);
+    return `Removed the review from ${name.trim()}.`;
+  },
+  'faq-add'({ question, answer }) {
+    if (!question?.trim() || !answer?.trim()) needsPerson('A question needs both the question and the answer.');
+    const data = moduleData(FAQ_JSON, 'questions section');
+    data.questions = data.questions.filter((item) => !isPlaceholder(item.question));
+    if (data.questions.some((item) => item.question.toLowerCase() === question.trim().toLowerCase())) needsPerson(`“${question.trim()}” is already there.`);
+    data.questions.push({ question: question.trim(), answer: answer.trim() });
+    writeJson(FAQ_JSON, data);
+    return `Added the question “${question.trim()}”.`;
+  },
+  'faq-remove'({ question }) {
+    const data = moduleData(FAQ_JSON, 'questions section');
+    const left = data.questions.filter((item) => item.question.toLowerCase() !== question?.trim().toLowerCase());
+    if (left.length === data.questions.length) needsPerson(`There's no question “${question}”.`);
+    data.questions = left;
+    writeJson(FAQ_JSON, data);
+    return `Removed the question “${question.trim()}”.`;
+  },
+  'faq-replace'({ questions }) {
+    const data = moduleData(FAQ_JSON, 'questions section');
+    const clean = (questions ?? []).map((item) => ({ question: item.question?.trim(), answer: item.answer?.trim() })).filter((item) => item.question && item.answer);
+    if (!clean.length) needsPerson('The new list of questions is empty.');
+    data.questions = clean;
+    writeJson(FAQ_JSON, data);
+    return `There are now ${clean.length} question${clean.length === 1 ? '' : 's'}.`;
+  },
+};
+
+function stripeLink(link) {
+  const clean = (link ?? '').trim();
+  if (clean && !/^https:\/\/buy\.stripe\.com\/[\w-]+$/.test(clean)) needsPerson(`“${link}” isn’t a Stripe payment link (https://buy.stripe.com/…).`);
+  return clean;
+}
+
+function findProduct(data, name) {
+  const matches = data.products.filter((item) => item.name.toLowerCase() === name?.trim().toLowerCase());
+  if (matches.length !== 1) needsPerson(`Couldn’t find exactly one product called “${name}”.`);
+  return matches[0];
+}
+
+const shopChanges = {
+  'product-add'({ name, description, price: cost, link, photo }) {
+    if (!name?.trim()) needsPerson('A product needs a name.');
+    const data = moduleData(SHOP_JSON, 'shop');
+    data.products = data.products.filter((item) => !isPlaceholder(item.name));
+    if (data.products.some((item) => item.name.toLowerCase() === name.trim().toLowerCase())) needsPerson(`“${name}” is already in the shop.`);
+    let id = slugify(name);
+    while (data.products.some((item) => item.id === id)) id += '-2';
+    const product = { id, name: name.trim(), description: description?.trim() ?? '', price: price(cost), link: stripeLink(link) };
+    if (photo && (photo.file || photo.gallery)) product.photo = itemPhoto(photo, name);
+    data.products.push(product);
+    writeJson(SHOP_JSON, data);
+    return `Added “${product.name}” at $${product.price}${product.link ? '' : ' (no payment link yet, so it shows “Ask us”)'}.`;
+  },
+  'product-remove'({ name }) {
+    const data = moduleData(SHOP_JSON, 'shop');
+    const product = findProduct(data, name);
+    data.products = data.products.filter((item) => item !== product);
+    writeJson(SHOP_JSON, data);
+    return `Removed “${product.name}” from the shop.`;
+  },
+  'product-price'({ name, price: cost }) {
+    const data = moduleData(SHOP_JSON, 'shop');
+    const product = findProduct(data, name);
+    product.price = price(cost);
+    writeJson(SHOP_JSON, data);
+    return `“${product.name}” is now $${product.price}. Check its Stripe payment link charges the same.`;
+  },
+  'product-link'({ name, link }) {
+    const data = moduleData(SHOP_JSON, 'shop');
+    const product = findProduct(data, name);
+    product.link = stripeLink(link);
+    writeJson(SHOP_JSON, data);
+    return product.link ? `“${product.name}” can be bought online.` : `“${product.name}” now shows “Ask us”.`;
+  },
+  'product-sold-out'({ name, soldOut }) {
+    const data = moduleData(SHOP_JSON, 'shop');
+    const product = findProduct(data, name);
+    if (soldOut) product.soldOut = true;
+    else delete product.soldOut;
+    writeJson(SHOP_JSON, data);
+    return `“${product.name}” is ${soldOut ? 'sold out' : 'back in stock'}.`;
+  },
+  'product-photo'({ name, file, gallery, alt, remove }) {
+    const data = moduleData(SHOP_JSON, 'shop');
+    const product = findProduct(data, name);
+    if (remove) delete product.photo;
+    else if (file || gallery) product.photo = itemPhoto({ file, gallery, alt }, name);
+    else needsPerson('Choose a photo, or say to remove it.');
+    writeJson(SHOP_JSON, data);
+    return remove ? `“${product.name}” has no photo now.` : `“${product.name}” now shows ${product.photo.file}.`;
+  },
+};
+
 const handlers = {
   text,
   hours,
   'form-key': formKey,
   theme,
   contact,
+  notice,
+  sections,
   photo,
   logo,
   'gallery-add': galleryAdd,
@@ -543,6 +701,8 @@ const handlers = {
   ...menuChanges,
   ...priceChanges,
   booking: bookingSettings,
+  ...contentChanges,
+  ...shopChanges,
 };
 export const changeTypes = Object.keys(handlers);
 

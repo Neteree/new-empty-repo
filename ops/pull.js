@@ -56,12 +56,12 @@ for (const submission of items) {
     const photos = files.filter((file) => file.slot === 'photos');
     for (const change of payload.changes ?? []) {
       // A new main photo or price list photo points at its upload the same way.
-      if (['photo', 'price-photo'].includes(change.type) && change.upload !== undefined) {
+      if (['photo', 'price-photo', 'product-photo'].includes(change.type) && change.upload !== undefined) {
         if (photos[change.upload]) change.file = photos[change.upload].path;
         delete change.upload;
         continue;
       }
-      if (change.type === 'price-add' && change.photo?.upload !== undefined) {
+      if (['price-add', 'product-add'].includes(change.type) && change.photo?.upload !== undefined) {
         change.photo = photos[change.photo.upload] ? { file: photos[change.photo.upload].path, ...(change.photo.alt ? { alt: change.photo.alt } : {}) } : undefined;
         continue;
       }

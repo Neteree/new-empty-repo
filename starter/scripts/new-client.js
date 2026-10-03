@@ -61,12 +61,17 @@ for (const name of modules) {
     menu.preOrder.enabled = true;
     writeFileSync(menuPath, `${JSON.stringify(menu, null, 2)}\n`);
   }
-  // Booking or quote form: "booking": { "kind": "quote", "options": [...] } in the client JSON.
-  const bookingPath = join(target, 'src/modules', name, 'booking.json');
-  if (name === 'booking' && details.booking) {
-    const presets = JSON.parse(readFileSync(join(module, 'presets.json'), 'utf8'));
-    const settings = { ...JSON.parse(readFileSync(bookingPath, 'utf8')), ...presets[details.booking.kind], ...details.booking };
-    writeFileSync(bookingPath, `${JSON.stringify(settings, null, 2)}\n`);
+  // A module's settings from the client JSON: the key named after the module
+  // (e.g. "reviews": { "items": [...] }) is laid over its data file (module.json "data").
+  const manifestPath = join(module, 'module.json');
+  const manifest = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, 'utf8')) : {};
+  if (manifest.data && details[name]) {
+    const dataPath = join(target, 'src/modules', name, manifest.data);
+    // The booking form's quote kind brings its own wording (presets.json).
+    const presetPath = join(module, 'presets.json');
+    const preset = existsSync(presetPath) ? JSON.parse(readFileSync(presetPath, 'utf8'))[details[name].kind] : {};
+    const settings = { ...JSON.parse(readFileSync(dataPath, 'utf8')), ...preset, ...details[name] };
+    writeFileSync(dataPath, `${JSON.stringify(settings, null, 2)}\n`);
   }
   const words = join(module, 'cspell-words.txt');
   if (existsSync(words)) appendFileSync(join(target, 'cspell-words.txt'), readFileSync(words, 'utf8'));
@@ -81,7 +86,7 @@ cpSync(resolve(starter, '../site_agent.py'), join(target, 'scripts/site_agent.py
 
 // `contact` (the client's own email and phone) is for Cameron only, never the site;
 // `phone`, `address` and `social` are the public ones.
-const { modules: _, contact: __, menu: ___, booking: ____, ...config } = {
+const { modules: _, contact: __, menu: ___, ...rest } = {
   heroNote: '',
   address: '',
   phone: '',
@@ -95,6 +100,8 @@ const { modules: _, contact: __, menu: ___, booking: ____, ...config } = {
   url: details.url ?? null,
   demo: details.demo ?? false,
 };
+// Module settings (keys named after a module) belong to the module, not site.json.
+const config = Object.fromEntries(Object.entries(rest).filter(([key]) => !modules.includes(key)));
 writeFileSync(join(target, 'src/data/site.json'), `${JSON.stringify(config, null, 2)}\n`);
 
 const pkgPath = join(target, 'package.json');

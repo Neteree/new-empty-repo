@@ -1,0 +1,17 @@
+{
+  "section": {
+    "note": "Shop",
+    "title": "Buy online",
+    "intro": "Pay securely by card through Stripe. We’ll be in touch about pickup or delivery.",
+    "footnote": ""
+  },
+  "products": [
+    {
+      "id": "example",
+      "name": "[PLACEHOLDER: a product the business sells]",
+      "description": "[PLACEHOLDER: a line about it, in the business's words]",
+      "price": 0,
+      "link": ""
+    }
+  ]
+}

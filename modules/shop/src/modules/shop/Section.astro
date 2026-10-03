@@ -1,0 +1,30 @@
+---
+// Shop section shell, added to the home page by the starter: prepares the
+// products (price, optimised photos) for Products.svelte. No JavaScript.
+import Products from './Products.svelte';
+import { money, shop } from './shop';
+import { picture } from '../../lib/images';
+
+const items = await Promise.all(
+  shop.products.map(async (product) => ({
+    id: product.id,
+    name: product.name,
+    description: product.description,
+    price: money(product.price),
+    link: product.link,
+    soldOut: Boolean(product.soldOut),
+    image: product.photo ? await picture(product.photo.file, product.photo.alt, [400, 800], '(max-width: 40rem) 100vw, 25vw') : null,
+  })),
+);
+---
+
+{items.length > 0 && (
+  <section id="shop" class="section">
+    <div class="section-head">
+      <p class="hand-note">{shop.section.note}</p>
+      <h2>{shop.section.title}</h2>
+      {shop.section.intro && <p class="intro">{shop.section.intro}</p>}
+    </div>
+    <Products {items} footnote={shop.section.footnote} />
+  </section>
+)}
