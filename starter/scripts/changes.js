@@ -5,7 +5,7 @@
 //
 // A change is an object with a `type`:
 //   text           { current, new }                    swap wording (must match exactly once)
-//   hours          { hours: [{ days, times }] }        replace the opening hours
+//   hours          { hours: [{ days, times }] } or { none: true }  replace the opening hours, or take them off
 //   form-key       { key }                             connect the enquiry form (the client's Web3Forms key)
 //   theme          { theme }                           switch the look (a name from src/themes.ts, e.g. bold, calm or night)
 //   contact        { phone?, address?, instagram?, facebook? }  public contact details ('' removes one)
@@ -137,7 +137,13 @@ function text({ current, new: replacement }) {
   return `Changed “${version}” to “${styled}”.`;
 }
 
-function hours({ hours: rows }) {
+function hours({ hours: rows, none }) {
+  if (none) {
+    const site = readJson(SITE_JSON);
+    site.hours = [];
+    writeJson(SITE_JSON, site);
+    return 'Opening hours taken off the site.';
+  }
   const clean = (rows ?? []).map((row) => ({ days: row.days?.trim(), times: row.times?.trim() })).filter((row) => row.days && row.times);
   if (!clean.length) needsPerson('No opening hours were given.');
   const site = readJson(SITE_JSON);

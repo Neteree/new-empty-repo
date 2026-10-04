@@ -56,6 +56,7 @@ export function describeChange(change) {
     case 'text':
       return `Change “${change.current}” to “${change.new}”`;
     case 'hours':
+      if (change.none) return 'Take the opening hours off the site';
       return `Opening hours: ${change.hours.map((row) => `${row.days} ${row.times}`).join('; ')}`;
     case 'news':
       return `Post news: “${change.title}”`;
