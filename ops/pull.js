@@ -52,23 +52,21 @@ for (const submission of items) {
   let outcome;
   if (submission.kind === 'onboarding') outcome = queueOnboarding(item, payload, { files });
   else if (submission.kind === 'request') {
-    // Photos added through the request form point at their upload by number.
+    // Photos added through the request form point at their upload by number,
+    // in any change: on the change itself (a new main photo or a list item's
+    // photo), as `photo.upload` (a new item with a photo) or in `photos` (gallery).
+    // No list of change types to keep up to date.
     const photos = files.filter((file) => file.slot === 'photos');
+    const fileFor = (photo) => ({ file: photos[photo.upload].path, ...(photo.alt ? { alt: photo.alt } : {}) });
     for (const change of payload.changes ?? []) {
-      // A new main photo or price list photo points at its upload the same way.
-      if (['photo', 'price-photo', 'product-photo'].includes(change.type) && change.upload !== undefined) {
+      if (change.upload !== undefined) {
         if (photos[change.upload]) change.file = photos[change.upload].path;
         delete change.upload;
-        continue;
       }
-      if (['price-add', 'product-add'].includes(change.type) && change.photo?.upload !== undefined) {
-        change.photo = photos[change.photo.upload] ? { file: photos[change.photo.upload].path, ...(change.photo.alt ? { alt: change.photo.alt } : {}) } : undefined;
-        continue;
+      if (change.photo?.upload !== undefined) change.photo = photos[change.photo.upload] ? fileFor(change.photo) : undefined;
+      if (Array.isArray(change.photos)) {
+        change.photos = change.photos.filter((photo) => photo.upload === undefined || photos[photo.upload]).map((photo) => (photo.upload === undefined ? photo : fileFor(photo)));
       }
-      if (change.type !== 'gallery-add') continue;
-      change.photos = (change.photos ?? [])
-        .filter((photo) => photos[photo.upload])
-        .map((photo) => ({ file: photos[photo.upload].path, ...(photo.alt ? { alt: photo.alt } : {}) }));
     }
     outcome = queueChangeRequest(item, payload);
   }

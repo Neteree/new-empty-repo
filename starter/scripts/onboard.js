@@ -38,7 +38,7 @@ if (answers.onboarding !== 1) {
 }
 
 const missing = ['name', 'suburb', 'city', 'about', 'visit', 'theme'].filter((key) => !answers[key]);
-if (!answers.hours?.length) missing.push('hours');
+if (!answers.hours?.length && !answers.noHours) missing.push('hours');
 if (missing.length) {
   console.error(`The answers are missing: ${missing.join(', ')}`);
   process.exit(1);
@@ -76,7 +76,7 @@ const client = {
   // Only the number they chose to show on the site; contact.phone stays private.
   phone: answers.sitePhone ?? '',
   social,
-  hours: answers.hours,
+  hours: answers.hours ?? [],
   enquiry: {
     title: 'Get in touch',
     intro: 'Send us a message and we’ll get back to you.',
@@ -86,6 +86,14 @@ const client = {
   modules: answers.modules ?? [],
   ...(answers.preOrder ? { menu: { preOrder: true } } : {}),
   ...(answers.quote ? { booking: { kind: 'quote' } } : {}),
+  // Content for the highlights and how-it-works add-ons, in the client's own words.
+  // Left out, the module's placeholders stay for Cameron to fill in.
+  ...(answers.highlights?.length && answers.modules?.includes('highlights')
+    ? { highlights: { section: { note: '', title: '' }, items: answers.highlights } }
+    : {}),
+  ...(answers.steps?.length && answers.modules?.includes('steps')
+    ? { steps: { section: { note: 'How it works', title: 'How it works', nav: 'How it works' }, steps: answers.steps } }
+    : {}),
   contact: answers.contact ?? {},
   demo: false,
 };

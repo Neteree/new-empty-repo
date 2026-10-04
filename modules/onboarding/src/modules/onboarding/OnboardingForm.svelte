@@ -20,6 +20,11 @@
   let standout = $state('');
   let visit = $state('');
   let hours = $state<{ days: string; times: string }[]>([]);
+  // For a business people don't visit at set times (online, mobile, a game).
+  let noHours = $state(false);
+  // Content for the highlights and how-it-works add-ons, when the link includes them.
+  let highlights = $state([{ title: '', text: '' }, { title: '', text: '' }, { title: '', text: '' }]);
+  let howSteps = $state([{ title: '', text: '' }, { title: '', text: '' }, { title: '', text: '' }]);
   let enquiryTypes = $state('');
   let theme = $state('');
   let email = $state('');
@@ -73,7 +78,7 @@
     city: city.trim() ? '' : 'Enter your town or city.',
     about: about.trim().length >= 20 ? '' : 'Tell customers a little about what you do (a sentence or two).',
     visit: visit.trim() ? '' : 'Tell customers where to find you, or the area you cover.',
-    hours: hours.length ? '' : 'Tick the days you’re open and choose times that close after they open.',
+    hours: hours.length || noHours ? '' : 'Tick the days you’re open and choose times that close after they open, or tick “No opening hours”.',
     theme: theme ? '' : 'Choose a look.',
     photos: photoProblem(),
     email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? '' : 'Enter an email address like you@example.com.',
@@ -102,6 +107,9 @@
     if (stepValid(step)) go(step + 1);
   }
 
+  const filled = (rows: { title: string; text: string }[]) =>
+    rows.map((row) => ({ title: row.title.trim(), text: row.text.trim() })).filter((row) => row.title && row.text);
+
   /** The details in the shape the starter's onboarding script expects. */
   function clientJson() {
     return {
@@ -117,7 +125,11 @@
       sitePhone: sitePhone.trim(),
       instagram: instagram.trim(),
       facebook: facebook.trim(),
-      hours,
+      hours: noHours ? [] : hours,
+      noHours,
+      // Only filled-in rows; blank ones are left for Cameron to fill in.
+      highlights: modules.includes('highlights') ? filled(highlights) : [],
+      steps: modules.includes('steps') ? filled(howSteps) : [],
       enquiryTypes: enquiryTypes.split('\n').map((line) => line.trim()).filter(Boolean),
       theme,
       modules,
@@ -229,6 +241,31 @@
         <p class="hint" id="o-standout-hint">Like “family run since 1998” or “first loaves out at 6am”.</p>
         <input id="o-standout" bind:value={standout} aria-describedby="o-standout-hint" />
       </div>
+      {#if modules.includes('highlights')}
+        <fieldset class="field">
+          <legend class="label">Reasons customers choose you <span class="optional">(optional)</span></legend>
+          <p class="hint">Up to three, each a short title and a sentence, like “Family run since 1998: three generations baking on the same street.”</p>
+          {#each highlights as row, i (i)}
+            <div class="row">
+              <div class="field"><label for="o-hl-title-{i}">Reason {i + 1}</label><input id="o-hl-title-{i}" bind:value={row.title} /></div>
+              <div class="field"><label for="o-hl-text-{i}">About it</label><input id="o-hl-text-{i}" bind:value={row.text} /></div>
+            </div>
+          {/each}
+        </fieldset>
+      {/if}
+      {#if modules.includes('steps')}
+        <fieldset class="field">
+          <legend class="label">How it works, step by step <span class="optional">(optional)</span></legend>
+          <p class="hint">What happens from first contact to a finished job, like “Free quote: we visit and price the job the same week.”</p>
+          {#each howSteps as row, i (i)}
+            <div class="row">
+              <div class="field"><label for="o-st-title-{i}">Step {i + 1}</label><input id="o-st-title-{i}" bind:value={row.title} /></div>
+              <div class="field"><label for="o-st-text-{i}">What happens</label><input id="o-st-text-{i}" bind:value={row.text} /></div>
+            </div>
+          {/each}
+          <button class="small" type="button" onclick={() => howSteps.push({ title: '', text: '' })}>Add a step</button>
+        </fieldset>
+      {/if}
     </fieldset>
 
     <fieldset hidden={step !== 2}>
@@ -241,7 +278,8 @@
       </div>
       <div class="field">
         <span class="label" id="o-hours-label">Opening hours</span>
-        <HoursPicker id="o-hours" bind:hours invalid={tried[2]} />
+        <label class="tick"><input type="checkbox" bind:checked={noHours} /> No opening hours (people don’t visit at set times)</label>
+        {#if !noHours}<HoursPicker id="o-hours" bind:hours invalid={tried[2]} />{/if}
         {#if tried[2] && errors.hours}<p class="error">{errors.hours}</p>{/if}
       </div>
       <div class="field">
@@ -298,6 +336,7 @@
         {:else}
           <p class="hint">After you send this, email me your logo and any photos you’d like on the site.</p>
         {/if}
+        {#if modules.includes('work')}<p class="hint">Photos of past jobs go in your “Past work” section: send them after this with a line about each job, or add them later with the change form.</p>{/if}
       </div>
     </fieldset>
 
@@ -362,6 +401,28 @@
     font-size: 1.5rem;
     padding: 0;
     margin-bottom: 0.9rem;
+  }
+  /* Questions grouped inside a step read like the other labels, not like the step heading. */
+  legend.label {
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+  }
+  .tick {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+  }
+  .small {
+    justify-self: start;
+    border: 2px solid var(--ink);
+    border-radius: 0.4rem;
+    background: none;
+    padding: 0.4rem 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
   }
   .row {
     display: grid;
