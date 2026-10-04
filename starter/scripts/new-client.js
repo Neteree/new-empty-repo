@@ -11,6 +11,7 @@ import { appendFileSync, cpSync, existsSync, readFileSync, writeFileSync } from 
 import { basename, join, resolve } from 'node:path';
 import { themes } from '../src/themes.ts';
 import { writeCatalogue } from './catalogue.js';
+import { applyModuleSettings } from './module-settings.js';
 
 const [detailsPath, target] = process.argv.slice(2);
 if (!detailsPath || !target) {
@@ -55,25 +56,8 @@ for (const name of modules) {
   const module = join(modulesDir, name);
   cpSync(join(module, 'src'), join(target, 'src'), { recursive: true });
   cpSync(join(module, 'README.md'), join(target, 'src/modules', name, 'README.md'));
-  // Pre-ordering is off unless the client JSON asks for it: "menu": { "preOrder": true }.
-  const menuPath = join(target, 'src/modules', name, 'menu.json');
-  if (name === 'food' && details.menu?.preOrder) {
-    const menu = JSON.parse(readFileSync(menuPath, 'utf8'));
-    menu.preOrder.enabled = true;
-    writeFileSync(menuPath, `${JSON.stringify(menu, null, 2)}\n`);
-  }
-  // A module's settings from the client JSON: the key named after the module
-  // (e.g. "reviews": { "items": [...] }) is laid over its data file (module.json "data").
-  const manifestPath = join(module, 'module.json');
-  const manifest = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, 'utf8')) : {};
-  if (manifest.data && details[name]) {
-    const dataPath = join(target, 'src/modules', name, manifest.data);
-    // The booking form's quote kind brings its own wording (presets.json).
-    const presetPath = join(module, 'presets.json');
-    const preset = existsSync(presetPath) ? JSON.parse(readFileSync(presetPath, 'utf8'))[details[name].kind] : {};
-    const settings = { ...JSON.parse(readFileSync(dataPath, 'utf8')), ...preset, ...details[name] };
-    writeFileSync(dataPath, `${JSON.stringify(settings, null, 2)}\n`);
-  }
+  // Pre-ordering, and any settings for the module in the client JSON.
+  applyModuleSettings(module, target, name, details);
   const words = join(module, 'cspell-words.txt');
   if (existsSync(words)) appendFileSync(join(target, 'cspell-words.txt'), readFileSync(words, 'utf8'));
 }

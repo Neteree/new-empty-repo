@@ -51,6 +51,8 @@ export function describeChange(change) {
   const listed = describeListChange(lists, change);
   if (listed) return listed;
   switch (change.type) {
+    case 'add':
+      return `Add ${change.label ?? change.module}${change.kind === 'quote' ? ' (quotes)' : ''}${change.preOrder ? ' (with ordering ahead)' : ''}${change.details ? `: ${change.details}` : ''}`;
     case 'text':
       return `Change “${change.current}” to “${change.new}”`;
     case 'hours':

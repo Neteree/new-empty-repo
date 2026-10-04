@@ -12,13 +12,11 @@
   import { send, canUpload } from '../../lib/send';
   import { money } from '../../lib/money';
   import { load, save, clear } from '../../lib/store';
-  import lists from '../../data/lists.json';
   import PhotoPicker from '../../components/forms/PhotoPicker.svelte';
   import HoursPicker from '../../components/forms/HoursPicker.svelte';
+  import BuildList from './BuildList.svelte';
+  import { type Item, blankBuild, filledRows, listDef } from './build';
   import data from './start.json';
-
-  type Item = { id: string; label: string; text: string; on?: boolean; locked?: boolean; module?: string; price?: string };
-  type ListDef = { key: string; noun: string; fields: Record<string, { label: string; kind?: string; required?: boolean; example?: string }> };
 
   let { prices, onback, asked = [] }: { prices: Record<string, number>; onback: () => void; asked?: string[] } = $props();
 
@@ -27,9 +25,6 @@
   const base = $derived(prices[data.base]);
   // Items whose price list entry is missing aren't offered (the price list is the source of truth).
   const offered = $derived(items.filter((item) => !item.price || priceOf(item) !== undefined));
-  const listDef = (item: Item) => (item.module ? ((lists as Record<string, ListDef>)[item.module] ?? null) : null);
-  /** The fields a person can fill in for a list section here (photos come later). */
-  const textFields = (def: ListDef) => Object.entries(def.fields).filter(([, f]) => !f.kind || ['text', 'long', 'quote'].includes(f.kind));
 
   const DRAFT = 'start-new-site';
   const blank = () => ({
@@ -37,8 +32,7 @@
     suburb: '',
     city: 'Auckland',
     about: '',
-    chosen: Object.fromEntries(items.map((item) => [item.id, Boolean(item.on)])) as Record<string, boolean>,
-    open: '' as string,
+    build: blankBuild(items),
     headline: '',
     standout: '',
     visit: '',
@@ -49,11 +43,6 @@
     instagram: '',
     facebook: '',
     enquiryTypes: '',
-    rows: {} as Record<string, Record<string, string>[]>,
-    preOrder: false,
-    quote: false,
-    pageText: '',
-    custom: '',
     theme: '',
     email: '',
     phone: '',
@@ -72,11 +61,11 @@
 
   onMount(() => {
     const draft = load<ReturnType<typeof blank>>(DRAFT);
-    if (draft) a = { ...blank(), ...draft, chosen: { ...blank().chosen, ...draft.chosen } };
+    if (draft?.build) a = { ...blank(), ...draft, build: { ...blank().build, ...draft.build, chosen: { ...blank().build.chosen, ...draft.build.chosen } } };
     // Add-ons named in the link (e.g. ?modules=food from an older email) start ticked.
     for (const module of asked) {
       const item = items.find((i) => i.module === module);
-      if (item) a.chosen[item.id] = true;
+      if (item) a.build.chosen[item.id] = true;
     }
     ready = true;
   });
@@ -113,9 +102,9 @@
 
   /** The quote: the base site, each ticked add-on, and whether something needs quoting. */
   const quote = $derived.by(() => {
-    const lines = offered.filter((item) => a.chosen[item.id] && priceOf(item) !== undefined).map((item) => ({ label: item.label, price: priceOf(item)! }));
+    const lines = offered.filter((item) => a.build.chosen[item.id] && priceOf(item) !== undefined).map((item) => ({ label: item.label, price: priceOf(item)! }));
     const total = (base ?? 0) + lines.reduce((sum, line) => sum + line.price, 0);
-    return { lines, total, custom: a.custom.trim() };
+    return { lines, total, custom: a.build.custom.trim() };
   });
   const totalText = $derived(`${money(quote.total)}${quote.custom ? ' + quote' : ''}`);
 
@@ -131,55 +120,35 @@
     if (step === 0) onback();
     else go(step - 1);
   }
-  const blankRow = (def: ListDef) => Object.fromEntries(textFields(def).map(([name]) => [name, '']));
-  /** Opens an item's questions (a list section starts with one empty row). */
-  function openItem(item: Item) {
-    const def = listDef(item);
-    if (def && !a.rows[item.id]?.length) a.rows[item.id] = [blankRow(def)];
-    a.open = item.id;
-  }
-  function toggle(item: Item) {
-    if (item.locked) return;
-    a.chosen[item.id] = !a.chosen[item.id];
-    if (a.chosen[item.id]) openItem(item);
-    else if (a.open === item.id) a.open = '';
-  }
-
   /** The answers in the shape the starter's onboarding script expects. */
   function clientJson() {
-    const chosen = offered.filter((item) => a.chosen[item.id]);
-    const filledRows = (item: Item) => {
-      const def = listDef(item)!;
-      const fields = textFields(def);
-      return (a.rows[item.id] ?? [])
-        .map((row) => Object.fromEntries(fields.map(([name]) => [name, (row[name] ?? '').trim()]).filter(([, v]) => v)))
-        .filter((row) => fields.every(([name, f]) => !f.required || row[name]));
-    };
-    const listContent = Object.fromEntries(chosen.filter((item) => listDef(item)).map((item) => [item.module!, filledRows(item)]).filter(([, rows]) => (rows as unknown[]).length));
+    const { build } = a;
+    const chosen = offered.filter((item) => build.chosen[item.id]);
+    const listContent = Object.fromEntries(chosen.filter((item) => listDef(item)).map((item) => [item.module!, filledRows(build, item)]).filter(([, rows]) => rows.length));
     return {
       onboarding: 1,
       name: a.name.trim(),
       suburb: a.suburb.trim(),
       city: a.city.trim(),
       about: a.about.trim(),
-      headline: a.chosen.wording ? a.headline.trim() : '',
-      standout: a.chosen.wording ? a.standout.trim() : '',
-      visit: a.chosen.finding ? a.visit.trim() : '',
-      address: a.chosen.finding ? a.address.trim() : '',
-      sitePhone: a.chosen.finding ? a.sitePhone.trim() : '',
-      instagram: a.chosen.finding ? a.instagram.trim() : '',
-      facebook: a.chosen.finding ? a.facebook.trim() : '',
-      hours: a.chosen.finding && !a.noHours ? a.hours : [],
-      noHours: !a.chosen.finding || a.noHours || !a.hours.length,
+      headline: build.chosen.wording ? a.headline.trim() : '',
+      standout: build.chosen.wording ? a.standout.trim() : '',
+      visit: build.chosen.finding ? a.visit.trim() : '',
+      address: build.chosen.finding ? a.address.trim() : '',
+      sitePhone: build.chosen.finding ? a.sitePhone.trim() : '',
+      instagram: build.chosen.finding ? a.instagram.trim() : '',
+      facebook: build.chosen.finding ? a.facebook.trim() : '',
+      hours: build.chosen.finding && !a.noHours ? a.hours : [],
+      noHours: !build.chosen.finding || a.noHours || !a.hours.length,
       enquiryTypes: a.enquiryTypes.split('\n').map((line) => line.trim()).filter(Boolean),
       theme: a.theme,
       modules: chosen.filter((item) => item.module).map((item) => item.module!),
       lists: listContent,
-      preOrder: Boolean(a.chosen.menu && a.preOrder),
-      quote: Boolean(a.chosen.booking && a.quote),
+      preOrder: Boolean(build.chosen.menu && build.preOrder),
+      quote: Boolean(build.chosen.booking && build.quote),
       extras: [
-        ...(a.chosen.page ? [`Extra page${a.pageText.trim() ? `: ${a.pageText.trim()}` : ''}`] : []),
-        ...(a.chosen.news ? ['News you edit yourself'] : []),
+        ...(build.chosen.page ? [`Extra page${build.pageText.trim() ? `: ${build.pageText.trim()}` : ''}`] : []),
+        ...(build.chosen.news ? ['News you edit yourself'] : []),
         ...(quote.custom ? [`Something else: ${quote.custom}`] : []),
       ],
       estimate: { total: quote.total, lines: quote.lines, custom: quote.custom },
@@ -272,89 +241,44 @@
       </div>
     {:else if step === 1}
       <p class="hint">Tick what you need. Anything you can fill in now, or leave it for later.</p>
-      {#each [true, false] as included (included)}
-        <h3 class="group">{included ? 'Included' : 'Add-ons'}</h3>
-        <ul class="items">
-          {#each offered.filter((item) => !item.price === included) as item (item.id)}
-            {@const def = listDef(item)}
-            <li class="item" class:on={a.chosen[item.id]}>
-              <label class="item-head">
-                <input type="checkbox" checked={a.chosen[item.id]} disabled={item.locked} onchange={() => toggle(item)} />
-                <span class="item-name">{item.label}<span class="item-text">{item.text}</span></span>
-                <span class="item-price">{item.price ? `+${money(priceOf(item)!)}` : 'Included'}</span>
-              </label>
-              {#if a.chosen[item.id] && !item.locked}
-                {#if a.open === item.id}
-                  <div class="item-body">
-                    {#if item.id === 'wording'}
-                      <div class="field"><label for="n-headline">A headline</label><p class="hint" id="n-headline-hint">A few punchy words, like “Bread worth the ferry ride.” Leave it blank and I’ll suggest one.</p><input id="n-headline" bind:value={a.headline} aria-describedby="n-headline-hint" /></div>
-                      <div class="field"><label for="n-standout">What sets you apart, in a few words</label><input id="n-standout" placeholder="family run since 1998" bind:value={a.standout} /></div>
-                    {:else if item.id === 'finding'}
-                      <div class="field"><label for="n-visit">Where customers find you</label><p class="hint" id="n-visit-hint">Your address and any tips, or the areas you cover if you come to them.</p><textarea id="n-visit" rows="2" bind:value={a.visit} aria-describedby="n-visit-hint"></textarea></div>
-                      <div class="field">
-                        <span class="label">Opening hours</span>
-                        <label class="tick"><input type="checkbox" bind:checked={a.noHours} /> No opening hours (people don’t visit at set times)</label>
-                        {#if !a.noHours}<HoursPicker id="n-hours" bind:hours={a.hours} invalid={false} />{/if}
-                      </div>
-                      <div class="field"><label for="n-address">Street address for a map link</label><input id="n-address" placeholder="12 Main Road, Green Bay, Auckland" bind:value={a.address} /></div>
-                      <div class="field"><label for="n-site-phone">Phone number for customers</label><p class="hint" id="n-site-phone-hint">Shown on your site so people can tap to call.</p><input id="n-site-phone" type="tel" bind:value={a.sitePhone} aria-describedby="n-site-phone-hint" /></div>
-                      <div class="row">
-                        <div class="field"><label for="n-instagram">Instagram</label><input id="n-instagram" placeholder="@yourbusiness" bind:value={a.instagram} /></div>
-                        <div class="field"><label for="n-facebook">Facebook page</label><input id="n-facebook" placeholder="facebook.com/yourbusiness" bind:value={a.facebook} /></div>
-                      </div>
-                    {:else if item.id === 'photos'}
-                      {#if canUpload}
-                        <span class="label">Your logo</span>
-                        <PhotoPicker label="logo" bind:photos={logos} max={1} describe={false} />
-                        <span class="label">Your photos</span>
-                        <p class="hint">Your place, your products and your team make the biggest difference. Pick your best as the main photo.</p>
-                        <PhotoPicker label="photos" bind:photos bind:descriptions={photoDescriptions} pickMain autoMain bind:main={mainPhoto} noMainLabel="No main photo (use a simple drawing instead)" />
-                        {#if tried[1] && errors.photos}<p class="error" role="alert">{errors.photos}</p>{/if}
-                      {:else}
-                        <p class="hint">After you send this, email me your logo and any photos.</p>
-                      {/if}
-                    {:else if def}
-                      {#each a.rows[item.id] ?? [] as row, r (r)}
-                        <div class="row">
-                          {#each textFields(def) as [name, f] (name)}
-                            <div class="field">
-                              <label for="n-{item.id}-{r}-{name}">{f.label}</label>
-                              <input id="n-{item.id}-{r}-{name}" placeholder={f.example ?? ''} bind:value={row[name]} />
-                            </div>
-                          {/each}
-                        </div>
-                      {/each}
-                      <button class="small" type="button" onclick={() => a.rows[item.id].push(blankRow(def))}>Add another {def.noun}</button>
-                    {:else if item.id === 'work'}
-                      <p class="hint">Send photos of a few past jobs after this, with a line about each, or add them later.</p>
-                    {:else if item.id === 'menu'}
-                      <label class="tick"><input type="checkbox" bind:checked={a.preOrder} /> Customers can order ahead for pickup</label>
-                      <p class="hint">I’ll ask for your menu after this.</p>
-                    {:else if item.id === 'prices' || item.id === 'shop'}
-                      <p class="hint">I’ll ask for your {item.id === 'shop' ? 'products' : 'prices'} after this.</p>
-                    {:else if item.id === 'booking'}
-                      <label class="tick"><input type="radio" name="n-booking" value={false} bind:group={a.quote} /> Bookings: customers ask for a day and time</label>
-                      <label class="tick"><input type="radio" name="n-booking" value={true} bind:group={a.quote} /> Quotes: customers describe a job and you price it</label>
-                    {:else if item.id === 'page'}
-                      <div class="field"><label for="n-page">What goes on it?</label><textarea id="n-page" rows="2" bind:value={a.pageText}></textarea></div>
-                    {:else}
-                      <p class="hint">Nothing to fill in now.</p>
-                    {/if}
-                    <button class="later" type="button" onclick={() => (a.open = '')}>Done, or add later</button>
-                  </div>
-                {:else}
-                  <button class="later" type="button" onclick={() => openItem(item)}>Fill in now</button>
-                {/if}
-              {/if}
-            </li>
-          {/each}
-        </ul>
-      {/each}
-      <div class="item custom" class:on={!!a.custom.trim()}>
-        <label for="n-custom" class="item-head"><span class="item-name">Something else?<span class="item-text">Anything that isn’t listed, even a game. I’ll quote it.</span></span><span class="item-price">Quoted</span></label>
-        <textarea id="n-custom" rows="2" bind:value={a.custom}></textarea>
-      </div>
-      {#if a.chosen.contact}
+      {#snippet wordingBody()}
+        <div class="field"><label for="n-headline">A headline</label><p class="hint" id="n-headline-hint">A few punchy words, like “Bread worth the ferry ride.” Leave it blank and I’ll suggest one.</p><input id="n-headline" bind:value={a.headline} aria-describedby="n-headline-hint" /></div>
+        <div class="field"><label for="n-standout">What sets you apart, in a few words</label><input id="n-standout" placeholder="family run since 1998" bind:value={a.standout} /></div>
+      {/snippet}
+      {#snippet findingBody()}
+        <div class="field"><label for="n-visit">Where customers find you</label><p class="hint" id="n-visit-hint">Your address and any tips, or the areas you cover if you come to them.</p><textarea id="n-visit" rows="2" bind:value={a.visit} aria-describedby="n-visit-hint"></textarea></div>
+        <div class="field">
+          <span class="label">Opening hours</span>
+          <label class="tick"><input type="checkbox" bind:checked={a.noHours} /> No opening hours (people don’t visit at set times)</label>
+          {#if !a.noHours}<HoursPicker id="n-hours" bind:hours={a.hours} invalid={false} />{/if}
+        </div>
+        <div class="field"><label for="n-address">Street address for a map link</label><input id="n-address" placeholder="12 Main Road, Green Bay, Auckland" bind:value={a.address} /></div>
+        <div class="field"><label for="n-site-phone">Phone number for customers</label><p class="hint" id="n-site-phone-hint">Shown on your site so people can tap to call.</p><input id="n-site-phone" type="tel" bind:value={a.sitePhone} aria-describedby="n-site-phone-hint" /></div>
+        <div class="row">
+          <div class="field"><label for="n-instagram">Instagram</label><input id="n-instagram" placeholder="@yourbusiness" bind:value={a.instagram} /></div>
+          <div class="field"><label for="n-facebook">Facebook page</label><input id="n-facebook" placeholder="facebook.com/yourbusiness" bind:value={a.facebook} /></div>
+        </div>
+      {/snippet}
+      {#snippet photosBody()}
+        {#if canUpload}
+          <span class="label">Your logo</span>
+          <PhotoPicker label="logo" bind:photos={logos} max={1} describe={false} />
+          <span class="label">Your photos</span>
+          <p class="hint">Your place, your products and your team make the biggest difference. Pick your best as the main photo.</p>
+          <PhotoPicker label="photos" bind:photos bind:descriptions={photoDescriptions} pickMain autoMain bind:main={mainPhoto} noMainLabel="No main photo (use a simple drawing instead)" />
+          {#if tried[1] && errors.photos}<p class="error" role="alert">{errors.photos}</p>{/if}
+        {:else}
+          <p class="hint">After you send this, email me your logo and any photos.</p>
+        {/if}
+      {/snippet}
+      <BuildList
+        id="n"
+        bind:build={a.build}
+        groups={[{ title: 'Included', items: offered.filter((item) => !item.price) }, { title: 'Add-ons', items: offered.filter((item) => item.price) }]}
+        priceText={(item) => (item.price ? `+${money(priceOf(item)!)}` : 'Included')}
+        bodies={{ wording: wordingBody, finding: findingBody, photos: photosBody }}
+      />
+      {#if a.build.chosen.contact}
         <div class="field">
           <label for="n-enquiries">What customers usually contact you about <span class="optional">(optional)</span></label>
           <p class="hint" id="n-enquiries-hint">One per line, like “A quote” or “Booking a table”. These become choices on your contact form.</p>
@@ -498,84 +422,11 @@
     font-size: 0.9rem;
     font-weight: 600;
   }
-  .group {
-    font-size: 0.85rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
-    margin-top: 0.4rem;
-  }
-  .items {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 0.6rem;
-  }
-  .item {
-    border: 2px solid var(--rule);
-    border-radius: 0.8rem;
-    padding: 0.8rem 0.9rem;
-    display: grid;
-    gap: 0.6rem;
-    transition: border-color 0.15s;
-  }
-  .item.on {
-    border-color: var(--accent);
-  }
-  .item-head {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 0.7rem;
-    align-items: start;
-    cursor: pointer;
-  }
-  .custom .item-head {
-    grid-template-columns: 1fr auto;
-    cursor: default;
-  }
-  .item-head input {
-    width: 1.2rem;
-    height: 1.2rem;
-    margin-top: 0.15rem;
-    accent-color: var(--accent);
-  }
-  .item-name {
-    display: grid;
-    gap: 0.1rem;
-  }
-  .item-text {
-    font-weight: 400;
-    font-size: 0.9rem;
-    color: var(--ink-soft);
-  }
-  .item-price {
-    font-weight: 700;
-    white-space: nowrap;
-  }
-  .item-body {
-    display: grid;
-    gap: 0.9rem;
-    padding-top: 0.6rem;
-    border-top: 1.5px dashed var(--rule);
-  }
   .tick {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     font-weight: 500;
-  }
-  .later,
-  .small {
-    justify-self: start;
-    border: none;
-    background: none;
-    padding: 0;
-    font-weight: 700;
-    color: var(--accent);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    cursor: pointer;
   }
   .looks {
     border: 0;

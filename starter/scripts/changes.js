@@ -38,6 +38,9 @@
 //   product-link   { name, link }                      its Stripe payment link ('' shows "Ask us")
 //   product-sold-out { name, soldOut: true|false }
 //   product-photo  { name, file | gallery, alt? } or { name, remove: true }
+//   add            { module?, label, kind?, preOrder?, details? }  a section the site doesn't have yet:
+//                  ops/approve.js brings the module in first (update-site --add, with
+//                  its settings); without a module (an extra page…) it needs a person
 //   <list>-add / -remove / -replace   any list section (reviews, questions,
 //                  highlights, steps, past work…): review-add, faq-remove,
 //                  step-add { title, text, position? }… The fields come from
@@ -632,7 +635,17 @@ const shopChanges = {
   },
 };
 
+// The module's code and settings are brought in by ops/approve.js (from the
+// builder repo) before the changes run; this confirms it's there.
+function add({ module, label, details }) {
+  const what = label ?? module;
+  if (!module) needsPerson(`Add ${what}${details ? `: ${details}` : ''}. There's no script for this yet.`);
+  if (!existsSync(join('src/modules', module))) needsPerson(`Bring in the ${what} add-on first: node starter/scripts/update-site.js <site> --add ${module} (ops/approve.js does this).`);
+  return `Added the ${what} section.`;
+}
+
 const handlers = {
+  add,
   text,
   hours,
   'form-key': formKey,
