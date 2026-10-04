@@ -2,10 +2,11 @@
   // The plain menu (no pre-ordering), grouped by each item's category in the
   // order they first appear; items without one go first.
   import type { Bake } from './menu';
+  import { moneyFor } from '../../lib/money';
 
   let { items }: { items: Bake[] } = $props();
 
-  const money = (n: number) => `$${n.toFixed(2)}`;
+  const money = $derived(moneyFor(items.map((item) => item.price)));
   const tagLabel = { vegan: 'Vegan', 'gluten-free': 'Gluten-free' };
 
   const groups = $derived.by(() => {

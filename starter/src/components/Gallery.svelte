@@ -1,4 +1,5 @@
 <script lang="ts">
+  import SectionHead from './SectionHead.svelte';
   // Photo gallery, shown once the site has photos (site.json "gallery").
   import type { Picture as PictureData } from '../lib/images';
   import Picture from './Picture.svelte';
@@ -8,10 +9,7 @@
 
 {#if images.length}
   <section id="gallery" class="section">
-    <div class="section-head">
-      <p class="hand-note">Gallery</p>
-      <h2>Have a look around</h2>
-    </div>
+    <SectionHead note="Gallery" title="Have a look around" />
     <ul class="gallery">
       {#each images as image (image.src)}
         <li><Picture {image} /></li>

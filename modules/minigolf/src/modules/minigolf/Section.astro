@@ -2,17 +2,14 @@
 // Mini golf section shell, added to the home page by the starter: a taste of
 // the online course and a link to play it. No 3D here, so the home page stays
 // light; the game itself is on play.html.
+import SectionHead from '../../components/SectionHead.svelte';
 import { minigolf } from './golf';
 
 const par = minigolf.holes.reduce((sum, hole) => sum + hole.par, 0);
 ---
 
 <section id="play" class="section">
-  <div class="section-head">
-    <p class="hand-note">{minigolf.section.note}</p>
-    <h2>{minigolf.section.title}</h2>
-    {minigolf.section.intro && <p class="intro">{minigolf.section.intro}</p>}
-  </div>
+  <SectionHead note={minigolf.section.note} title={minigolf.section.title} intro={minigolf.section.intro} />
   <ol class="holes">
     {minigolf.holes.map((hole, i) => (
       <li>
