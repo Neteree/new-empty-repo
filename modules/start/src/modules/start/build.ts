@@ -4,7 +4,7 @@
 import lists from '../../data/lists.json';
 
 // changeOnly: on the change form only (a new site picks its look in its own step).
-export type Item = { id: string; label: string; text: string; on?: boolean; locked?: boolean; changeOnly?: boolean; module?: string; price?: string };
+export type Item = { id: string; label: string; text: string; locked?: boolean; changeOnly?: boolean; module?: string; price?: string };
 type Field = { label: string; kind?: string; required?: boolean; example?: string };
 export type ListDef = { key: string; type: string; noun: string; fields: Record<string, Field> };
 export type Row = Record<string, string>;
@@ -19,8 +19,9 @@ export type Build = {
   custom: string;
 };
 
-export const blankBuild = (items: Item[], chosen = (item: Item) => Boolean(item.on)): Build => ({
-  chosen: Object.fromEntries(items.map((item) => [item.id, chosen(item)])),
+/** Nothing is ticked until a person ticks it, except what every site has (`locked`). */
+export const blankBuild = (items: Item[]): Build => ({
+  chosen: Object.fromEntries(items.map((item) => [item.id, Boolean(item.locked)])),
   open: '',
   rows: {},
   preOrder: false,

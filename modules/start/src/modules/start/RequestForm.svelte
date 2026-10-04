@@ -12,10 +12,15 @@
   import PriceFields, { priceChanges, priceProblem } from '../../components/forms/PriceFields.svelte';
   import ListFields, { listChange, listKinds, listOf, listProblem, listUploads } from '../../components/forms/ListFields.svelte';
   import BuildList from './BuildList.svelte';
+  import Steps from './Steps.svelte';
   import { type Item, blankBuild, filledRows, listDef } from './build';
   import data from './start.json';
 
-  let { prices = {} }: { prices?: Record<string, number> } = $props();
+  let { prices = {}, onback }: { prices?: Record<string, number>; onback: () => void } = $props();
+
+  // Who they are and which site, then what they'd like changed or added.
+  const steps = ['Your website', 'What would you like?'] as const;
+  let step = $state(0);
 
   type Kind =
     | 'text' | 'hours' | 'contact' | 'news' | 'photos' | 'theme'
@@ -75,7 +80,7 @@
   const has = (item: Item) => (item.module ? (siteModules?.includes(item.module) ?? kindsFor(item).length > 0) : !item.price);
   const theirs = $derived(items.filter((item) => has(item) && kindsFor(item).length));
   const addable = $derived(items.filter((item) => !has(item) && !item.changeOnly && (item.module || item.price) && (!item.price || prices[item.price] !== undefined)));
-  let build = $state(blankBuild(items, () => false));
+  let build = $state(blankBuild(items));
   // The list's tabs: what's on their site (0) and what they can add (1).
   let tab = $state(0);
   const adding = $derived(addable.filter((item) => build.chosen[item.id]));
@@ -164,7 +169,7 @@
   }
   const changesFor = (item: Item) => changes.map((c, i) => [c, i] as const).filter(([c]) => itemOf(c.kind) === item.id);
   let botcheck = $state(false);
-  let tried = $state(false);
+  let tried = $state([false, false]);
   let status = $state<'idle' | 'sending' | 'sent' | 'failed'>('idle');
 
   type Change = ReturnType<typeof blank>;
@@ -343,7 +348,11 @@
 
   async function submit(event: SubmitEvent) {
     event.preventDefault();
-    tried = true;
+    tried[step] = true;
+    if (step === 0) {
+      if (!errors.email && !errors.business) step = 1;
+      return;
+    }
     // Open the first section with a change that needs finishing.
     const unfinished = changes.find((c) => problem(c));
     if (unfinished) {
@@ -388,18 +397,20 @@
   </div>
 {:else}
   <form novalidate onsubmit={submit}>
+    <Steps {steps} {step} send="Send request" sending={status === 'sending'} onback={() => (step === 0 ? onback() : (step = 0))}>
+    {#if step === 0}
     <div class="row">
       <div class="field">
         <label for="r-email">Your email</label>
         <p class="hint" id="r-email-hint">The one I have on file for you. The confirmation goes there.</p>
-        <input id="r-email" type="email" autocomplete="email" bind:value={email} aria-invalid={tried && !!errors.email} aria-describedby="r-email-hint r-email-err" />
-        {#if tried && errors.email}<p class="error" id="r-email-err">{errors.email}</p>{/if}
+        <input id="r-email" type="email" autocomplete="email" bind:value={email} aria-invalid={tried[0] && !!errors.email} aria-describedby="r-email-hint r-email-err" />
+        {#if tried[0] && errors.email}<p class="error" id="r-email-err">{errors.email}</p>{/if}
       </div>
       <div class="field">
         <label for="r-business">Business name</label>
         <p class="hint" id="r-business-hint">As it appears on your website.</p>
-        <input id="r-business" autocomplete="organization" bind:value={business} aria-invalid={tried && !!errors.business} aria-describedby="r-business-hint r-business-err" />
-        {#if tried && errors.business}<p class="error" id="r-business-err">{errors.business}</p>{/if}
+        <input id="r-business" autocomplete="organization" bind:value={business} aria-invalid={tried[0] && !!errors.business} aria-describedby="r-business-hint r-business-err" />
+        {#if tried[0] && errors.business}<p class="error" id="r-business-err">{errors.business}</p>{/if}
       </div>
     </div>
 
@@ -408,6 +419,7 @@
       <p class="hint" id="r-site-hint">So the list shows what’s on your site.</p>
       <input id="r-site" type="url" inputmode="url" placeholder="yourbusiness.co.nz" bind:value={address} onchange={() => loadSite(address)} aria-describedby="r-site-hint" />
     </div>
+    {:else}
 
     {#snippet changeCard(change: Change, i: number, n: number)}
       {@const options = kindsFor({ id: itemOf(change.kind) } as Item)}
@@ -568,7 +580,7 @@
         {/if}
       {/if}
 
-        {#if tried && errors.changes[i]}<p class="error">{errors.changes[i]}</p>{/if}
+        {#if tried[1] && errors.changes[i]}<p class="error">{errors.changes[i]}</p>{/if}
         <button class="small" type="button" onclick={() => changes.splice(i, 1)}>Remove this change</button>
       </fieldset>
     {/snippet}
@@ -592,18 +604,17 @@
       owned={has}
       {changeBody}
       onchange={startChange}
-      busy={(item) => changesFor(item).length > 0}
+      onclear={(item) => (changes = changes.filter((c) => itemOf(c.kind) !== item.id))}
     />
-    {#if tried && errors.photos}<p class="error">{errors.photos}</p>{/if}
+    {#if tried[1] && errors.photos}<p class="error">{errors.photos}</p>{/if}
     {#if prices['small-change'] !== undefined}
       <p class="hint">Small changes are {money(prices['small-change'])} each. I’ll confirm the price before any work starts.</p>
     {/if}
-    {#if tried && errors.nothing}<p class="error">{errors.nothing}</p>{/if}
+    {#if tried[1] && errors.nothing}<p class="error">{errors.nothing}</p>{/if}
+    {/if}
+    </Steps>
 
     <input class="botcheck" type="checkbox" tabindex="-1" aria-hidden="true" bind:checked={botcheck} />
-    <button class="button" type="submit" disabled={status === 'sending'}>
-      {status === 'sending' ? 'Sending…' : 'Send request'}
-    </button>
     {#if status === 'failed'}
       <p class="error" role="alert">Sorry, that didn't send. Please try again in a moment.</p>
     {/if}
@@ -689,13 +700,6 @@
     color: var(--error);
     font-size: 0.92rem;
     font-weight: 600;
-  }
-  form .button {
-    justify-self: start;
-  }
-  form .button:disabled {
-    opacity: 0.6;
-    cursor: wait;
   }
   .botcheck {
     display: none;

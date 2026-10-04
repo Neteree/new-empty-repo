@@ -15,6 +15,7 @@
   import PhotoPicker from '../../components/forms/PhotoPicker.svelte';
   import HoursPicker from '../../components/forms/HoursPicker.svelte';
   import BuildList from './BuildList.svelte';
+  import Steps from './Steps.svelte';
   import { type Item, blankBuild, filledRows, listDef } from './build';
   import data from './start.json';
 
@@ -77,7 +78,6 @@
   const steps = ['Your business', 'Build your site', 'Your look', 'Your details'] as const;
   let step = $state(0);
   let tried = $state([false, false, false, false]);
-  let heading = $state<HTMLElement>();
 
   const errors = $derived({
     name: a.name.trim() ? '' : 'Enter your business name.',
@@ -108,17 +108,13 @@
   });
   const totalText = $derived(`${money(quote.total)}${quote.custom ? ' + quote' : ''}`);
 
-  function go(to: number) {
-    step = to;
-    requestAnimationFrame(() => heading?.focus());
-  }
   function next() {
     tried[step] = true;
-    if (stepValid(step)) go(step + 1);
+    if (stepValid(step)) step += 1;
   }
   function back() {
     if (step === 0) onback();
-    else go(step - 1);
+    else step -= 1;
   }
   /** The answers in the shape the starter's onboarding script expects. */
   function clientJson() {
@@ -209,11 +205,7 @@
   </div>
 {:else}
   <form novalidate onsubmit={submit}>
-    <div class="progress">
-      <p class="step-count" aria-live="polite">Step {step + 2} of {steps.length + 1}</p>
-      <h2 class="step-title" tabindex="-1" bind:this={heading}>{steps[step]}</h2>
-      <progress max={steps.length + 1} value={step + 2} aria-hidden="true"></progress>
-    </div>
+    <Steps {steps} {step} send="Send for a quote" sending={status === 'sending'} onback={back} total={base !== undefined && step > 0 ? `Total ${totalText}` : ''}>
 
     {#if step === 0}
       <div class="field">
@@ -325,17 +317,9 @@
         <p class="hint">A starting point. I’ll confirm the price before any work starts.</p>
       </div>
     {/if}
+    </Steps>
 
     <input class="botcheck" type="checkbox" tabindex="-1" aria-hidden="true" bind:checked={botcheck} />
-    <div class="nav">
-      <button class="button ghost" type="button" onclick={back}>Back</button>
-      {#if step < steps.length - 1}
-        <button class="button" type="submit">Next</button>
-      {:else}
-        <button class="button" type="submit" disabled={status === 'sending'}>{status === 'sending' ? 'Sending…' : 'Send for a quote'}</button>
-      {/if}
-      {#if base !== undefined && step > 0}<p class="total" aria-live="polite">Total <b>{totalText}</b></p>{/if}
-    </div>
     {#if status === 'failed'}<p class="error" role="alert">{failure || "Sorry, that didn't send."} Please try again in a moment.</p>{/if}
     {#if !site.formKey && !site.intakeUrl}<p class="note">Not connected yet: this form doesn't send anything.</p>{/if}
   </form>
@@ -345,43 +329,6 @@
   form {
     display: grid;
     gap: 1.4rem;
-  }
-  .progress {
-    display: grid;
-    gap: 0.4rem;
-  }
-  .step-count {
-    margin: 0;
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
-  }
-  .step-title {
-    font-size: clamp(1.6rem, 5vw, 2.2rem);
-    outline: none;
-  }
-  progress {
-    width: 100%;
-    height: 6px;
-    border: 0;
-    border-radius: 3px;
-    background: var(--rule);
-    accent-color: var(--accent);
-    appearance: none;
-  }
-  progress::-webkit-progress-bar {
-    background: var(--rule);
-    border-radius: 3px;
-  }
-  progress::-webkit-progress-value {
-    background: var(--accent);
-    border-radius: 3px;
-  }
-  progress::-moz-progress-bar {
-    background: var(--accent);
-    border-radius: 3px;
   }
   .row {
     display: grid;
@@ -482,29 +429,6 @@
     gap: 1rem;
     padding-block: 0.5rem;
     border-bottom: 1.5px dashed var(--rule);
-    font-variant-numeric: tabular-nums;
-  }
-  /* Back, Next and the total stay in view while the list scrolls. */
-  .nav {
-    position: sticky;
-    bottom: 0;
-    z-index: 1;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.8rem;
-    padding-block: 0.8rem;
-    background: var(--paper);
-    border-top: 1.5px solid var(--rule);
-  }
-  .button.ghost {
-    background: none;
-    color: var(--ink);
-    border: 2px solid var(--ink);
-    box-shadow: none;
-  }
-  .total {
-    margin: 0 0 0 auto;
     font-variant-numeric: tabular-nums;
   }
   .botcheck {

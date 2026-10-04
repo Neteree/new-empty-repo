@@ -54,10 +54,7 @@
 {:else if path === 'new'}
   <NewSite {prices} {asked} onback={() => choose('')} />
 {:else if path === 'change'}
-  <div class="change">
-    <button class="back" type="button" onclick={() => choose('')}>← Back</button>
-    <RequestForm {prices} />
-  </div>
+  <RequestForm {prices} onback={() => choose('')} />
 {:else}
   <Question onback={() => choose('')} />
 {/if}
@@ -109,18 +106,5 @@
   }
   .path-text {
     color: var(--ink-soft);
-  }
-  .change {
-    display: grid;
-    gap: 1rem;
-  }
-  .back {
-    justify-self: start;
-    border: none;
-    background: none;
-    padding: 0;
-    font-weight: 700;
-    color: var(--accent);
-    cursor: pointer;
   }
 </style>
