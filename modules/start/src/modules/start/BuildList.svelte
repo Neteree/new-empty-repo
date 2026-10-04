@@ -4,9 +4,10 @@
   // isn't listed yet. Used by the new-website form and the change form, so
   // both work the same way. A form can give its own questions for an item
   // (`bodies`, by item id); list sections (reviews, questions…) ask for their
-  // fields from their descriptions. On the change form, what the site already
-  // has (`owned`) opens its changes (`changeBody`) instead of a tick: tap the
-  // row to open or close it. A search box narrows the list (by name,
+  // fields from their descriptions. On the change form, ticking what the site
+  // already has (`owned`) starts its changes (`changeBody`). Only the box
+  // ticks or unticks; the rest of the row opens and closes it. A search box
+  // narrows the list (by name,
   // description and any `keywords`, such as the changes an item has). With
   // `tabs`, each group is a tab instead of a heading.
   import type { Snippet } from 'svelte';
@@ -21,7 +22,7 @@
     owned = () => false,
     changeBody,
     onchange = () => {},
-    busy = () => false,
+    onclear = () => {},
     keywords = () => '',
     tabs = false,
     tab = $bindable(0),
@@ -34,7 +35,7 @@
     owned?: (item: Item) => boolean;
     changeBody?: Snippet<[Item]>;
     onchange?: (item: Item) => void;
-    busy?: (item: Item) => boolean;
+    onclear?: (item: Item) => void;
     keywords?: (item: Item) => string;
     tabs?: boolean;
     tab?: number;
@@ -49,20 +50,12 @@
   const filtered = $derived(groups.map((group) => ({ ...group, items: group.items.filter(matches) })));
   const shown = $derived(tabs ? [filtered[tab] ?? filtered[0]] : filtered);
   /** How many things are picked or changed in a group (shown on its tab). */
-  const picked = (group: { items: Item[] }) => group.items.filter((item) => build.chosen[item.id] || busy(item)).length;
+  const picked = (group: { items: Item[] }) => group.items.filter((item) => build.chosen[item.id]).length;
   function moveTab(event: KeyboardEvent) {
     const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
     if (!step) return;
     tab = (tab + step + groups.length) % groups.length;
     (document.getElementById(`${id}-tab-${tab}`) as HTMLElement | null)?.focus();
-  }
-
-  function openChanges(item: Item) {
-    if (build.open === item.id) build.open = '';
-    else {
-      onchange(item);
-      build.open = item.id;
-    }
   }
 
   /** Opens an item's questions (a list section starts with one empty row). */
@@ -73,9 +66,9 @@
   }
   function toggle(item: Item) {
     if (item.locked) return;
-    build.chosen[item.id] = !build.chosen[item.id];
-    if (build.chosen[item.id]) openItem(item);
-    else if (build.open === item.id) build.open = '';
+    const on = (build.chosen[item.id] = !build.chosen[item.id]);
+    if (owned(item) && changeBody) (on ? onchange : onclear)(item);
+    if (on) openItem(item);
   }
 </script>
 
@@ -111,66 +104,63 @@
     {#each group.items as item (item.id)}
       {@const def = listDef(item)}
       {@const own = bodies[item.id]}
-      {#if owned(item) && changeBody}
-        <li class="item" class:on={busy(item)}>
-          <button type="button" class="item-head has" aria-expanded={build.open === item.id} onclick={() => openChanges(item)}>
-            <span class="item-name">{item.label}<span class="item-text">{busy(item) && build.open !== item.id ? 'Your changes are saved. Tap to see them.' : item.text}</span></span>
-            <span class="item-price">{priceText(item)}<span class="chevron" aria-hidden="true"></span></span>
-          </button>
-          {#if build.open === item.id}
-            <div class="item-body">
-              {@render changeBody(item)}
-              <button class="later" type="button" onclick={() => (build.open = '')}>Done</button>
-            </div>
+      {@const changing = owned(item) && changeBody}
+      {@const open = build.open === item.id}
+      <li class="item" class:on={build.chosen[item.id]}>
+        <div class="item-head">
+          <input type="checkbox" aria-label={item.label} checked={build.chosen[item.id]} disabled={item.locked} onchange={() => toggle(item)} />
+          {#if item.locked}
+            <span class="item-row">
+              <span class="item-name">{item.label}<span class="item-text">{item.text}</span></span>
+              <span class="item-price">{priceText(item)}</span>
+            </span>
+          {:else}
+            <button type="button" class="item-row" aria-expanded={open} onclick={() => (open ? (build.open = '') : openItem(item))}>
+              <span class="item-name">{item.label}<span class="item-text">{item.text}</span></span>
+              <span class="item-price">{priceText(item)}<span class="chevron" aria-hidden="true"></span></span>
+            </button>
           {/if}
-        </li>
-      {:else}
-        <li class="item" class:on={build.chosen[item.id]}>
-          <label class="item-head">
-            <input type="checkbox" checked={build.chosen[item.id]} disabled={item.locked} onchange={() => toggle(item)} />
-            <span class="item-name">{item.label}<span class="item-text">{item.text}</span></span>
-            <span class="item-price">{priceText(item)}</span>
-          </label>
-          {#if build.chosen[item.id] && !item.locked}
-            {#if build.open === item.id}
-              <div class="item-body">
-                {#if own}
-                  {@render own()}
-                {:else if def}
-                  {#each build.rows[item.id] ?? [] as row, r (r)}
-                    <div class="row">
-                      {#each textFields(def) as [name, f] (name)}
-                        <div class="field">
-                          <label for="{id}-{item.id}-{r}-{name}">{f.label}</label>
-                          <input id="{id}-{item.id}-{r}-{name}" placeholder={f.example ?? ''} bind:value={row[name]} />
-                        </div>
-                      {/each}
+        </div>
+        {#if open}
+          <div class="item-body">
+            {#if !build.chosen[item.id]}
+              <p class="hint">Tick the box to {changing ? 'choose what to change' : 'include it'}.</p>
+            {/if}
+            {#if changing}
+              {#if build.chosen[item.id]}{@render changeBody(item)}{/if}
+            {:else if own}
+              {@render own()}
+            {:else if def}
+              {#each build.rows[item.id] ?? [] as row, r (r)}
+                <div class="row">
+                  {#each textFields(def) as [name, f] (name)}
+                    <div class="field">
+                      <label for="{id}-{item.id}-{r}-{name}">{f.label}</label>
+                      <input id="{id}-{item.id}-{r}-{name}" placeholder={f.example ?? ''} bind:value={row[name]} />
                     </div>
                   {/each}
-                  <button class="small" type="button" onclick={() => build.rows[item.id].push(blankRow(def))}>Add another {def.noun}</button>
-                {:else if item.id === 'work'}
-                  <p class="hint">Send photos of a few past jobs after this, with a line about each, or add them later.</p>
-                {:else if item.id === 'menu'}
-                  <label class="tick"><input type="checkbox" bind:checked={build.preOrder} /> Customers can order ahead for pickup</label>
-                  <p class="hint">I’ll ask for your menu after this.</p>
-                {:else if item.id === 'prices' || item.id === 'shop'}
-                  <p class="hint">I’ll ask for your {item.id === 'shop' ? 'products' : 'prices'} after this.</p>
-                {:else if item.id === 'booking'}
-                  <label class="tick"><input type="radio" name="{id}-booking" value={false} bind:group={build.quote} /> Bookings: customers ask for a day and time</label>
-                  <label class="tick"><input type="radio" name="{id}-booking" value={true} bind:group={build.quote} /> Quotes: customers describe a job and you price it</label>
-                {:else if item.id === 'page'}
-                  <div class="field"><label for="{id}-page">What goes on it?</label><textarea id="{id}-page" rows="2" bind:value={build.pageText}></textarea></div>
-                {:else}
-                  <p class="hint">Nothing to fill in now.</p>
-                {/if}
-                <button class="later" type="button" onclick={() => (build.open = '')}>Done, or add later</button>
-              </div>
+                </div>
+              {/each}
+              <button class="small" type="button" onclick={() => build.rows[item.id].push(blankRow(def))}>Add another {def.noun}</button>
+            {:else if item.id === 'work'}
+              <p class="hint">Send photos of a few past jobs after this, with a line about each, or add them later.</p>
+            {:else if item.id === 'menu'}
+              <label class="tick"><input type="checkbox" bind:checked={build.preOrder} /> Customers can order ahead for pickup</label>
+              <p class="hint">I’ll ask for your menu after this.</p>
+            {:else if item.id === 'prices' || item.id === 'shop'}
+              <p class="hint">I’ll ask for your {item.id === 'shop' ? 'products' : 'prices'} after this.</p>
+            {:else if item.id === 'booking'}
+              <label class="tick"><input type="radio" name="{id}-booking" value={false} bind:group={build.quote} /> Bookings: customers ask for a day and time</label>
+              <label class="tick"><input type="radio" name="{id}-booking" value={true} bind:group={build.quote} /> Quotes: customers describe a job and you price it</label>
+            {:else if item.id === 'page'}
+              <div class="field"><label for="{id}-page">What goes on it?</label><textarea id="{id}-page" rows="2" bind:value={build.pageText}></textarea></div>
             {:else}
-              <button class="later" type="button" onclick={() => openItem(item)}>Fill in now</button>
+              <p class="hint">Nothing to fill in now.</p>
             {/if}
-          {/if}
-        </li>
-      {/if}
+            <button class="later" type="button" onclick={() => (build.open = '')}>Done</button>
+          </div>
+        {/if}
+      </li>
     {/each}
   </ul>
   {/if}
@@ -207,21 +197,22 @@
   .item.on {
     border-color: var(--accent);
   }
+  /* The box ticks; the rest of the row opens and closes it. */
   .item-head {
     display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 0.7rem;
+    grid-template-columns: auto 1fr;
+    gap: 0.8rem;
     align-items: start;
     font-weight: 700;
-    cursor: pointer;
   }
   .custom .item-head {
     grid-template-columns: 1fr auto;
-    cursor: default;
   }
-  /* A row on the change form: the whole row opens and closes its changes. */
-  button.item-head {
+  .item-row {
+    display: grid;
     grid-template-columns: 1fr auto;
+    gap: 0.7rem;
+    align-items: start;
     width: 100%;
     border: 0;
     background: none;
@@ -230,6 +221,10 @@
     font: inherit;
     font-weight: 700;
     text-align: left;
+    cursor: pointer;
+  }
+  span.item-row {
+    cursor: default;
   }
   .chevron {
     display: inline-block;
@@ -295,9 +290,10 @@
     font-weight: 700;
   }
   .item-head input {
-    width: 1.2rem;
-    height: 1.2rem;
-    margin-top: 0.15rem;
+    width: 1.4rem;
+    height: 1.4rem;
+    margin-top: 0.05rem;
+    cursor: pointer;
     accent-color: var(--accent);
   }
   .item-name {
