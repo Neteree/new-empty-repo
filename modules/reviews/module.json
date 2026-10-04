@@ -1,1 +1,36 @@
-{ "data": "reviews.json" }
+{
+  "data": "reviews.json",
+  "list": {
+    "type": "review",
+    "key": "items",
+    "id": "name",
+    "noun": "review",
+    "by": "from",
+    "plural": "reviews",
+    "unique": false,
+    "add": "Add a customer review",
+    "remove": "Remove a review",
+    "hint": "Only reviews the customer is happy for you to share, word for word.",
+    "fields": {
+      "quote": {
+        "label": "The review",
+        "kind": "quote",
+        "required": true
+      },
+      "name": {
+        "label": "Their name, as they’re happy for it to show",
+        "required": true,
+        "example": "Sarah K."
+      },
+      "source": {
+        "label": "Where it’s from",
+        "example": "Google"
+      },
+      "stars": {
+        "label": "Stars",
+        "kind": "stars"
+      }
+    },
+    "find": "Who the review is from, as it shows on your site"
+  }
+}

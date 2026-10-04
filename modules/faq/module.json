@@ -1,1 +1,24 @@
-{ "data": "faq.json" }
+{
+  "data": "faq.json",
+  "list": {
+    "type": "faq",
+    "key": "questions",
+    "id": "question",
+    "noun": "question",
+    "plural": "questions",
+    "add": "Add a question and answer",
+    "remove": "Remove a question",
+    "fields": {
+      "question": {
+        "label": "The question",
+        "required": true
+      },
+      "answer": {
+        "label": "Your answer",
+        "kind": "long",
+        "required": true
+      }
+    },
+    "find": "The question, as it is on your site"
+  }
+}

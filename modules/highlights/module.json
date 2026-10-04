@@ -1,1 +1,24 @@
-{ "data": "highlights.json" }
+{
+  "data": "highlights.json",
+  "list": {
+    "type": "highlight",
+    "key": "items",
+    "id": "title",
+    "noun": "highlight",
+    "plural": "highlights",
+    "add": "Add a reason to choose you (a highlight)",
+    "remove": "Remove a highlight",
+    "fields": {
+      "title": {
+        "label": "Short title",
+        "required": true,
+        "example": "Family run since 1998"
+      },
+      "text": {
+        "label": "One or two sentences about it",
+        "kind": "long",
+        "required": true
+      }
+    }
+  }
+}

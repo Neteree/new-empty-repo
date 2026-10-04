@@ -1,0 +1,143 @@
+{
+  "faq": {
+    "module": "faq",
+    "data": "faq.json",
+    "type": "faq",
+    "key": "questions",
+    "id": "question",
+    "noun": "question",
+    "plural": "questions",
+    "add": "Add a question and answer",
+    "remove": "Remove a question",
+    "fields": {
+      "question": {
+        "label": "The question",
+        "required": true
+      },
+      "answer": {
+        "label": "Your answer",
+        "kind": "long",
+        "required": true
+      }
+    },
+    "find": "The question, as it is on your site"
+  },
+  "highlights": {
+    "module": "highlights",
+    "data": "highlights.json",
+    "type": "highlight",
+    "key": "items",
+    "id": "title",
+    "noun": "highlight",
+    "plural": "highlights",
+    "add": "Add a reason to choose you (a highlight)",
+    "remove": "Remove a highlight",
+    "fields": {
+      "title": {
+        "label": "Short title",
+        "required": true,
+        "example": "Family run since 1998"
+      },
+      "text": {
+        "label": "One or two sentences about it",
+        "kind": "long",
+        "required": true
+      }
+    }
+  },
+  "reviews": {
+    "module": "reviews",
+    "data": "reviews.json",
+    "type": "review",
+    "key": "items",
+    "id": "name",
+    "noun": "review",
+    "by": "from",
+    "plural": "reviews",
+    "unique": false,
+    "add": "Add a customer review",
+    "remove": "Remove a review",
+    "hint": "Only reviews the customer is happy for you to share, word for word.",
+    "fields": {
+      "quote": {
+        "label": "The review",
+        "kind": "quote",
+        "required": true
+      },
+      "name": {
+        "label": "Their name, as they’re happy for it to show",
+        "required": true,
+        "example": "Sarah K."
+      },
+      "source": {
+        "label": "Where it’s from",
+        "example": "Google"
+      },
+      "stars": {
+        "label": "Stars",
+        "kind": "stars"
+      }
+    },
+    "find": "Who the review is from, as it shows on your site"
+  },
+  "steps": {
+    "module": "steps",
+    "data": "steps.json",
+    "type": "step",
+    "key": "steps",
+    "id": "title",
+    "noun": "step",
+    "plural": "steps",
+    "ordered": true,
+    "add": "Add a step to “How it works”",
+    "remove": "Remove a step from “How it works”",
+    "fields": {
+      "title": {
+        "label": "Short title",
+        "required": true,
+        "example": "Free quote"
+      },
+      "text": {
+        "label": "What happens",
+        "kind": "long",
+        "required": true
+      }
+    }
+  },
+  "work": {
+    "module": "work",
+    "data": "work.json",
+    "type": "work",
+    "key": "items",
+    "id": "title",
+    "noun": "past project",
+    "plural": "past projects",
+    "add": "Add a past project",
+    "remove": "Remove a past project",
+    "fields": {
+      "title": {
+        "label": "Project name",
+        "required": true,
+        "example": "Kitchen renovation, Titirangi"
+      },
+      "kind": {
+        "label": "Kind of job",
+        "example": "Renovation"
+      },
+      "text": {
+        "label": "One or two sentences about it",
+        "kind": "long",
+        "required": true
+      },
+      "photo": {
+        "label": "Photo or screenshot",
+        "kind": "photo",
+        "required": true
+      },
+      "link": {
+        "label": "Link to see it",
+        "kind": "link"
+      }
+    }
+  }
+}

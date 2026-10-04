@@ -1,1 +1,37 @@
-{ "data": "work.json" }
+{
+  "data": "work.json",
+  "list": {
+    "type": "work",
+    "key": "items",
+    "id": "title",
+    "noun": "past project",
+    "plural": "past projects",
+    "add": "Add a past project",
+    "remove": "Remove a past project",
+    "fields": {
+      "title": {
+        "label": "Project name",
+        "required": true,
+        "example": "Kitchen renovation, Titirangi"
+      },
+      "kind": {
+        "label": "Kind of job",
+        "example": "Renovation"
+      },
+      "text": {
+        "label": "One or two sentences about it",
+        "kind": "long",
+        "required": true
+      },
+      "photo": {
+        "label": "Photo or screenshot",
+        "kind": "photo",
+        "required": true
+      },
+      "link": {
+        "label": "Link to see it",
+        "kind": "link"
+      }
+    }
+  }
+}
