@@ -4,12 +4,21 @@ name: Starter
 
 on:
   pull_request:
-    paths: ['starter/**', 'modules/**', 'site_agent.py', '.github/workflows/starter.yml']
+    paths: ['starter/**', 'modules/**', 'ops/**', 'site_agent.py', '.github/workflows/starter.yml']
   push:
     branches: [main]
-    paths: ['starter/**', 'modules/**', 'site_agent.py', '.github/workflows/starter.yml']
+    paths: ['starter/**', 'modules/**', 'ops/**', 'site_agent.py', '.github/workflows/starter.yml']
 
 jobs:
+  # The queue scripts must describe every change type the site scripts know.
+  lists:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: starter/.node-version
+      - run: node ops/check.js
   check:
     runs-on: ubuntu-latest
     strategy:

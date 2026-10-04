@@ -125,6 +125,18 @@ export function describeChange(change) {
       return `Remove “${change.name}” from the menu`;
     case 'menu-sold-out':
       return `Mark “${change.name}” as ${change.soldOut ? 'sold out' : 'back on'}`;
+    case 'highlight-add':
+      return `Add the highlight “${change.title}”`;
+    case 'highlight-remove':
+      return `Remove the highlight “${change.title}”`;
+    case 'step-add':
+      return `Add the step “${change.title}”${change.position ? ` as step ${change.position}` : ''}`;
+    case 'step-remove':
+      return `Remove the step “${change.title}”`;
+    case 'work-add':
+      return `Add the past project “${change.title}”${change.photo ? '' : ' (photo to come by email)'}`;
+    case 'work-remove':
+      return `Remove the past project “${change.title}”`;
     default:
       return change.details ?? JSON.stringify(change);
   }

@@ -8,19 +8,78 @@
   "heroText": "A made-up plumber that shows the base starter with the quote form add-on. Every detail here is example text.",
   "visitText": "This plumber isn't real, so there's no one to call out.",
   "hours": [
-    { "days": "Monday to Friday", "times": "Example hours" },
-    { "days": "Saturday and Sunday", "times": "Closed" }
+    {
+      "days": "Monday to Friday",
+      "times": "Example hours"
+    },
+    {
+      "days": "Saturday and Sunday",
+      "times": "Closed"
+    }
   ],
   "enquiry": {
     "title": "Get in touch",
     "intro": "Questions that aren't a job? Send us a message.",
-    "options": ["A question", "Something else"]
+    "options": [
+      "A question",
+      "Something else"
+    ]
   },
   "theme": "bold",
-  "modules": ["booking"],
+  "modules": [
+    "booking",
+    "highlights",
+    "steps"
+  ],
   "booking": {
     "kind": "quote",
-    "options": ["Leak or burst pipe", "Hot water", "Bathroom or kitchen", "Something else"]
+    "options": [
+      "Leak or burst pipe",
+      "Hot water",
+      "Bathroom or kitchen",
+      "Something else"
+    ]
   },
-  "demo": true
+  "demo": true,
+  "highlights": {
+    "section": {
+      "note": "",
+      "title": ""
+    },
+    "items": [
+      {
+        "title": "Fixed quotes",
+        "text": "You know the price before we start, and it doesn't change."
+      },
+      {
+        "title": "Tidy work",
+        "text": "We clean up as we go and take the rubbish with us."
+      },
+      {
+        "title": "Local",
+        "text": "Based nearby, so we can usually come the same week."
+      }
+    ]
+  },
+  "steps": {
+    "section": {
+      "note": "How it works",
+      "title": "From quote to finished job",
+      "nav": "How it works"
+    },
+    "steps": [
+      {
+        "title": "Tell us the job",
+        "text": "Use the quote form, with a photo if you have one."
+      },
+      {
+        "title": "Fixed quote",
+        "text": "We come and look, then send a price."
+      },
+      {
+        "title": "The work",
+        "text": "We book a day that suits you and get it done."
+      }
+    ]
+  }
 }

@@ -66,7 +66,8 @@
   // remove, hide or show an item, or the note under the list. With the
   // client's site linked, items are picked from their list and photos from
   // their gallery.
-  import PhotoPicker, { type ExistingPhoto } from './PhotoPicker.svelte';
+  import type { ExistingPhoto } from './PhotoPicker.svelte';
+  import PhotoChoice from './PhotoChoice.svelte';
 
   let {
     change = $bindable(),
@@ -149,33 +150,7 @@
       </div>
     {/if}
 
-    {#if gallery.length || canUpload}
-      <fieldset class="group">
-        <legend>Photo <span class="optional">(optional)</span></legend>
-        <div class="checks">
-          <label><input type="radio" name="r-pphoto-{i}" value="" bind:group={change.itemPhoto} /> {change.kind === 'price-add' ? 'No photo' : 'Keep as it is'}</label>
-          {#if canUpload}<label><input type="radio" name="r-pphoto-{i}" value="new" bind:group={change.itemPhoto} /> A new photo</label>{/if}
-        </div>
-        {#if gallery.length}
-          <p class="hint">Or one already on your site:</p>
-          <div class="thumbs">
-            {#each gallery as current (current.file)}
-              <label class="thumb">
-                <input type="radio" name="r-pphoto-{i}" value="gallery:{current.file}" bind:group={change.itemPhoto} />
-                <img src={current.src} alt={current.alt || 'A photo on your site'} width="64" height="64" />
-              </label>
-            {/each}
-          </div>
-        {/if}
-        {#if change.itemPhoto === 'new'}
-          <PhotoPicker label="photo" bind:photos={change.itemPhotoFile} max={1} describe={false} />
-          <div class="field">
-            <label for="r-palt-{i}">What’s in the photo? <span class="optional">(optional)</span></label>
-            <input id="r-palt-{i}" maxlength="150" bind:value={change.itemPhotoAlt} />
-          </div>
-        {/if}
-      </fieldset>
-    {/if}
+    <PhotoChoice name="r-pphoto-{i}" bind:choice={change.itemPhoto} bind:files={change.itemPhotoFile} bind:alt={change.itemPhotoAlt} {gallery} {canUpload} noneLabel={change.kind === 'price-add' ? 'No photo' : 'Keep as it is'} />
   {/if}
 {/if}
 
@@ -240,36 +215,6 @@
     display: grid;
     grid-template-columns: 1fr 1fr auto;
     gap: 0.5rem;
-  }
-  .thumbs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  .thumb {
-    position: relative;
-    cursor: pointer;
-  }
-  .thumb input {
-    position: absolute;
-    opacity: 0;
-    width: 1px;
-    height: 1px;
-  }
-  .thumb img {
-    display: block;
-    width: 4rem;
-    height: 4rem;
-    object-fit: cover;
-    border-radius: 0.3rem;
-    border: 3px solid transparent;
-  }
-  .thumb input:checked + img {
-    border-color: var(--accent);
-  }
-  .thumb input:focus-visible + img {
-    outline: 3px solid var(--highlight);
-    outline-offset: 2px;
   }
   .optional {
     font-weight: 400;

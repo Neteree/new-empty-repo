@@ -9,6 +9,7 @@
   import PhotoPicker, { type ExistingPhoto } from '../../components/forms/PhotoPicker.svelte';
   import HoursPicker from '../../components/forms/HoursPicker.svelte';
   import PriceFields, { priceChanges, priceProblem } from '../../components/forms/PriceFields.svelte';
+  import PhotoChoice from '../../components/forms/PhotoChoice.svelte';
 
   type Kind =
     | 'text' | 'hours' | 'contact' | 'news' | 'photos' | 'theme'
@@ -17,6 +18,7 @@
     | 'booking' | 'notice'
     | 'review-add' | 'review-remove' | 'faq-add' | 'faq-remove'
     | 'product-add' | 'product-price' | 'product-link' | 'product-sold-out' | 'product-remove'
+    | 'highlight-add' | 'highlight-remove' | 'step-add' | 'step-remove' | 'work-add' | 'work-remove'
     | 'other';
   // Changes that belong to an add-on module only show when the client's site
   // has it (from its photos.json), or always when the form doesn't know the site.
@@ -26,6 +28,9 @@
     : kind.startsWith('review-') ? 'reviews'
     : kind.startsWith('faq-') ? 'faq'
     : kind.startsWith('product-') ? 'shop'
+    : kind.startsWith('highlight-') ? 'highlights'
+    : kind.startsWith('step-') ? 'steps'
+    : kind.startsWith('work-') ? 'work'
     : kind === 'booking' ? 'booking' : null;
   const allKinds: { id: Kind; label: string }[] = [
     { id: 'text', label: 'Change some wording' },
@@ -55,6 +60,13 @@
     { id: 'product-link', label: 'Add or change a Stripe payment link' },
     { id: 'product-sold-out', label: 'Mark something in your shop sold out (or back on)' },
     { id: 'product-remove', label: 'Remove something from your shop' },
+    { id: 'highlight-add', label: 'Add a reason to choose you (a highlight)' },
+    { id: 'highlight-remove', label: 'Remove a highlight' },
+    { id: 'step-add', label: 'Add a step to “How it works”' },
+    { id: 'step-remove', label: 'Remove a step from “How it works”' },
+    // A past project needs its picture: a new upload, or one already on the site.
+    { id: 'work-add', label: 'Add a past project' },
+    { id: 'work-remove', label: 'Remove a past project' },
     { id: 'other', label: canUpload ? 'Something else, like a new section' : 'Something else, like a new photo or section' },
   ];
   let siteModules = $state<string[] | null>(null);
@@ -109,6 +121,9 @@
     question: '',
     answer: '',
     link: '',
+    // Highlights, steps and past work.
+    position: '',
+    workKind: '',
   });
 
   // The client's current gallery, when the link names their site
@@ -210,6 +225,24 @@
         if (file && !IMAGE_TYPES.includes(file.type)) return `“${file.name}” isn’t a JPG, PNG or WebP photo.`;
         return file && file.size > MAX_BYTES ? `“${file.name}” is too big. Photos can be up to 15 MB each.` : '';
       }
+      case 'highlight-add':
+      case 'step-add':
+        return c.title.trim() && c.description.trim() ? '' : 'Fill in the title and a sentence about it.';
+      case 'highlight-remove':
+      case 'step-remove':
+      case 'work-remove':
+        return c.title.trim() ? '' : 'Fill in the title, exactly as it is on your site.';
+      case 'work-add': {
+        if (!c.title.trim() || !c.description.trim()) return 'Fill in the project’s name and a sentence about it.';
+        // Without uploads or photos on the site, the photo comes by email (Cameron adds it).
+        if (canUpload || existing.length) {
+          if (!c.itemPhoto || (c.itemPhoto === 'new' && !c.itemPhotoFile.length)) return 'Choose a photo or screenshot of the project.';
+        }
+        if (c.link.trim() && !/^https:\/\//.test(c.link.trim())) return 'The link should start https://, or leave it empty.';
+        const file = c.itemPhoto === 'new' ? c.itemPhotoFile[0] : null;
+        if (file && !IMAGE_TYPES.includes(file.type)) return `“${file.name}” isn’t a JPG, PNG or WebP photo.`;
+        return file && file.size > MAX_BYTES ? `“${file.name}” is too big. Photos can be up to 15 MB each.` : '';
+      }
       default:
         return c.details.trim() ? '' : 'Describe what you’d like changed.';
     }
@@ -217,7 +250,7 @@
 
   // Every photo to upload, in the order toChanges() numbers them.
   const uploadsOf = (c: Change) =>
-    c.kind === 'photos' ? c.photos : (c.kind === 'price-add' || c.kind === 'price-change') && c.itemPhoto === 'new' ? c.itemPhotoFile : [];
+    c.kind === 'photos' ? c.photos : (c.kind === 'price-add' || c.kind === 'price-change' || c.kind === 'work-add') && c.itemPhoto === 'new' ? c.itemPhotoFile : [];
   const allPhotos = $derived(changes.flatMap(uploadsOf));
   const errors = $derived({
     email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? '' : 'Enter the email address I have for you.',
@@ -307,6 +340,19 @@
         case 'price-available':
         case 'price-note':
           return priceChanges(c, () => upload++);
+        case 'highlight-add':
+          return { type: 'highlight-add', title: c.title.trim(), text: c.description.trim() };
+        case 'step-add':
+          return { type: 'step-add', title: c.title.trim(), text: c.description.trim(), ...(Number(c.position) >= 1 ? { position: Number(c.position) } : {}) };
+        case 'highlight-remove':
+        case 'step-remove':
+        case 'work-remove':
+          return { type: c.kind, title: c.title.trim() };
+        case 'work-add': {
+          const alt = c.itemPhotoAlt.trim();
+          const photo = c.itemPhoto.startsWith('gallery:') ? { gallery: c.itemPhoto.slice(8), ...(alt ? { alt } : {}) } : c.itemPhoto === 'new' ? { upload: upload++, ...(alt ? { alt } : {}) } : undefined;
+          return { type: 'work-add', title: c.title.trim(), kind: c.workKind.trim(), text: c.description.trim(), ...(photo ? { photo } : {}), ...(c.link.trim() ? { link: c.link.trim() } : {}) };
+        }
         default:
           return { type: 'other', details: c.details.trim() };
       }
@@ -483,6 +529,40 @@
               <option value="">No stars</option>
               {#each [5, 4, 3, 2, 1] as n (n)}<option value={String(n)}>{n} out of 5</option>{/each}
             </select>
+          </div>
+        {:else if change.kind === 'highlight-add' || change.kind === 'step-add' || change.kind === 'work-add'}
+          <div class="row">
+            <div class="field">
+              <label for="r-stitle-{i}">{change.kind === 'work-add' ? 'Project name' : 'Short title'}</label>
+              <input id="r-stitle-{i}" placeholder={change.kind === 'highlight-add' ? 'Family run since 1998' : change.kind === 'step-add' ? 'Free quote' : 'Kitchen renovation, Titirangi'} bind:value={change.title} />
+            </div>
+            {#if change.kind === 'work-add'}
+              <div class="field">
+                <label for="r-wkind-{i}">Kind of job <span class="optional">(optional)</span></label>
+                <input id="r-wkind-{i}" placeholder="Renovation" bind:value={change.workKind} />
+              </div>
+            {:else if change.kind === 'step-add'}
+              <div class="field">
+                <label for="r-spos-{i}">Which step number <span class="optional">(optional, last if blank)</span></label>
+                <input id="r-spos-{i}" inputmode="numeric" bind:value={change.position} />
+              </div>
+            {/if}
+          </div>
+          <div class="field">
+            <label for="r-stext-{i}">One or two sentences about it</label>
+            <textarea id="r-stext-{i}" rows="2" bind:value={change.description}></textarea>
+          </div>
+          {#if change.kind === 'work-add'}
+            <PhotoChoice name="r-wphoto-{i}" legend="Photo or screenshot" bind:choice={change.itemPhoto} bind:files={change.itemPhotoFile} bind:alt={change.itemPhotoAlt} gallery={existing.filter((p) => !p.removed)} {canUpload} />
+            <div class="field">
+              <label for="r-wlink-{i}">Link to see it <span class="optional">(optional)</span></label>
+              <input id="r-wlink-{i}" type="url" placeholder="https://" bind:value={change.link} />
+            </div>
+          {/if}
+        {:else if change.kind === 'highlight-remove' || change.kind === 'step-remove' || change.kind === 'work-remove'}
+          <div class="field">
+            <label for="r-sremove-{i}">The title, exactly as it is on your site</label>
+            <input id="r-sremove-{i}" bind:value={change.title} />
           </div>
         {:else if change.kind === 'review-remove'}
           <div class="field">
