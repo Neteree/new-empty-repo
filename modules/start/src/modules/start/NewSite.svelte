@@ -24,7 +24,7 @@
   const priceOf = (item: Item) => (item.price ? prices[item.price] : undefined);
   const base = $derived(prices[data.base]);
   // Items whose price list entry is missing aren't offered (the price list is the source of truth).
-  const offered = $derived(items.filter((item) => !item.price || priceOf(item) !== undefined));
+  const offered = $derived(items.filter((item) => !item.changeOnly && (!item.price || priceOf(item) !== undefined)));
 
   const DRAFT = 'start-new-site';
   const blank = () => ({

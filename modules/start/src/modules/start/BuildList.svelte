@@ -1,10 +1,11 @@
 <script lang="ts">
   // The "Build your site" list: tick what you want, see its price, fill in
   // what you can now (or later), and "Something else?" for anything that
-  // isn't listed yet. Used by the new-website form and the change form's
-  // "Add to your site", so both work the same way. A form can give its own
-  // questions for an item (`bodies`, by item id); list sections (reviews,
-  // questions…) ask for their fields from their descriptions.
+  // isn't listed yet. Used by the new-website form and the change form, so
+  // both work the same way. A form can give its own questions for an item
+  // (`bodies`, by item id); list sections (reviews, questions…) ask for their
+  // fields from their descriptions. On the change form, what the site already
+  // has (`owned`) opens its changes (`changeBody`) instead of a tick.
   import type { Snippet } from 'svelte';
   import { type Build, type Item, blankRow, listDef, textFields } from './build';
 
@@ -14,12 +15,20 @@
     priceText,
     bodies = {},
     id = 'b',
+    owned = () => false,
+    changeBody,
+    onchange = () => {},
+    busy = () => false,
   }: {
     groups: { title?: string; items: Item[] }[];
     build: Build;
     priceText: (item: Item) => string;
     bodies?: Partial<Record<string, Snippet>>;
     id?: string;
+    owned?: (item: Item) => boolean;
+    changeBody?: Snippet<[Item]>;
+    onchange?: (item: Item) => void;
+    busy?: (item: Item) => boolean;
   } = $props();
 
   /** Opens an item's questions (a list section starts with one empty row). */
@@ -42,51 +51,68 @@
     {#each group.items as item (item.id)}
       {@const def = listDef(item)}
       {@const own = bodies[item.id]}
-      <li class="item" class:on={build.chosen[item.id]}>
-        <label class="item-head">
-          <input type="checkbox" checked={build.chosen[item.id]} disabled={item.locked} onchange={() => toggle(item)} />
-          <span class="item-name">{item.label}<span class="item-text">{item.text}</span></span>
-          <span class="item-price">{priceText(item)}</span>
-        </label>
-        {#if build.chosen[item.id] && !item.locked}
+      {#if owned(item) && changeBody}
+        <li class="item" class:on={busy(item)}>
+          <div class="item-head has">
+            <span class="item-name">{item.label}<span class="item-text">{item.text}</span></span>
+            <span class="item-price">{priceText(item)}</span>
+          </div>
           {#if build.open === item.id}
             <div class="item-body">
-              {#if own}
-                {@render own()}
-              {:else if def}
-                {#each build.rows[item.id] ?? [] as row, r (r)}
-                  <div class="row">
-                    {#each textFields(def) as [name, f] (name)}
-                      <div class="field">
-                        <label for="{id}-{item.id}-{r}-{name}">{f.label}</label>
-                        <input id="{id}-{item.id}-{r}-{name}" placeholder={f.example ?? ''} bind:value={row[name]} />
-                      </div>
-                    {/each}
-                  </div>
-                {/each}
-                <button class="small" type="button" onclick={() => build.rows[item.id].push(blankRow(def))}>Add another {def.noun}</button>
-              {:else if item.id === 'work'}
-                <p class="hint">Send photos of a few past jobs after this, with a line about each, or add them later.</p>
-              {:else if item.id === 'menu'}
-                <label class="tick"><input type="checkbox" bind:checked={build.preOrder} /> Customers can order ahead for pickup</label>
-                <p class="hint">I’ll ask for your menu after this.</p>
-              {:else if item.id === 'prices' || item.id === 'shop'}
-                <p class="hint">I’ll ask for your {item.id === 'shop' ? 'products' : 'prices'} after this.</p>
-              {:else if item.id === 'booking'}
-                <label class="tick"><input type="radio" name="{id}-booking" value={false} bind:group={build.quote} /> Bookings: customers ask for a day and time</label>
-                <label class="tick"><input type="radio" name="{id}-booking" value={true} bind:group={build.quote} /> Quotes: customers describe a job and you price it</label>
-              {:else if item.id === 'page'}
-                <div class="field"><label for="{id}-page">What goes on it?</label><textarea id="{id}-page" rows="2" bind:value={build.pageText}></textarea></div>
-              {:else}
-                <p class="hint">Nothing to fill in now.</p>
-              {/if}
-              <button class="later" type="button" onclick={() => (build.open = '')}>Done, or add later</button>
+              {@render changeBody(item)}
+              <button class="later" type="button" onclick={() => (build.open = '')}>Done</button>
             </div>
           {:else}
-            <button class="later" type="button" onclick={() => openItem(item)}>Fill in now</button>
+            <button class="later" type="button" onclick={() => { onchange(item); build.open = item.id; }}>{busy(item) ? 'Show my changes' : 'Change'}</button>
           {/if}
-        {/if}
-      </li>
+        </li>
+      {:else}
+        <li class="item" class:on={build.chosen[item.id]}>
+          <label class="item-head">
+            <input type="checkbox" checked={build.chosen[item.id]} disabled={item.locked} onchange={() => toggle(item)} />
+            <span class="item-name">{item.label}<span class="item-text">{item.text}</span></span>
+            <span class="item-price">{priceText(item)}</span>
+          </label>
+          {#if build.chosen[item.id] && !item.locked}
+            {#if build.open === item.id}
+              <div class="item-body">
+                {#if own}
+                  {@render own()}
+                {:else if def}
+                  {#each build.rows[item.id] ?? [] as row, r (r)}
+                    <div class="row">
+                      {#each textFields(def) as [name, f] (name)}
+                        <div class="field">
+                          <label for="{id}-{item.id}-{r}-{name}">{f.label}</label>
+                          <input id="{id}-{item.id}-{r}-{name}" placeholder={f.example ?? ''} bind:value={row[name]} />
+                        </div>
+                      {/each}
+                    </div>
+                  {/each}
+                  <button class="small" type="button" onclick={() => build.rows[item.id].push(blankRow(def))}>Add another {def.noun}</button>
+                {:else if item.id === 'work'}
+                  <p class="hint">Send photos of a few past jobs after this, with a line about each, or add them later.</p>
+                {:else if item.id === 'menu'}
+                  <label class="tick"><input type="checkbox" bind:checked={build.preOrder} /> Customers can order ahead for pickup</label>
+                  <p class="hint">I’ll ask for your menu after this.</p>
+                {:else if item.id === 'prices' || item.id === 'shop'}
+                  <p class="hint">I’ll ask for your {item.id === 'shop' ? 'products' : 'prices'} after this.</p>
+                {:else if item.id === 'booking'}
+                  <label class="tick"><input type="radio" name="{id}-booking" value={false} bind:group={build.quote} /> Bookings: customers ask for a day and time</label>
+                  <label class="tick"><input type="radio" name="{id}-booking" value={true} bind:group={build.quote} /> Quotes: customers describe a job and you price it</label>
+                {:else if item.id === 'page'}
+                  <div class="field"><label for="{id}-page">What goes on it?</label><textarea id="{id}-page" rows="2" bind:value={build.pageText}></textarea></div>
+                {:else}
+                  <p class="hint">Nothing to fill in now.</p>
+                {/if}
+                <button class="later" type="button" onclick={() => (build.open = '')}>Done, or add later</button>
+              </div>
+            {:else}
+              <button class="later" type="button" onclick={() => openItem(item)}>Fill in now</button>
+            {/if}
+          {/if}
+        </li>
+      {/if}
     {/each}
   </ul>
 {/each}
@@ -129,7 +155,8 @@
     font-weight: 700;
     cursor: pointer;
   }
-  .custom .item-head {
+  .custom .item-head,
+  .item-head.has {
     grid-template-columns: 1fr auto;
     cursor: default;
   }

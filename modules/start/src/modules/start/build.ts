@@ -3,7 +3,8 @@
 // person picks, and anything they fill in for it, is a Build.
 import lists from '../../data/lists.json';
 
-export type Item = { id: string; label: string; text: string; on?: boolean; locked?: boolean; module?: string; price?: string };
+// changeOnly: on the change form only (a new site picks its look in its own step).
+export type Item = { id: string; label: string; text: string; on?: boolean; locked?: boolean; changeOnly?: boolean; module?: string; price?: string };
 type Field = { label: string; kind?: string; required?: boolean; example?: string };
 export type ListDef = { key: string; type: string; noun: string; fields: Record<string, Field> };
 export type Row = Record<string, string>;
