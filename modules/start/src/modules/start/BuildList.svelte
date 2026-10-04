@@ -5,7 +5,9 @@
   // both work the same way. A form can give its own questions for an item
   // (`bodies`, by item id); list sections (reviews, questions…) ask for their
   // fields from their descriptions. On the change form, what the site already
-  // has (`owned`) opens its changes (`changeBody`) instead of a tick.
+  // has (`owned`) opens its changes (`changeBody`) instead of a tick: tap the
+  // row to open or close it. A search box narrows the list (by name,
+  // description and any `keywords`, such as the changes an item has).
   import type { Snippet } from 'svelte';
   import { type Build, type Item, blankRow, listDef, textFields } from './build';
 
@@ -19,6 +21,7 @@
     changeBody,
     onchange = () => {},
     busy = () => false,
+    keywords = () => '',
   }: {
     groups: { title?: string; items: Item[] }[];
     build: Build;
@@ -29,7 +32,24 @@
     changeBody?: Snippet<[Item]>;
     onchange?: (item: Item) => void;
     busy?: (item: Item) => boolean;
+    keywords?: (item: Item) => string;
   } = $props();
+
+  let query = $state('');
+  const words = $derived(query.toLowerCase().split(/\s+/).filter(Boolean));
+  const matches = (item: Item) => {
+    const text = `${item.label} ${item.text} ${keywords(item)}`.toLowerCase();
+    return words.every((word) => text.includes(word));
+  };
+  const shown = $derived(groups.map((group) => ({ ...group, items: group.items.filter(matches) })));
+
+  function openChanges(item: Item) {
+    if (build.open === item.id) build.open = '';
+    else {
+      onchange(item);
+      build.open = item.id;
+    }
+  }
 
   /** Opens an item's questions (a list section starts with one empty row). */
   function openItem(item: Item) {
@@ -45,25 +65,31 @@
   }
 </script>
 
-{#each groups as group, g (g)}
-  {#if group.title}<h3 class="group">{group.title}</h3>{/if}
+<div class="search">
+  <label for="{id}-search">Find something</label>
+  <input id="{id}-search" type="search" placeholder="Like hours, prices or reviews" bind:value={query} />
+</div>
+{#if shown.every((group) => !group.items.length)}
+  <p class="hint">Nothing matches “{query.trim()}”. Tell me about it under “Something else?” below.</p>
+{/if}
+{#each shown as group, g (g)}
+  {#if group.items.length && group.title}<h3 class="group">{group.title}</h3>{/if}
+  {#if group.items.length}
   <ul class="items">
     {#each group.items as item (item.id)}
       {@const def = listDef(item)}
       {@const own = bodies[item.id]}
       {#if owned(item) && changeBody}
         <li class="item" class:on={busy(item)}>
-          <div class="item-head has">
-            <span class="item-name">{item.label}<span class="item-text">{item.text}</span></span>
-            <span class="item-price">{priceText(item)}</span>
-          </div>
+          <button type="button" class="item-head has" aria-expanded={build.open === item.id} onclick={() => openChanges(item)}>
+            <span class="item-name">{item.label}<span class="item-text">{busy(item) && build.open !== item.id ? 'Your changes are saved. Tap to see them.' : item.text}</span></span>
+            <span class="item-price">{priceText(item)}<span class="chevron" aria-hidden="true"></span></span>
+          </button>
           {#if build.open === item.id}
             <div class="item-body">
               {@render changeBody(item)}
               <button class="later" type="button" onclick={() => (build.open = '')}>Done</button>
             </div>
-          {:else}
-            <button class="later" type="button" onclick={() => { onchange(item); build.open = item.id; }}>{busy(item) ? 'Show my changes' : 'Change'}</button>
           {/if}
         </li>
       {:else}
@@ -115,6 +141,7 @@
       {/if}
     {/each}
   </ul>
+  {/if}
 {/each}
 <div class="item custom" class:on={!!build.custom.trim()}>
   <label for="{id}-custom" class="item-head"><span class="item-name">Something else?<span class="item-text">Anything that isn’t listed, even a game. I’ll quote it.</span></span><span class="item-price">Quoted</span></label>
@@ -155,10 +182,41 @@
     font-weight: 700;
     cursor: pointer;
   }
-  .custom .item-head,
-  .item-head.has {
+  .custom .item-head {
     grid-template-columns: 1fr auto;
     cursor: default;
+  }
+  /* A row on the change form: the whole row opens and closes its changes. */
+  button.item-head {
+    grid-template-columns: 1fr auto;
+    width: 100%;
+    border: 0;
+    background: none;
+    padding: 0;
+    color: inherit;
+    font: inherit;
+    font-weight: 700;
+    text-align: left;
+  }
+  .chevron {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-left: 0.6rem;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: translateY(-0.2rem) rotate(45deg);
+    transition: transform 0.15s;
+  }
+  [aria-expanded='true'] .chevron {
+    transform: translateY(0.05rem) rotate(-135deg);
+  }
+  .search {
+    display: grid;
+    gap: 0.35rem;
+  }
+  .search label {
+    font-weight: 700;
   }
   .item-head input {
     width: 1.2rem;

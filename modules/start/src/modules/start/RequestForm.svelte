@@ -572,12 +572,16 @@
       <button class="small" type="button" onclick={() => changes.push(blank(kindsFor(item)[0].id))}>{changesFor(item).length ? 'Another change here' : 'Change something here'}</button>
     {/snippet}
 
-    <p class="hint">Tap what you’d like to change or add.</p>
     <BuildList
       id="r"
       bind:build
       groups={[{ title: 'On your site', items: theirs }, ...(addable.length ? [{ title: 'Add to your site', items: addable }] : [])]}
-      priceText={(item) => (has(item) ? '' : priceOf(item) === undefined ? '' : `+${money(priceOf(item))}`)}
+      priceText={(item) => {
+        // A change to what they have is a small change; adding something costs its price.
+        const price = has(item) ? prices['small-change'] : priceOf(item);
+        return price === undefined ? '' : `+${money(price)}`;
+      }}
+      keywords={(item) => kindsFor(item).map((kind) => kind.label).join(' ')}
       owned={has}
       {changeBody}
       onchange={startChange}
