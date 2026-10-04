@@ -7,7 +7,8 @@
   // fields from their descriptions. On the change form, what the site already
   // has (`owned`) opens its changes (`changeBody`) instead of a tick: tap the
   // row to open or close it. A search box narrows the list (by name,
-  // description and any `keywords`, such as the changes an item has).
+  // description and any `keywords`, such as the changes an item has). With
+  // `tabs`, each group is a tab instead of a heading.
   import type { Snippet } from 'svelte';
   import { type Build, type Item, blankRow, listDef, textFields } from './build';
 
@@ -22,6 +23,8 @@
     onchange = () => {},
     busy = () => false,
     keywords = () => '',
+    tabs = false,
+    tab = $bindable(0),
   }: {
     groups: { title?: string; items: Item[] }[];
     build: Build;
@@ -33,6 +36,8 @@
     onchange?: (item: Item) => void;
     busy?: (item: Item) => boolean;
     keywords?: (item: Item) => string;
+    tabs?: boolean;
+    tab?: number;
   } = $props();
 
   let query = $state('');
@@ -41,7 +46,16 @@
     const text = `${item.label} ${item.text} ${keywords(item)}`.toLowerCase();
     return words.every((word) => text.includes(word));
   };
-  const shown = $derived(groups.map((group) => ({ ...group, items: group.items.filter(matches) })));
+  const filtered = $derived(groups.map((group) => ({ ...group, items: group.items.filter(matches) })));
+  const shown = $derived(tabs ? [filtered[tab] ?? filtered[0]] : filtered);
+  /** How many things are picked or changed in a group (shown on its tab). */
+  const picked = (group: { items: Item[] }) => group.items.filter((item) => build.chosen[item.id] || busy(item)).length;
+  function moveTab(event: KeyboardEvent) {
+    const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+    if (!step) return;
+    tab = (tab + step + groups.length) % groups.length;
+    (document.getElementById(`${id}-tab-${tab}`) as HTMLElement | null)?.focus();
+  }
 
   function openChanges(item: Item) {
     if (build.open === item.id) build.open = '';
@@ -69,11 +83,29 @@
   <label for="{id}-search">Find something</label>
   <input id="{id}-search" type="search" placeholder="Like hours, prices or reviews" bind:value={query} />
 </div>
+{#if tabs}
+  <div class="tabs" role="tablist" tabindex="-1" onkeydown={moveTab}>
+    {#each groups as group, g (g)}
+      {@const count = picked(group)}
+      <button type="button" role="tab" id="{id}-tab-{g}" aria-selected={tab === g} aria-controls="{id}-panel" tabindex={tab === g ? 0 : -1} onclick={() => (tab = g)}>
+        {group.title}{#if count}<span class="count">{count}</span>{/if}
+      </button>
+    {/each}
+  </div>
+{/if}
+<div class="panel" id="{id}-panel" role={tabs ? 'tabpanel' : undefined} aria-labelledby={tabs ? `${id}-tab-${tab}` : undefined}>
 {#if shown.every((group) => !group.items.length)}
-  <p class="hint">Nothing matches “{query.trim()}”. Tell me about it under “Something else?” below.</p>
+  {@const elsewhere = tabs ? filtered.map((group, g) => ({ ...group, g })).filter((group) => group.g !== tab && group.items.length) : []}
+  {#if elsewhere.length}
+    {#each elsewhere as other (other.g)}
+      <p class="hint">Not here, but {other.items.length} under <button class="later" type="button" onclick={() => (tab = other.g)}>{other.title}</button>.</p>
+    {/each}
+  {:else}
+    <p class="hint">Nothing matches “{query.trim()}”. Tell me about it under “Something else?” below.</p>
+  {/if}
 {/if}
 {#each shown as group, g (g)}
-  {#if group.items.length && group.title}<h3 class="group">{group.title}</h3>{/if}
+  {#if group.items.length && group.title && !tabs}<h3 class="group">{group.title}</h3>{/if}
   {#if group.items.length}
   <ul class="items">
     {#each group.items as item (item.id)}
@@ -143,6 +175,7 @@
   </ul>
   {/if}
 {/each}
+</div>
 <div class="item custom" class:on={!!build.custom.trim()}>
   <label for="{id}-custom" class="item-head"><span class="item-name">Something else?<span class="item-text">Anything that isn’t listed, even a game. I’ll quote it.</span></span><span class="item-price">Quoted</span></label>
   <textarea id="{id}-custom" rows="2" bind:value={build.custom}></textarea>
@@ -210,6 +243,49 @@
   }
   [aria-expanded='true'] .chevron {
     transform: translateY(0.05rem) rotate(-135deg);
+  }
+  .tabs {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 0.3rem;
+    padding: 0.3rem;
+    border: 2px solid var(--rule);
+    border-radius: 0.8rem;
+  }
+  [role='tab'] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border: 0;
+    border-radius: 0.55rem;
+    background: none;
+    padding: 0.6rem 0.5rem;
+    color: inherit;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  [role='tab'][aria-selected='true'] {
+    background: var(--accent);
+    color: var(--paper);
+  }
+  .count {
+    min-width: 1.4rem;
+    border-radius: 1rem;
+    padding: 0 0.35rem;
+    background: var(--accent);
+    color: var(--paper);
+    font-size: 0.8rem;
+  }
+  [aria-selected='true'] .count {
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .panel {
+    display: grid;
+    gap: 0.6rem;
   }
   .search {
     display: grid;
