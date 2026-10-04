@@ -7,10 +7,11 @@
 // With --site, scripted changes are applied to that site folder straight
 // away; anything the scripts can't do is listed for you (or the agent).
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { loadItem, saveItem } from './lib.js';
+import { applyModuleSettings } from '../starter/scripts/module-settings.js';
 
 const [id, ...args] = process.argv.slice(2);
 const option = (name) => {
@@ -82,6 +83,17 @@ if (item.kind === 'onboarding') {
   item.price = price;
   if (price === 0) item.free = true;
   if (site) {
+    // Sections the client is adding: bring in each module's code and settings
+    // first, so the changes that fill them in can run.
+    const adding = item.changes.filter((change) => change.type === 'add' && change.module && !existsSync(join(site, 'src/modules', change.module)));
+    if (adding.length) {
+      execFileSync('node', [join(starter, 'scripts/update-site.js'), site, '--add', adding.map((change) => change.module).join(',')], { stdio: 'inherit' });
+      for (const change of adding) {
+        const settings = change.module === 'food' ? { menu: { preOrder: Boolean(change.preOrder) } } : change.kind ? { [change.module]: { kind: change.kind } } : {};
+        applyModuleSettings(join(starter, '../modules', change.module), site, change.module, settings);
+      }
+      console.log(`Added ${adding.map((change) => change.module).join(', ')}: run npm install in ${site}.`);
+    }
     const changes = join(scratch, 'changes.json');
     writeFileSync(changes, JSON.stringify(item.changes));
     const output = execFileSync('node', ['scripts/apply-changes.js', changes], { cwd: site, encoding: 'utf8' });

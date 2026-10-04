@@ -17,7 +17,7 @@
 
   const paths: { id: Exclude<Path, ''>; title: string; text: string }[] = [
     { id: 'new', title: 'A new website', text: 'Tell me about your business and pick what you need. You’ll see the price as you go.' },
-    { id: 'change', title: 'A change to my website', text: 'For sites I’ve built: new wording, prices, photos, hours or anything else.' },
+    { id: 'change', title: 'A change to my website', text: 'For sites I’ve built: new wording, prices, photos or hours, or something new.' },
     { id: 'question', title: 'Just a question', text: 'Ask me anything, no strings attached.' },
   ];
 
@@ -56,7 +56,7 @@
 {:else if path === 'change'}
   <div class="change">
     <button class="back" type="button" onclick={() => choose('')}>← Back</button>
-    <RequestForm />
+    <RequestForm {prices} />
   </div>
 {:else}
   <Question onback={() => choose('')} />

@@ -4,13 +4,18 @@
   // takes (new photos go to the intake and point at their upload by number). Nothing happens until the client confirms
   // from their saved email address and Cameron approves the price.
   import { site } from '../../site.config';
-  import { isPrice as priceOk } from '../../lib/money';
+  import { isPrice as priceOk, money } from '../../lib/money';
   import { send, canUpload } from '../../lib/send';
   import { looks as themes } from '../../lib/catalogue';
   import PhotoPicker, { type ExistingPhoto } from '../../components/forms/PhotoPicker.svelte';
   import HoursPicker from '../../components/forms/HoursPicker.svelte';
   import PriceFields, { priceChanges, priceProblem } from '../../components/forms/PriceFields.svelte';
   import ListFields, { listChange, listKinds, listOf, listProblem, listUploads } from '../../components/forms/ListFields.svelte';
+  import BuildList from './BuildList.svelte';
+  import { type Item, blankBuild, filledRows, listDef } from './build';
+  import data from './start.json';
+
+  let { prices = {} }: { prices?: Record<string, number> } = $props();
 
   type Kind =
     | 'text' | 'hours' | 'contact' | 'news' | 'photos' | 'theme'
@@ -18,7 +23,6 @@
     | 'price-add' | 'price-change' | 'price-remove' | 'price-available' | 'price-note'
     | 'booking' | 'notice'
     | 'product-add' | 'product-price' | 'product-link' | 'product-sold-out' | 'product-remove'
-    | 'other'
     // Add and remove for every list section (reviews, questions, steps…): see ListFields.svelte.
     | (string & {});
   // Changes that belong to an add-on module only show when the client's site
@@ -54,11 +58,19 @@
     { id: 'product-sold-out', label: 'Mark something in your shop sold out (or back on)' },
     { id: 'product-remove', label: 'Remove something from your shop' },
     ...listKinds.map(({ id, label }) => ({ id: id as Kind, label })),
-    { id: 'other', label: canUpload ? 'Something else, like a new section' : 'Something else, like a new photo or section' },
   ];
   let siteModules = $state<string[] | null>(null);
   let priceItems = $state<{ name: string; available: boolean }[]>([]);
   const kinds = $derived(allKinds.filter((kind) => !siteModules || !moduleOf(kind.id) || siteModules.includes(moduleOf(kind.id)!)));
+
+  // "Add to your site": the new-website form's list, less what every site has
+  // and the add-ons this site already has. Sections that come with a new site
+  // cost a small change to add later; add-ons cost their price.
+  const items = data.items as Item[];
+  const priceOf = (item: Item) => prices[item.price ?? 'small-change'];
+  const addable = $derived(items.filter((item) => (item.module || item.price) && !siteModules?.includes(item.module ?? '') && (!item.price || prices[item.price] !== undefined)));
+  let build = $state(blankBuild(items, () => false));
+  const adding = $derived(addable.filter((item) => build.chosen[item.id]));
   const MAX_PHOTOS = 12;
   const MAX_BYTES = 15 * 1024 * 1024;
   const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -78,7 +90,6 @@
     glutenFree: false,
     category: '',
     soldOut: true,
-    details: '',
     photos: [] as File[],
     photoDescriptions: [] as string[],
     // The photo to put beside the headline: 'existing:<file>', 'new:<index>' or null (no change).
@@ -198,14 +209,12 @@
         if (file && !IMAGE_TYPES.includes(file.type)) return `“${file.name}” isn’t a JPG, PNG or WebP photo.`;
         return file && file.size > MAX_BYTES ? `“${file.name}” is too big. Photos can be up to 15 MB each.` : '';
       }
-      default:
-        if (listOf(c.kind)) {
-          const file = c.itemPhoto === 'new' ? c.itemPhotoFile[0] : null;
-          if (file && !IMAGE_TYPES.includes(file.type)) return `“${file.name}” isn’t a JPG, PNG or WebP photo.`;
-          if (file && file.size > MAX_BYTES) return `“${file.name}” is too big. Photos can be up to 15 MB each.`;
-          return listProblem(c, canUpload || existing.length > 0);
-        }
-        return c.details.trim() ? '' : 'Describe what you’d like changed.';
+      default: {
+        const file = c.itemPhoto === 'new' ? c.itemPhotoFile[0] : null;
+        if (file && !IMAGE_TYPES.includes(file.type)) return `“${file.name}” isn’t a JPG, PNG or WebP photo.`;
+        if (file && file.size > MAX_BYTES) return `“${file.name}” is too big. Photos can be up to 15 MB each.`;
+        return listProblem(c, canUpload || existing.length > 0);
+      }
     }
   }
 
@@ -218,8 +227,9 @@
     business: business.trim() ? '' : 'Enter your business name.',
     changes: changes.map(problem),
     photos: allPhotos.length > MAX_PHOTOS ? `Please send up to ${MAX_PHOTOS} photos at a time.` : '',
+    nothing: changes.length || adding.length || build.custom.trim() ? '' : 'Choose a change, something to add, or tell me what you’d like.',
   });
-  const valid = $derived(!errors.email && !errors.business && !errors.photos && errors.changes.every((e) => !e));
+  const valid = $derived(!errors.email && !errors.business && !errors.photos && !errors.nothing && errors.changes.every((e) => !e));
 
   /** The site's current photos are shown (and changed) in the first photo change only. */
   const firstPhotos = (c: Change) => changes.find((other) => other.kind === 'photos') === c;
@@ -294,10 +304,27 @@
         case 'price-note':
           return priceChanges(c, () => upload++);
         default:
-          if (listOf(c.kind)) return listChange(c, () => upload++);
-          return { type: 'other', details: c.details.trim() };
+          return listChange(c, () => upload++);
       }
     });
+  }
+
+  /** What they're adding: each section (brought in by ops/approve.js), then anything they filled in for it. */
+  function additions() {
+    return [
+      ...adding.flatMap((item) => [
+        {
+          type: 'add',
+          label: item.label,
+          ...(item.module ? { module: item.module } : {}),
+          ...(item.id === 'booking' && build.quote ? { kind: 'quote' } : {}),
+          ...(item.id === 'menu' && build.preOrder ? { preOrder: true } : {}),
+          ...(item.id === 'page' && build.pageText.trim() ? { details: build.pageText.trim() } : {}),
+        },
+        ...filledRows(build, item).map((row) => ({ type: `${listDef(item)!.type}-add`, ...row })),
+      ]),
+      ...(build.custom.trim() ? [{ type: 'other', details: build.custom.trim() }] : []),
+    ];
   }
 
   async function submit(event: SubmitEvent) {
@@ -309,7 +336,7 @@
       return;
     }
     status = 'sending';
-    const request = { request: 1, email: email.trim(), business: business.trim(), changes: toChanges() };
+    const request = { request: 1, email: email.trim(), business: business.trim(), changes: [...toChanges(), ...additions()] };
     try {
       await send({
         kind: 'request',
@@ -356,6 +383,7 @@
       </div>
     </div>
 
+    <h3 class="group">Change something</h3>
     {#each changes as change, i (i)}
       <fieldset class="change">
         <legend>Change {i + 1}</legend>
@@ -480,12 +508,6 @@
               <label><input type="radio" name="r-pr-sold-{i}" value={false} bind:group={change.soldOut} /> Back on</label>
             </div>
           {/if}
-        {:else if change.kind === 'other'}
-          <div class="field">
-            <label for="r-details-{i}">What would you like?</label>
-            <p class="hint" id="r-details-hint-{i}">{canUpload ? 'Say what you’d like and where it goes on the page.' : 'For a new photo, say where it goes and email me the photo.'}</p>
-            <textarea id="r-details-{i}" rows="4" bind:value={change.details} aria-describedby="r-details-hint-{i}"></textarea>
-          </div>
         {:else}
           <div class="field">
             <label for="r-name-{i}">Menu item name{change.kind === 'menu-add' ? '' : ', as it is on the menu'}</label>
@@ -520,14 +542,26 @@
         {/if}
 
         {#if tried && errors.changes[i]}<p class="error">{errors.changes[i]}</p>{/if}
-        {#if changes.length > 1}
-          <button class="small" type="button" onclick={() => changes.splice(i, 1)}>Remove this change</button>
-        {/if}
+        <button class="small" type="button" onclick={() => changes.splice(i, 1)}>Remove this change</button>
       </fieldset>
     {/each}
 
-    <button class="small add" type="button" onclick={() => changes.push(blank())}>Add another change</button>
+    <button class="small add" type="button" onclick={() => changes.push(blank())}>{changes.length ? 'Add another change' : 'Add a change'}</button>
     {#if tried && errors.photos}<p class="error">{errors.photos}</p>{/if}
+
+    {#if addable.length}
+      <h3 class="group">Add to your site</h3>
+    {/if}
+    <BuildList
+      id="r"
+      bind:build
+      groups={[{ items: addable }]}
+      priceText={(item) => (priceOf(item) === undefined ? '' : `+${money(priceOf(item))}`)}
+    />
+    {#if prices['small-change'] !== undefined}
+      <p class="hint">Small changes are {money(prices['small-change'])} each. I’ll confirm the price before any work starts.</p>
+    {/if}
+    {#if tried && errors.nothing}<p class="error">{errors.nothing}</p>{/if}
 
     <input class="botcheck" type="checkbox" tabindex="-1" aria-hidden="true" bind:checked={botcheck} />
     <button class="button" type="submit" disabled={status === 'sending'}>
@@ -592,6 +626,13 @@
     font-family: var(--display);
     font-size: 1.2rem;
     padding-inline: 0.4rem;
+  }
+  .group {
+    margin: 0.4rem 0 -0.6rem;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
   }
   .checks {
     display: flex;
