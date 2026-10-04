@@ -76,6 +76,8 @@
   const theirs = $derived(items.filter((item) => has(item) && kindsFor(item).length));
   const addable = $derived(items.filter((item) => !has(item) && !item.changeOnly && (item.module || item.price) && (!item.price || prices[item.price] !== undefined)));
   let build = $state(blankBuild(items, () => false));
+  // The list's tabs: what's on their site (0) and what they can add (1).
+  let tab = $state(0);
   const adding = $derived(addable.filter((item) => build.chosen[item.id]));
   const MAX_PHOTOS = 12;
   const MAX_BYTES = 15 * 1024 * 1024;
@@ -344,7 +346,10 @@
     tried = true;
     // Open the first section with a change that needs finishing.
     const unfinished = changes.find((c) => problem(c));
-    if (unfinished) build.open = itemOf(unfinished.kind);
+    if (unfinished) {
+      tab = 0;
+      build.open = itemOf(unfinished.kind);
+    }
     if (!valid || status === 'sending') return;
     if (!site.formKey && !site.intakeUrl) {
       status = 'sent';
@@ -575,7 +580,9 @@
     <BuildList
       id="r"
       bind:build
-      groups={[{ title: 'On your site', items: theirs }, ...(addable.length ? [{ title: 'Add to your site', items: addable }] : [])]}
+      groups={[{ title: 'Change', items: theirs }, ...(addable.length ? [{ title: 'Add', items: addable }] : [])]}
+      tabs
+      bind:tab
       priceText={(item) => {
         // A change to what they have is a small change; adding something costs its price.
         const price = has(item) ? prices['small-change'] : priceOf(item);
