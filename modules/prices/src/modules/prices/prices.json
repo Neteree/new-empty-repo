@@ -4,7 +4,9 @@
     "note": "Prices",
     "title": "What it costs",
     "intro": "",
-    "footnote": ""
+    "footnote": "",
+    "askText": "Ask us",
+    "nav": "Prices"
   },
   "items": [
     {
@@ -13,9 +15,18 @@
       "description": "An example item. Real prices replace these.",
       "category": "Example group",
       "sizes": [
-        { "label": "Small", "price": 45 },
-        { "label": "Medium", "price": 65 },
-        { "label": "Large", "price": 90 }
+        {
+          "label": "Small",
+          "price": 45
+        },
+        {
+          "label": "Medium",
+          "price": 65
+        },
+        {
+          "label": "Large",
+          "price": 90
+        }
       ]
     },
     {

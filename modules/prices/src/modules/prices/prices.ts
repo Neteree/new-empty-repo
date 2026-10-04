@@ -32,7 +32,8 @@ interface Prices {
   /** True while these are still the example items. */
   demoPrices: boolean;
   /** Wording for the section on the home page; `footnote` goes under the list, e.g. 'Prices include GST.' */
-  section: { note: string; title: string; intro: string; footnote: string };
+  /** `askText` shows for items without a price ('Ask us', 'Quoted'); `nav` is the menu label. */
+  section: { note: string; title: string; intro: string; footnote: string; askText: string; nav: string };
   items: PriceItem[];
 }
 
@@ -43,9 +44,9 @@ export const items = prices.items.filter((item) => !item.unavailable);
 
 const money = (n: number) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
 
-/** The price as shown: '$65', 'From $120', 'Small $45 · Large $90' or 'Ask us'. */
+/** The price as shown: '$65', 'From $120', 'Small $45 · Large $90' or 'Ask us' (section.askText). */
 export function priceText(item: PriceItem): string {
   if (item.sizes?.length) return item.sizes.map((size) => `${size.label} ${money(size.price)}`).join(' · ');
-  if (item.price === undefined) return 'Ask us';
+  if (item.price === undefined) return section.askText || 'Ask us';
   return `${item.from ? 'From ' : ''}${money(item.price)}`;
 }

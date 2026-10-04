@@ -19,6 +19,10 @@ export interface Theme {
   hand: string;
   /** A light paper texture behind the page. */
   grain: boolean;
+  /** Kept for one site (e.g. the builder's own) and not offered to clients. */
+  private?: boolean;
+  /** A look that is dark in both modes: its `light` colours are dark too. */
+  alwaysDark?: boolean;
   light: Colours;
   dark: Colours;
 }
@@ -105,6 +109,46 @@ export const themes: Record<string, Theme> = {
       paper: '#1d1410', ink: '#f6ebe3', 'ink-soft': '#c2aea3', accent: '#f08a67', 'on-accent': '#1d1410',
       highlight: '#f2c14e', 'on-highlight': '#3a2218', rule: '#3d2c24', error: '#ff8a80',
       ...ticket, 'ticket-accent': '#a8422a',
+    },
+  },
+  night: {
+    label: 'Night market: lantern orange and brass on deep indigo, signboard headings',
+    fonts: 'Bungee&family=Atkinson+Hyperlegible:wght@400;700&family=Fredoka:wght@500;700',
+    display: "'Bungee', 'Arial Black', Impact, system-ui, sans-serif",
+    displayWeight: 400,
+    body: "'Atkinson Hyperlegible', 'Segoe UI', system-ui, sans-serif",
+    hand: "'Fredoka', 'Arial Rounded MT Bold', system-ui, sans-serif",
+    grain: false,
+    alwaysDark: true,
+    light: {
+      paper: '#15121f', ink: '#efe8f7', 'ink-soft': '#aba1c0', accent: '#ff7a45', 'on-accent': '#1d0d05',
+      highlight: '#f0b84f', 'on-highlight': '#1d0d05', rule: '#3b3456', error: '#ff8a80',
+      ticket: '#f5ecd6', 'ticket-ink': '#2a2233', 'ticket-soft': '#5b4f63', 'ticket-rule': '#d8c79f', 'ticket-accent': '#8a3d12',
+    },
+    dark: {
+      paper: '#15121f', ink: '#efe8f7', 'ink-soft': '#aba1c0', accent: '#ff7a45', 'on-accent': '#1d0d05',
+      highlight: '#f0b84f', 'on-highlight': '#1d0d05', rule: '#3b3456', error: '#ff8a80',
+      ticket: '#f5ecd6', 'ticket-ink': '#2a2233', 'ticket-soft': '#5b4f63', 'ticket-rule': '#d8c79f', 'ticket-accent': '#8a3d12',
+    },
+  },
+  studio: {
+    label: 'Studio: forest green and gold, slab headings',
+    fonts: 'Alfa+Slab+One&family=Figtree:wght@400;500;600;700',
+    display: "'Alfa Slab One', 'Rockwell', 'Roboto Slab', Georgia, serif",
+    displayWeight: 400,
+    body: "'Figtree', 'Segoe UI', system-ui, sans-serif",
+    hand: "'Figtree', 'Segoe UI', system-ui, sans-serif",
+    grain: false,
+    private: true,
+    light: {
+      paper: '#f3f1ec', ink: '#13231b', 'ink-soft': '#56625a', accent: '#1d4a35', 'on-accent': '#f3f1ec',
+      highlight: '#c9962b', 'on-highlight': '#13231b', rule: '#d6d9cf', error: '#a3261e',
+      ...ticket, 'ticket-accent': '#1d4a35',
+    },
+    dark: {
+      paper: '#0f1a14', ink: '#eef2ea', 'ink-soft': '#a7b3aa', accent: '#7fbf97', 'on-accent': '#0f1a14',
+      highlight: '#e0b453', 'on-highlight': '#0f1a14', rule: '#26352c', error: '#ff8f86',
+      ...ticket, 'ticket-accent': '#1d4a35',
     },
   },
 };

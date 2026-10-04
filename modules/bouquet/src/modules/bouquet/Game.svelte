@@ -8,6 +8,7 @@
   import Garden from './Garden.svelte';
   import { isDone, newOrder, replant, SPOTS, stillNeeded, type Order, type Plant } from './game';
   import type { Bouquet } from './bouquet';
+  import { readBest, saveBest } from '../../lib/game/store';
 
   let { game }: { game: Bouquet['game'] } = $props();
   const kinds = $derived(game.flowers.length);
@@ -27,9 +28,7 @@
   let timer: ReturnType<typeof setInterval> | undefined;
 
   $effect(() => {
-    try {
-      best = Number(localStorage.getItem(BEST)) || 0;
-    } catch {}
+    best = readBest(BEST) ?? 0;
     return () => clearInterval(timer);
   });
 
@@ -54,12 +53,7 @@
     clearInterval(timer);
     phase = 'over';
     message = '';
-    if (score > best) {
-      best = score;
-      try {
-        localStorage.setItem(BEST, String(best));
-      } catch {}
-    }
+    best = saveBest(BEST, score).best;
   }
 
   function pickPlant(id: number) {

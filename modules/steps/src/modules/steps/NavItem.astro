@@ -1,0 +1,8 @@
+---
+// The steps' link in the site menu.
+import { steps } from './steps';
+
+const { home } = Astro.props as { home: string };
+---
+
+{steps.steps.length > 0 && steps.section.nav && <a href={`${home}#how`}>{steps.section.nav}</a>}

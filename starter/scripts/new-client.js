@@ -10,6 +10,7 @@
 import { appendFileSync, cpSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 import { themes } from '../src/themes.ts';
+import { writeCatalogue } from './catalogue.js';
 
 const [detailsPath, target] = process.argv.slice(2);
 if (!detailsPath || !target) {
@@ -77,8 +78,12 @@ for (const name of modules) {
   if (existsSync(words)) appendFileSync(join(target, 'cspell-words.txt'), readFileSync(words, 'utf8'));
 }
 
+// The add-on modules the onboarding form offers, from the modules folder.
+writeCatalogue(target, modulesDir);
+
 // Names of the business and place are real words for the spelling check.
-const names = `${details.name} ${details.suburb} ${details.city}`.split(/[^\p{L}'’-]+/u).filter(Boolean);
+// So are any extra words the client JSON lists ("words": ["Squarespace"]).
+const names = [...`${details.name} ${details.suburb} ${details.city}`.split(/[^\p{L}'’-]+/u).filter(Boolean), ...(details.words ?? [])];
 appendFileSync(join(target, 'cspell-words.txt'), `${names.join('\n')}\n`);
 
 // The change-request workflow runs the agent from the site itself.
@@ -86,8 +91,9 @@ cpSync(resolve(starter, '../site_agent.py'), join(target, 'scripts/site_agent.py
 
 // `contact` (the client's own email and phone) is for Cameron only, never the site;
 // `phone`, `address` and `social` are the public ones.
-const { modules: _, contact: __, menu: ___, ...rest } = {
+const { modules: _, contact: __, menu: ___, words: ____, ...rest } = {
   heroNote: '',
+  heroLink: { label: '', href: '' },
   address: '',
   phone: '',
   heroPhoto: null,
@@ -96,7 +102,9 @@ const { modules: _, contact: __, menu: ___, ...rest } = {
   ...details,
   social: { instagram: '', facebook: '', ...details.social },
   theme,
+  enquiry: { askBusiness: false, thanks: '', ...details.enquiry },
   formKey: details.formKey ?? null,
+  intakeUrl: details.intakeUrl ?? null,
   url: details.url ?? null,
   demo: details.demo ?? false,
 };

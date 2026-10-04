@@ -1,0 +1,13 @@
+{
+  "section": {
+    "note": "How it works",
+    "title": "[PLACEHOLDER: heading for the steps]",
+    "nav": "How it works"
+  },
+  "steps": [
+    {
+      "title": "[PLACEHOLDER: first step]",
+      "text": "[PLACEHOLDER: what happens]"
+    }
+  ]
+}

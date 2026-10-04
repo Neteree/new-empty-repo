@@ -1,0 +1,8 @@
+---
+// Past work's link in the site menu.
+import { work } from './work';
+
+const { home } = Astro.props as { home: string };
+---
+
+{work.items.length > 0 && work.section.nav && <a href={`${home}#work`}>{work.section.nav}</a>}
