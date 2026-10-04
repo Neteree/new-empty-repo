@@ -8,6 +8,7 @@
   import { WebGLRenderer } from 'three';
   import Course from './Course.svelte';
   import { newBall, putt, toPar, type Hole } from './golf';
+  import { readBest, saveBest } from '../../lib/game/store';
 
   let { holes, title }: { holes: Hole[]; title: string } = $props();
 
@@ -30,9 +31,7 @@
     const css = getComputedStyle(document.documentElement);
     const read = (name: string, fallback: string) => css.getPropertyValue(name).trim() || fallback;
     colours = { accent: read('--accent', '#0d737a'), highlight: read('--highlight', '#ffd2b8'), ink: read('--ink', '#15303a') };
-    try {
-      best = Number(localStorage.getItem(BEST)) || null;
-    } catch {}
+    best = readBest(BEST);
   });
 
   /** Aim and power as the sliders show them (degrees and percent). */
@@ -63,12 +62,7 @@
   }
 
   function finish(): 'done' {
-    if (best === null || total < best) {
-      best = total;
-      try {
-        localStorage.setItem(BEST, String(total));
-      } catch {}
-    }
+    best = saveBest(BEST, total, true).best;
     return 'done';
   }
 

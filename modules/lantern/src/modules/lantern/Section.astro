@@ -1,0 +1,42 @@
+---
+// Lantern Market's home page section: what the game is, a button to play it
+// (lantern.html) and the games it borrows from. No JavaScript.
+import data from './lantern.json';
+
+const { section, recipe } = data;
+---
+
+<section id="lantern" class="section lantern-intro">
+  <div class="section-head">
+    <p class="hand-note">{section.note}</p>
+    <h2>{section.title}</h2>
+    <p class="intro">{section.intro}</p>
+  </div>
+  <a class="button" href="lantern.html">{section.button}</a>
+  <h3>What went into the pot</h3>
+  <ul class="recipe">
+    {recipe.map((item) => <li><b>{item.game}</b>{item.text}</li>)}
+  </ul>
+</section>
+
+<style>
+  h3 {
+    font-size: 1.5rem;
+    margin-block: 3rem 1rem;
+  }
+
+  .recipe {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1rem 2rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+    color: var(--ink-soft);
+  }
+
+  .recipe b {
+    display: block;
+    color: var(--ink);
+  }
+</style>

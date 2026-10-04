@@ -14,6 +14,8 @@
 // 5. No [PLACEHOLDER: ...] text is left on any page.
 // 6. Accessibility in light and dark mode (axe-core): colour contrast, labels,
 //    headings and other WCAG AA basics.
+// 7. Each module's own checks: any src/modules/<name>/check.js (e.g. a game's
+//    playtest, or the change form's list of change types) must exit cleanly.
 //
 // Full-page screenshots go in check-output/. Exits with 1 if anything fails.
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -45,6 +47,16 @@ const pages = (function walk(dir) {
     return name.endsWith('.html') ? [relative(dist, path)] : [];
   });
 })(dist);
+
+// 7. Modules' own checks
+for (const name of existsSync('src/modules') ? readdirSync('src/modules') : []) {
+  const script = join('src/modules', name, 'check.js');
+  if (!existsSync(script)) continue;
+  console.log(`Checking the ${name} module…`);
+  const run = spawnSync('node', [script], { encoding: 'utf8' });
+  if (run.status !== 0) fail(`${name} module`, `\n${run.stdout}${run.stderr}`);
+  else if (run.stdout.trim()) console.log(run.stdout.trim());
+}
 
 // 1. HTML
 console.log('Checking HTML…');

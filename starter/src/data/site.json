@@ -6,6 +6,10 @@
   "heroNote": "",
   "heroTitle": "[PLACEHOLDER: headline]",
   "heroText": "[PLACEHOLDER: two sentences on what the business does and for whom]",
+  "heroLink": {
+    "label": "",
+    "href": ""
+  },
   "visitText": "[PLACEHOLDER: where to find the business]",
   "address": "",
   "phone": "",
@@ -25,10 +29,13 @@
     "options": [
       "[PLACEHOLDER: enquiry type]",
       "Something else"
-    ]
+    ],
+    "askBusiness": false,
+    "thanks": ""
   },
   "theme": "bold",
   "formKey": null,
+  "intakeUrl": null,
   "url": null,
   "demo": true,
   "heroPhoto": null,

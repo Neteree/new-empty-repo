@@ -1,0 +1,20 @@
+---
+// The Lantern Market game page. The game runs only in the browser.
+import Base from '../layouts/Base.astro';
+import Lantern from '../modules/lantern/Lantern.svelte';
+import data from '../modules/lantern/lantern.json';
+import { site } from '../site.config';
+---
+
+<Base title={`${data.section.title} · ${site.name}`} description={data.section.intro}>
+  <main class="lantern-page">
+    <h1 class="visually-hidden">{data.section.title}</h1>
+    <Lantern client:only="svelte" />
+  </main>
+</Base>
+
+<style>
+  .lantern-page {
+    padding-block: 0.5rem 2rem;
+  }
+</style>

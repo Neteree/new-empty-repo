@@ -1,0 +1,54 @@
+{
+  "section": {
+    "note": "Play in your browser",
+    "title": "Lantern Market",
+    "intro": "Lay numbered jewel tiles from a looping hotpot belt onto a hex board, serve patrons before they give up, buy stall upgrades and travel five stops to the Grand Bazaar.",
+    "nav": "Play",
+    "button": "Play Lantern Market"
+  },
+  "stops": [
+    { "name": "Dumpling Lane", "goal": 5 },
+    { "name": "Harbour Noodles", "goal": 12 },
+    { "name": "Hotpot Alley", "goal": 21 },
+    { "name": "Jade Terrace", "goal": 32 },
+    { "name": "Grand Bazaar", "goal": 45 }
+  ],
+  "patrons": ["Auntie Mei", "Grandpa Lo", "Night nurse", "Taxi driver", "Uni students", "Tour guide", "Skater kids", "Hotpot regular", "Fishmonger", "Street artist", "Busker", "Food critic", "Late-shift chef", "Two cousins", "Dog walker", "Karaoke crew"],
+  "gems": [
+    { "name": "Ruby", "ink": "#c22a43", "light": "#ff7088", "tint": "rgba(255,112,136,.2)" },
+    { "name": "Sapphire", "ink": "#1f5cbc", "light": "#6ea8ff", "tint": "rgba(110,168,255,.2)" },
+    { "name": "Emerald", "ink": "#0e7c56", "light": "#4bd9a2", "tint": "rgba(75,217,162,.18)" },
+    { "name": "Topaz", "ink": "#985800", "light": "#ffc552", "tint": "rgba(255,197,82,.18)" },
+    { "name": "Amethyst", "ink": "#7739b3", "light": "#c6a0ff", "tint": "rgba(198,160,255,.2)" },
+    { "name": "Gold", "ink": "#a8700a", "light": "#ffd66b", "tint": "rgba(240,184,79,.07)" }
+  ],
+  "perks": {
+    "window": "One more dish at the counter",
+    "patience": "New patrons wait 2 turns longer",
+    "guard": "A 7 gives you 1 gold instead of the raccoon stealing",
+    "harbor": "Trade gems 3 for 1",
+    "swapcap": "+2 swaps now, hold up to 2 more",
+    "joker": "Adds 2 jokers to the bag now and at every refill",
+    "wok": "Melds of 5 or more give +1 prestige",
+    "steamer": "Districts make 1 extra gem when rolled"
+  },
+  "cards": {
+    "1": [{ "name": "Chopstick Rest" }, { "name": "Soy Dish" }, { "name": "Paper Lantern" }, { "name": "Tea Cup" }, { "name": "Rice Bowl" }, { "name": "Bao Basket" }, { "name": "Chilli Flakes" }, { "name": "Ladle" }, { "name": "Spring Onion" }, { "name": "Sesame Jar" }, { "name": "Wooden Spoon" }, { "name": "Noodle Rack" }, { "name": "Fish Sauce" }, { "name": "Lucky Coin" }, { "name": "Steam Lid" }],
+    "2": [{ "name": "Lazy Susan", "perk": "window" }, { "name": "Warm Broth", "perk": "patience" }, { "name": "Raccoon Gate", "perk": "guard" }, { "name": "Harbour Pass", "perk": "harbor" }, { "name": "Long Chopsticks", "perk": "swapcap" }, { "name": "Lucky Cat", "perk": "joker" }, { "name": "Copper Pot" }, { "name": "Dragon Kite" }, { "name": "Jade Teapot" }, { "name": "Lacquer Tray" }, { "name": "Silk Banner" }, { "name": "Night Bus Pass" }],
+    "3": [{ "name": "Big Wok", "perk": "wok" }, { "name": "Bamboo Steamer", "perk": "steamer" }, { "name": "Golden Turntable", "perk": "window" }, { "name": "Neon Sign" }, { "name": "Pearl Bridge" }, { "name": "Jewel Pagoda" }, { "name": "Moon Festival" }, { "name": "Grand Lantern" }, { "name": "Crown Banquet" }]
+  },
+  "recipe": [
+    { "game": "Rummikub", "text": "Numbered colour tiles, runs and sets, and jokers." },
+    { "game": "Candy Crush", "text": "Line up three or more to clear them, chain combos, and use swaps." },
+    { "game": "Hotpot loop", "text": "The conveyor belt. Dishes you skip come back round, so you can plan ahead." },
+    { "game": "Overcooked", "text": "Patrons with orders and a patience bar. If they wait too long, you lose a lantern." },
+    { "game": "Bus escape", "text": "Tour buses fill with passengers of one colour, one cleared tile at a time." },
+    { "game": "Catan / Colonist", "text": "Hex districts with number chips, a 2d6 roll every turn, a raccoon on 7, 4-for-1 trades and a harbour." },
+    { "game": "Colony flow", "text": "Gems flow in from the districts. Place tiles that match a district's colour and it makes more." },
+    { "game": "Splendor", "text": "Gem-priced stall cards that make future cards cheaper, plus prestige points." },
+    { "game": "Sudoku", "text": "Bloom: fill a whole district with 1 to 7, each number once." },
+    { "game": "Cake sort", "text": "Cake: fill a whole district with one colour, like finishing a cake slice by slice." },
+    { "game": "Tasty travel", "text": "A five-stop food journey that gets harder at every stop." },
+    { "game": "Jewel colouring", "text": "The prestige jewel at the top colours in facet by facet." }
+  ]
+}

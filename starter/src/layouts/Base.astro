@@ -6,19 +6,31 @@ import { photo } from '../lib/photos';
 import { mapLink, phoneLink, phoneText, socialLinks } from '../lib/contact';
 import { stillShowing } from '../lib/dates';
 import Notice from '../components/Notice.svelte';
+import { sectionOrder } from '../lib/sections';
+import { existsSync } from 'node:fs';
 
 interface Props {
   title: string;
   description: string;
   /** Path back to the home page: '' on the home page, '../' one folder down, '/' on the 404 page. */
   root?: string;
+  /** Keep this page out of search engines (private pages such as onboarding). */
+  noindex?: boolean;
 }
 
-const { title, description, root = '' } = Astro.props;
+const { title, description, root = '', noindex = false } = Astro.props;
 
 // Add-on modules (copied into src/modules/ by the new-client script) can add
 // an item to the menu with a NavItem.astro.
-const moduleNav = Object.values(import.meta.glob<{ default: any }>('../modules/*/NavItem.astro', { eager: true }));
+// They follow the home page's section order (site.json "sections").
+const navItems = Object.fromEntries(
+  Object.entries(import.meta.glob<{ default: any }>('../modules/*/NavItem.astro', { eager: true })).map(([path, mod]) => [path.split('/')[2], mod.default]),
+);
+const moduleNav = sectionOrder(site.sections, Object.keys(navItems)).filter((id) => navItems[id]).map((id) => navItems[id]);
+const hasVisit = Boolean(site.visitText || site.phone || site.address || site.hours.length);
+// Optional files in public/: an icon, a phone home screen icon and a link-preview image (1200x630).
+const icons = { svg: existsSync('public/favicon.svg'), touch: existsSync('public/apple-touch-icon.png') };
+const shareImage = site.url && existsSync('public/og.png') ? `${site.url}/og.png` : null;
 const home = `${root}index.html`;
 
 // The client's look preset (see src/themes.ts) as CSS variables, for light and dark mode.
@@ -27,7 +39,7 @@ const vars = (colours: Record<string, string>) =>
   Object.entries(colours).map(([name, value]) => `--${name}: ${value};`).join(' ');
 const grain = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.09 0 0 0 0 0.13 0 0 0 0 0.24 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E")`;
 const themeCss = `
-  :root { ${vars(theme.light)} --display: ${theme.display}; --display-weight: ${theme.displayWeight}; --body: ${theme.body}; --hand: ${theme.hand}; --paper-grain: ${theme.grain ? grain : 'none'}; color-scheme: light; }
+  :root { ${vars(theme.light)} --display: ${theme.display}; --display-weight: ${theme.displayWeight}; --body: ${theme.body}; --hand: ${theme.hand}; --paper-grain: ${theme.grain ? grain : 'none'}; color-scheme: ${theme.alwaysDark ? 'dark' : 'light'}; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) { ${vars(theme.dark)} color-scheme: dark; } }
   :root[data-theme='dark'] { ${vars(theme.dark)} color-scheme: dark; }`;
 const hasJournal = Object.keys(import.meta.glob('../content/journal/**/*.md')).length > 0;
@@ -57,12 +69,19 @@ const business = {
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    {icons.svg && <link rel="icon" href={`${root}favicon.svg`} type="image/svg+xml" />}
+    {icons.touch && <link rel="apple-touch-icon" href={`${root}apple-touch-icon.png`} />}
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="en_NZ" />
     <meta property="og:site_name" content={site.name} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     {site.url && <meta property="og:url" content={`${site.url}/`} />}
+    {shareImage && <meta property="og:image" content={shareImage} />}
+    {shareImage && <meta property="og:image:width" content="1200" />}
+    {shareImage && <meta property="og:image:height" content="630" />}
+    <meta name="twitter:card" content={shareImage ? 'summary_large_image' : 'summary'} />
     {site.url && <link rel="canonical" href={`${site.url}${Astro.url.pathname.replace(/\/index\.html$/, '/')}`} />}
     {!site.demo && <script type="application/ld+json" is:inline set:html={JSON.stringify(business)} />}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -87,11 +106,11 @@ const business = {
           )}
         </a>
         <nav aria-label="Main">
-          {moduleNav.map(({ default: NavItem }) => <NavItem home={home} />)}
+          {moduleNav.map((NavItem) => <NavItem home={home} />)}
           {site.gallery.length > 0 && <a href={`${home}#gallery`}>Gallery</a>}
           {hasJournal && <a href={`${home}#journal`}>News</a>}
           <a href={`${home}#enquire`}>{site.enquiry.title}</a>
-          <a href={`${home}#visit`}>Visit</a>
+          {hasVisit && <a href={`${home}#visit`}>Visit</a>}
         </nav>
       </header>
       <slot />

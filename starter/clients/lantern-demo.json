@@ -1,0 +1,51 @@
+{
+  "name": "Lantern Market",
+  "suburb": "Auckland",
+  "city": "New Zealand",
+  "description": "Lantern Market, a free night-market tile game you play in your browser.",
+  "heroNote": "a free browser game",
+  "heroTitle": "Clear the counter before the lanterns go out.",
+  "heroText": "A night-market puzzle about jewel tiles, hungry patrons and a hotpot belt that never stops. One game takes about 20 minutes, on a phone or a computer.",
+  "visitText": "",
+  "hours": [],
+  "enquiry": {
+    "title": "Send feedback",
+    "intro": "Found a bug, or have an idea for the market? Send it here.",
+    "options": [
+      "A bug",
+      "An idea",
+      "Something else"
+    ]
+  },
+  "theme": "night",
+  "modules": [
+    "lantern",
+    "faq"
+  ],
+  "faq": {
+    "section": {
+      "note": "Questions",
+      "title": "Good to know",
+      "nav": ""
+    },
+    "questions": [
+      {
+        "question": "Does it cost anything?",
+        "answer": "No. It's free, with no ads and no sign-up."
+      },
+      {
+        "question": "Does it save my game?",
+        "answer": "Yes, in your own browser. Close the page and your market is still there when you come back."
+      },
+      {
+        "question": "What's the daily market?",
+        "answer": "A market that's the same for everyone on the same day, so you can compare scores with friends."
+      }
+    ]
+  },
+  "demo": true,
+  "heroLink": {
+    "label": "Play Lantern Market",
+    "href": "lantern.html"
+  }
+}
