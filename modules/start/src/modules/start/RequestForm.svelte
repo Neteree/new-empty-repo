@@ -7,8 +7,10 @@
   import { isPrice as priceOk, money } from '../../lib/money';
   import { send, canUpload } from '../../lib/send';
   import { looks as themes } from '../../lib/catalogue';
-  import PhotoPicker, { type ExistingPhoto } from '../../components/forms/PhotoPicker.svelte';
-  import HoursPicker from '../../components/forms/HoursPicker.svelte';
+  import type { ExistingPhoto } from '../../components/forms/PhotoPicker.svelte';
+  import ContactFields from './ContactFields.svelte';
+  import HoursFields from './HoursFields.svelte';
+  import PhotosFields from './PhotosFields.svelte';
   import PriceFields, { priceChanges, priceProblem } from '../../components/forms/PriceFields.svelte';
   import ListFields, { listChange, listKinds, listOf, listProblem, listUploads } from '../../components/forms/ListFields.svelte';
   import BuildList from './BuildList.svelte';
@@ -47,7 +49,7 @@
     { id: 'contact', label: 'Update your phone, address or social links' },
     { id: 'news', label: 'Post news or a special' },
     // Photos can only be sent through the intake.
-    ...(canUpload ? [{ id: 'photos' as Kind, label: 'Change your photos' }] : []),
+    ...(canUpload ? [{ id: 'photos' as Kind, label: 'Change your photos or logo' }] : []),
     { id: 'theme', label: 'Change the look' },
     { id: 'notice', label: 'Show a notice at the top of every page (like holiday hours)' },
     { id: 'menu-add', label: 'Add a menu item' },
@@ -93,6 +95,7 @@
     current: '',
     replacement: '',
     hours: [] as { days: string; times: string }[],
+    noHours: false,
     title: '',
     excerpt: '',
     body: '',
@@ -104,6 +107,7 @@
     category: '',
     soldOut: true,
     photos: [] as File[],
+    logo: [] as File[],
     photoDescriptions: [] as string[],
     // The photo to put beside the headline: 'existing:<file>', 'new:<index>' or null (no change).
     mainPhoto: null as string | null,
@@ -186,7 +190,7 @@
       case 'contact':
         return [c.phone, c.address, c.instagram, c.facebook].some((v) => v.trim()) ? '' : 'Fill in at least one new detail.';
       case 'hours':
-        return c.hours.length ? '' : 'Tick the days you’re open and choose times that close after they open.';
+        return c.noHours || c.hours.length ? '' : 'Tick the days you’re open and choose times that close after they open.';
       case 'news':
         return c.title.trim() && c.excerpt.trim() && c.body.trim() ? '' : 'Fill in the title, summary and text.';
       case 'menu-add':
@@ -198,10 +202,10 @@
         return c.name.trim() ? '' : 'Fill in the item name, exactly as it is on the menu.';
       case 'photos': {
         const touched = existing.some((p) => p.removed || p.alt.trim() !== p.original) || !!c.mainPhoto;
-        if (!c.photos.length && !(firstPhotos(c) && touched)) return existing.length ? 'Add, remove or re-describe at least one photo.' : 'Choose at least one photo.';
-        const wrong = c.photos.find((file) => !IMAGE_TYPES.includes(file.type));
+        if (!c.photos.length && !c.logo.length && !(firstPhotos(c) && touched)) return existing.length ? 'Add, remove or re-describe at least one photo.' : 'Choose at least one photo.';
+        const wrong = [...c.photos, ...c.logo].find((file) => !IMAGE_TYPES.includes(file.type));
         if (wrong) return `“${wrong.name}” isn’t a JPG, PNG or WebP photo.`;
-        const big = c.photos.find((file) => file.size > MAX_BYTES);
+        const big = [...c.photos, ...c.logo].find((file) => file.size > MAX_BYTES);
         return big ? `“${big.name}” is too big. Photos can be up to 15 MB each.` : '';
       }
       case 'theme':
@@ -242,7 +246,7 @@
 
   // Every photo to upload, in the order toChanges() numbers them.
   const uploadsOf = (c: Change) =>
-    c.kind === 'photos' ? c.photos : (c.kind === 'price-add' || c.kind === 'price-change') && c.itemPhoto === 'new' ? c.itemPhotoFile : listUploads(c);
+    c.kind === 'photos' ? [...c.photos, ...c.logo] : (c.kind === 'price-add' || c.kind === 'price-change') && c.itemPhoto === 'new' ? c.itemPhotoFile : listUploads(c);
   const allPhotos = $derived(sending.flatMap(uploadsOf));
   const errors = $derived({
     email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? '' : 'Enter the email address I have for you.',
@@ -265,7 +269,7 @@
         case 'text':
           return { type: 'text', current: c.current.trim(), new: c.replacement.trim() };
         case 'hours':
-          return { type: 'hours', hours: c.hours };
+          return c.noHours ? { type: 'hours', hours: [], none: true } : { type: 'hours', hours: c.hours };
         case 'contact': {
           // Only the details they filled in change; the rest stay as they are.
           const details = Object.fromEntries((['phone', 'address', 'instagram', 'facebook'] as const).filter((key) => c[key].trim()).map((key) => [key, c[key].trim()]));
@@ -296,11 +300,14 @@
           const gallery = added.filter((p) => !p.main).map(({ upload, alt }) => ({ upload, alt }));
           const newMain = added.find((p) => p.main);
           const keptMain = c.mainPhoto?.startsWith('existing:') ? c.mainPhoto.slice(9) : null;
+          // The logo is uploaded after the photos, so it takes the next number.
+          const logo = c.logo.length ? [{ type: 'logo', upload: upload++ }] : [];
           return [
             ...edits,
             ...(gallery.length ? [{ type: 'gallery-add', photos: gallery }] : []),
             ...(newMain ? [{ type: 'photo', slot: 'hero', upload: newMain.upload, ...(newMain.alt ? { alt: newMain.alt } : {}) }] : []),
             ...(keptMain ? [{ type: 'photo', slot: 'hero', gallery: keptMain }] : []),
+            ...logo,
           ];
         }
         case 'theme':
@@ -447,28 +454,10 @@
           <textarea id="r-new-{i}" rows="2" bind:value={change.replacement}></textarea>
         </div>
       {:else if change.kind === 'hours'}
-        <div class="field">
-          <span class="label" id="r-hours-{i}-label">Your opening hours (tick every day you’re open)</span>
-          <HoursPicker id="r-hours-{i}" bind:hours={change.hours} />
-        </div>
+        <HoursFields id="r-hours-{i}" bind:hours={change.hours} bind:none={change.noHours} />
       {:else if change.kind === 'contact'}
         <p class="hint">Fill in only what’s changing. To take something off your site, use “Something else”.</p>
-        <div class="field">
-          <label for="r-phone-{i}">Phone number for customers</label>
-          <input id="r-phone-{i}" type="tel" bind:value={change.phone} />
-        </div>
-        <div class="field">
-          <label for="r-address-{i}">Street address (for the map link)</label>
-          <input id="r-address-{i}" bind:value={change.address} />
-        </div>
-        <div class="field">
-          <label for="r-instagram-{i}">Instagram</label>
-          <input id="r-instagram-{i}" placeholder="@yourbusiness" bind:value={change.instagram} />
-        </div>
-        <div class="field">
-          <label for="r-facebook-{i}">Facebook page</label>
-          <input id="r-facebook-{i}" placeholder="facebook.com/yourbusiness" bind:value={change.facebook} />
-        </div>
+        <ContactFields id="r-{i}" bind:phone={change.phone} bind:address={change.address} bind:instagram={change.instagram} bind:facebook={change.facebook} />
       {:else if change.kind === 'news'}
         <div class="field">
           <label for="r-title-{i}">Title</label>
@@ -483,14 +472,11 @@
           <textarea id="r-body-{i}" rows="4" bind:value={change.body}></textarea>
         </div>
       {:else if change.kind === 'photos'}
-        <div class="field">
-          <span class="label">Your photos</span>
-          {#if firstPhotos(change)}
-            <PhotoPicker label="photos" bind:photos={change.photos} bind:descriptions={change.photoDescriptions} bind:existing pickMain bind:main={change.mainPhoto} noMainLabel="Keep my main photo as it is" />
-          {:else}
-            <PhotoPicker label="photos" bind:photos={change.photos} bind:descriptions={change.photoDescriptions} pickMain bind:main={change.mainPhoto} noMainLabel="Keep my main photo as it is" />
-          {/if}
-        </div>
+        {#if firstPhotos(change)}
+          <PhotosFields bind:logo={change.logo} bind:photos={change.photos} bind:descriptions={change.photoDescriptions} bind:main={change.mainPhoto} bind:existing />
+        {:else}
+          <PhotosFields bind:logo={change.logo} bind:photos={change.photos} bind:descriptions={change.photoDescriptions} bind:main={change.mainPhoto} />
+        {/if}
       {:else if change.kind === 'theme'}
         <div class="field">
           <label for="r-theme-{i}">New look</label>

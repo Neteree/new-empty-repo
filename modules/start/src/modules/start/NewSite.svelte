@@ -12,8 +12,9 @@
   import { send, canUpload } from '../../lib/send';
   import { money } from '../../lib/money';
   import { load, save, clear } from '../../lib/store';
-  import PhotoPicker from '../../components/forms/PhotoPicker.svelte';
-  import HoursPicker from '../../components/forms/HoursPicker.svelte';
+  import ContactFields from './ContactFields.svelte';
+  import HoursFields from './HoursFields.svelte';
+  import PhotosFields from './PhotosFields.svelte';
   import BuildList from './BuildList.svelte';
   import Steps from './Steps.svelte';
   import { type Item, blankBuild, filledRows, listDef } from './build';
@@ -239,25 +240,12 @@
       {/snippet}
       {#snippet findingBody()}
         <div class="field"><label for="n-visit">Where customers find you</label><p class="hint" id="n-visit-hint">Your address and any tips, or the areas you cover if you come to them.</p><textarea id="n-visit" rows="2" bind:value={a.visit} aria-describedby="n-visit-hint"></textarea></div>
-        <div class="field">
-          <span class="label">Opening hours</span>
-          <label class="tick"><input type="checkbox" bind:checked={a.noHours} /> No opening hours (people don’t visit at set times)</label>
-          {#if !a.noHours}<HoursPicker id="n-hours" bind:hours={a.hours} invalid={false} />{/if}
-        </div>
-        <div class="field"><label for="n-address">Street address for a map link</label><input id="n-address" placeholder="12 Main Road, Green Bay, Auckland" bind:value={a.address} /></div>
-        <div class="field"><label for="n-site-phone">Phone number for customers</label><p class="hint" id="n-site-phone-hint">Shown on your site so people can tap to call.</p><input id="n-site-phone" type="tel" bind:value={a.sitePhone} aria-describedby="n-site-phone-hint" /></div>
-        <div class="row">
-          <div class="field"><label for="n-instagram">Instagram</label><input id="n-instagram" placeholder="@yourbusiness" bind:value={a.instagram} /></div>
-          <div class="field"><label for="n-facebook">Facebook page</label><input id="n-facebook" placeholder="facebook.com/yourbusiness" bind:value={a.facebook} /></div>
-        </div>
+        <HoursFields id="n-hours" bind:hours={a.hours} bind:none={a.noHours} />
+        <ContactFields id="n" bind:phone={a.sitePhone} bind:address={a.address} bind:instagram={a.instagram} bind:facebook={a.facebook} />
       {/snippet}
       {#snippet photosBody()}
         {#if canUpload}
-          <span class="label">Your logo</span>
-          <PhotoPicker label="logo" bind:photos={logos} max={1} describe={false} />
-          <span class="label">Your photos</span>
-          <p class="hint">Your place, your products and your team make the biggest difference. Pick your best as the main photo.</p>
-          <PhotoPicker label="photos" bind:photos bind:descriptions={photoDescriptions} pickMain autoMain bind:main={mainPhoto} noMainLabel="No main photo (use a simple drawing instead)" />
+          <PhotosFields fresh bind:logo={logos} bind:photos bind:descriptions={photoDescriptions} bind:main={mainPhoto} />
           {#if tried[1] && errors.photos}<p class="error" role="alert">{errors.photos}</p>{/if}
         {:else}
           <p class="hint">After you send this, email me your logo and any photos.</p>
