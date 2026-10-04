@@ -6,6 +6,8 @@ import { changeTypes } from '../../../scripts/changes.js';
 
 const files = ['src/modules/requests/RequestForm.svelte', 'src/components/forms/PriceFields.svelte'];
 const sent = new Set(files.flatMap((file) => [...readFileSync(file, 'utf8').matchAll(/type: '([a-z-]+)'/g)].map((m) => m[1])));
+// List sections' add and remove come from their descriptions (src/data/lists.json).
+for (const def of Object.values(JSON.parse(readFileSync('src/data/lists.json', 'utf8')))) sent.add(`${def.type}-add`).add(`${def.type}-remove`);
 // 'other' is free text for a person, never a script.
 const unknown = [...sent].filter((type) => type !== 'other' && !changeTypes.includes(type));
 if (unknown.length) {

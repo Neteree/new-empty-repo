@@ -2,8 +2,10 @@
 import { randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { describeListChange, loadLists } from '../starter/scripts/lists.js';
 
 const here = import.meta.dirname;
+const lists = loadLists();
 export const queueDir = join(here, 'queue');
 export const outboxDir = join(here, 'outbox');
 const clientsDir = resolve(here, '../starter/clients');
@@ -44,8 +46,10 @@ export function listItems() {
     .sort((a, b) => a.received.localeCompare(b.received));
 }
 
-/** One change in plain English. */
+/** One change in plain English. List sections (reviews, questions, steps…) are worded from their description. */
 export function describeChange(change) {
+  const listed = describeListChange(lists, change);
+  if (listed) return listed;
   switch (change.type) {
     case 'text':
       return `Change “${change.current}” to “${change.new}”`;
@@ -93,16 +97,6 @@ export function describeChange(change) {
       return change.text ? `Notice on every page: “${change.text}”${change.until ? ` until ${change.until}` : ''}` : 'Remove the notice';
     case 'sections':
       return `Reorder the home page: ${(change.order ?? []).join(', ')}`;
-    case 'review-add':
-      return `Add a review from ${change.name}`;
-    case 'review-remove':
-      return `Remove the review from ${change.name}`;
-    case 'faq-add':
-      return `Add the question “${change.question}”`;
-    case 'faq-remove':
-      return `Remove the question “${change.question}”`;
-    case 'faq-replace':
-      return `Replace the questions with ${change.questions?.length ?? 0}`;
     case 'product-add':
       return `Add “${change.name}” to the shop at ${change.price}`;
     case 'product-remove':
@@ -125,18 +119,6 @@ export function describeChange(change) {
       return `Remove “${change.name}” from the menu`;
     case 'menu-sold-out':
       return `Mark “${change.name}” as ${change.soldOut ? 'sold out' : 'back on'}`;
-    case 'highlight-add':
-      return `Add the highlight “${change.title}”`;
-    case 'highlight-remove':
-      return `Remove the highlight “${change.title}”`;
-    case 'step-add':
-      return `Add the step “${change.title}”${change.position ? ` as step ${change.position}` : ''}`;
-    case 'step-remove':
-      return `Remove the step “${change.title}”`;
-    case 'work-add':
-      return `Add the past project “${change.title}”${change.photo ? '' : ' (photo to come by email)'}`;
-    case 'work-remove':
-      return `Remove the past project “${change.title}”`;
     default:
       return change.details ?? JSON.stringify(change);
   }

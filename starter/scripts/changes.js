@@ -32,36 +32,25 @@
 //   price-photo    { name, file | gallery, alt? } or { name, remove: true }
 //   price-note     { footnote }                        the line under the list ('' removes it)
 //   booking        { options?, times?, askAddress?, leadDays? }  the booking or quote form's choices
-//   review-add     { quote, name, source?, stars? }    a real customer review, word for word
-//   review-remove  { name }
-//   faq-add        { question, answer }                a question and the business's own answer
-//   faq-remove     { question }
-//   faq-replace    { questions: [{ question, answer }] }  the full list
 //   product-add    { name, description, price, link?, photo?: { file | gallery, alt? } }  a shop product
 //   product-remove { name }
 //   product-price  { name, price }
 //   product-link   { name, link }                      its Stripe payment link ('' shows "Ask us")
 //   product-sold-out { name, soldOut: true|false }
 //   product-photo  { name, file | gallery, alt? } or { name, remove: true }
-//   highlight-add  { title, text }                     a short "why us" card
-//   highlight-remove { title }
-//   step-add       { title, text, position? }          a how-it-works step (position 1 = first; default last)
-//   step-remove    { title }
-//   work-add       { title, kind, text, photo: { file | gallery, alt? }, link? }  a past project with its picture
-//   work-remove    { title }
+//   <list>-add / -remove / -replace   any list section (reviews, questions,
+//                  highlights, steps, past work…): review-add, faq-remove,
+//                  step-add { title, text, position? }… The fields come from
+//                  the module's description (module.json "list"; see lists.js).
 import { copyFileSync, existsSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
+import { listHandlers, loadLists } from './lists.js';
 
 const SITE_JSON = 'src/data/site.json';
 const MENU_JSON = 'src/modules/food/menu.json';
 const PRICES_JSON = 'src/modules/prices/prices.json';
 const BOOKING_JSON = 'src/modules/booking/booking.json';
-const REVIEWS_JSON = 'src/modules/reviews/reviews.json';
-const FAQ_JSON = 'src/modules/faq/faq.json';
 const SHOP_JSON = 'src/modules/shop/shop.json';
-const HIGHLIGHTS_JSON = 'src/modules/highlights/highlights.json';
-const STEPS_JSON = 'src/modules/steps/steps.json';
-const WORK_JSON = 'src/modules/work/work.json';
 const isPlaceholder = (text) => String(text ?? '').startsWith('[PLACEHOLDER');
 
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
@@ -456,7 +445,7 @@ function itemPhoto({ file, gallery, alt }, name) {
     if (!match) needsPerson(`There's no gallery photo called ${gallery}.`);
     return { file: gallery, alt: alt?.trim() || match.alt };
   }
-  return { file: copyImage(file, 'price'), alt: alt?.trim() || PLACEHOLDER_ALT };
+  return { file: copyImage(file, 'item'), alt: alt?.trim() || PLACEHOLDER_ALT };
 }
 
 const dollars = (n) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
@@ -581,110 +570,6 @@ function moduleData(path, what) {
   return readJson(path);
 }
 
-const contentChanges = {
-  'review-add'({ quote, name, source, stars }) {
-    if (!quote?.trim() || !name?.trim()) needsPerson('A review needs the customer’s words and how they’re happy to be named.');
-    if (stars !== undefined && !(Number.isInteger(stars) && stars >= 1 && stars <= 5)) needsPerson(`“${stars}” isn’t 1 to 5 stars.`);
-    const data = moduleData(REVIEWS_JSON, 'reviews section');
-    data.items = data.items.filter((item) => !isPlaceholder(item.quote));
-    data.items.push({ quote: quote.trim().replace(/^["“]|["”]$/g, ''), name: name.trim(), ...(source?.trim() ? { source: source.trim() } : {}), ...(stars ? { stars } : {}) });
-    writeJson(REVIEWS_JSON, data);
-    return `Added a review from ${name.trim()}.`;
-  },
-  'review-remove'({ name }) {
-    const data = moduleData(REVIEWS_JSON, 'reviews section');
-    const left = data.items.filter((item) => item.name.toLowerCase() !== name?.trim().toLowerCase());
-    if (left.length === data.items.length) needsPerson(`There's no review from “${name}”.`);
-    data.items = left;
-    writeJson(REVIEWS_JSON, data);
-    return `Removed the review from ${name.trim()}.`;
-  },
-  'faq-add'({ question, answer }) {
-    if (!question?.trim() || !answer?.trim()) needsPerson('A question needs both the question and the answer.');
-    const data = moduleData(FAQ_JSON, 'questions section');
-    data.questions = data.questions.filter((item) => !isPlaceholder(item.question));
-    if (data.questions.some((item) => item.question.toLowerCase() === question.trim().toLowerCase())) needsPerson(`“${question.trim()}” is already there.`);
-    data.questions.push({ question: question.trim(), answer: answer.trim() });
-    writeJson(FAQ_JSON, data);
-    return `Added the question “${question.trim()}”.`;
-  },
-  'faq-remove'({ question }) {
-    const data = moduleData(FAQ_JSON, 'questions section');
-    const left = data.questions.filter((item) => item.question.toLowerCase() !== question?.trim().toLowerCase());
-    if (left.length === data.questions.length) needsPerson(`There's no question “${question}”.`);
-    data.questions = left;
-    writeJson(FAQ_JSON, data);
-    return `Removed the question “${question.trim()}”.`;
-  },
-  'faq-replace'({ questions }) {
-    const data = moduleData(FAQ_JSON, 'questions section');
-    const clean = (questions ?? []).map((item) => ({ question: item.question?.trim(), answer: item.answer?.trim() })).filter((item) => item.question && item.answer);
-    if (!clean.length) needsPerson('The new list of questions is empty.');
-    data.questions = clean;
-    writeJson(FAQ_JSON, data);
-    return `There are now ${clean.length} question${clean.length === 1 ? '' : 's'}.`;
-  },
-};
-
-/** Short lists of titled items (highlights, steps, past work): add or remove by title. */
-const sameTitle = (a, b) => a.trim().toLowerCase() === String(b ?? '').trim().toLowerCase();
-const sectionChanges = {
-  'highlight-add'({ title, text }) {
-    if (!title?.trim() || !text?.trim()) needsPerson('A highlight needs a short title and a sentence about it.');
-    const data = moduleData(HIGHLIGHTS_JSON, 'highlights section');
-    data.items = data.items.filter((item) => !isPlaceholder(item.title));
-    if (data.items.some((item) => sameTitle(item.title, title))) needsPerson(`“${title.trim()}” is already there.`);
-    data.items.push({ title: title.trim(), text: text.trim() });
-    writeJson(HIGHLIGHTS_JSON, data);
-    return `Added the highlight “${title.trim()}”.`;
-  },
-  'highlight-remove'({ title }) {
-    const data = moduleData(HIGHLIGHTS_JSON, 'highlights section');
-    const left = data.items.filter((item) => !sameTitle(item.title, title));
-    if (left.length === data.items.length) needsPerson(`There's no highlight “${title}”.`);
-    data.items = left;
-    writeJson(HIGHLIGHTS_JSON, data);
-    return `Removed the highlight “${title.trim()}”.`;
-  },
-  'step-add'({ title, text, position }) {
-    if (!title?.trim() || !text?.trim()) needsPerson('A step needs a short title and a sentence about it.');
-    const data = moduleData(STEPS_JSON, 'how-it-works section');
-    data.steps = data.steps.filter((step) => !isPlaceholder(step.title));
-    if (data.steps.some((step) => sameTitle(step.title, title))) needsPerson(`“${title.trim()}” is already a step.`);
-    const at = Number.isInteger(position) && position >= 1 ? Math.min(position - 1, data.steps.length) : data.steps.length;
-    data.steps.splice(at, 0, { title: title.trim(), text: text.trim() });
-    writeJson(STEPS_JSON, data);
-    return `Added “${title.trim()}” as step ${at + 1}.`;
-  },
-  'step-remove'({ title }) {
-    const data = moduleData(STEPS_JSON, 'how-it-works section');
-    const left = data.steps.filter((step) => !sameTitle(step.title, title));
-    if (left.length === data.steps.length) needsPerson(`There's no step “${title}”.`);
-    data.steps = left;
-    writeJson(STEPS_JSON, data);
-    return `Removed the step “${title.trim()}”.`;
-  },
-  'work-add'({ title, kind, text, photo, link }) {
-    if (!title?.trim() || !text?.trim()) needsPerson('A past project needs a title and a sentence about it.');
-    if (!photo?.file && !photo?.gallery) needsPerson('A past project needs a photo or screenshot.');
-    if (link?.trim() && !/^https:\/\//.test(link.trim())) needsPerson(`“${link}” isn’t a full https:// link.`);
-    const data = moduleData(WORK_JSON, 'past work section');
-    if (data.items.some((item) => sameTitle(item.title, title))) needsPerson(`“${title.trim()}” is already there.`);
-    // Real work only: a client adding their own project is real, so no "Demo" tag.
-    data.items.push({ title: title.trim(), kind: kind?.trim() ?? '', photo: itemPhoto(photo, title), text: text.trim(), ...(link?.trim() ? { link: link.trim() } : {}) });
-    writeJson(WORK_JSON, data);
-    return `Added the project “${title.trim()}”.`;
-  },
-  'work-remove'({ title }) {
-    const data = moduleData(WORK_JSON, 'past work section');
-    const left = data.items.filter((item) => !sameTitle(item.title, title));
-    if (left.length === data.items.length) needsPerson(`There's no project “${title}”.`);
-    data.items = left;
-    writeJson(WORK_JSON, data);
-    return `Removed the project “${title.trim()}”.`;
-  },
-};
-
 function stripeLink(link) {
   const clean = (link ?? '').trim();
   if (clean && !/^https:\/\/buy\.stripe\.com\/[\w-]+$/.test(clean)) needsPerson(`“${link}” isn’t a Stripe payment link (https://buy.stripe.com/…).`);
@@ -769,9 +654,8 @@ const handlers = {
   ...menuChanges,
   ...priceChanges,
   booking: bookingSettings,
-  ...contentChanges,
   ...shopChanges,
-  ...sectionChanges,
+  ...listHandlers(loadLists(), { read: moduleData, write: writeJson, needsPerson, isPlaceholder, photo: (photo) => itemPhoto(photo) }),
 };
 export const changeTypes = Object.keys(handlers);
 

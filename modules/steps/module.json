@@ -1,1 +1,25 @@
-{ "data": "steps.json" }
+{
+  "data": "steps.json",
+  "list": {
+    "type": "step",
+    "key": "steps",
+    "id": "title",
+    "noun": "step",
+    "plural": "steps",
+    "ordered": true,
+    "add": "Add a step to “How it works”",
+    "remove": "Remove a step from “How it works”",
+    "fields": {
+      "title": {
+        "label": "Short title",
+        "required": true,
+        "example": "Free quote"
+      },
+      "text": {
+        "label": "What happens",
+        "kind": "long",
+        "required": true
+      }
+    }
+  }
+}
