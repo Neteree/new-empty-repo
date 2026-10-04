@@ -1,7 +1,7 @@
-// What a game remembers in the player's own browser: best scores, a game in
-// progress and settings like sound. Browser storage can be missing or blocked
-// (private windows, previews), so every read and write is allowed to fail
-// quietly and the game still works, just without remembering.
+// What a page remembers in the visitor's own browser: a half-filled form, a
+// game in progress, best scores and settings like sound. Browser storage can
+// be missing or blocked (private windows, previews), so every read and write
+// is allowed to fail quietly and the page still works, just without remembering.
 
 const read = (key: string): string | null => {
   try {
@@ -31,8 +31,8 @@ export function saveBest(key: string, score: number, lowerIsBetter = false): { b
   return { best: isNew ? score : best, isNew };
 }
 
-/** A saved game in progress, or null. */
-export function loadGame<T>(key: string): T | null {
+/** Something saved earlier (a game in progress, a form draft), or null. */
+export function load<T>(key: string): T | null {
   try {
     return JSON.parse(read(key) ?? 'null') as T | null;
   } catch {
@@ -40,8 +40,8 @@ export function loadGame<T>(key: string): T | null {
   }
 }
 
-export const saveGame = (key: string, state: unknown) => write(key, JSON.stringify(state));
-export const clearGame = (key: string) => write(key, null);
+export const save = (key: string, value: unknown) => write(key, JSON.stringify(value));
+export const clear = (key: string) => write(key, null);
 
 /** An on/off setting such as sound or hints. */
 export function readSetting(key: string, fallback: boolean): boolean {

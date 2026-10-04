@@ -1,0 +1,23 @@
+{
+  "note": "Get started",
+  "title": "What can I help with?",
+  "intro": "A new website, a change to yours, or just a question. Nothing is built or charged until I’ve checked it with you.",
+  "base": "website",
+  "items": [
+    { "id": "wording", "label": "Headline and wording", "text": "The words at the top of your site.", "on": true },
+    { "id": "finding", "label": "Where to find you", "text": "Address or area, opening hours, phone and social links.", "on": true },
+    { "id": "photos", "label": "Photos and logo", "text": "Your place, your products, your team.", "on": true },
+    { "id": "contact", "label": "Contact form", "text": "Customers message you from your site.", "on": true, "locked": true },
+    { "id": "reviews", "label": "Reviews", "text": "What customers say about you.", "module": "reviews" },
+    { "id": "faq", "label": "Questions and answers", "text": "Answers to what people often ask.", "module": "faq" },
+    { "id": "highlights", "label": "Reasons to choose you", "text": "A few short reasons, near the top.", "module": "highlights" },
+    { "id": "steps", "label": "How it works", "text": "The steps from first contact to a finished job.", "module": "steps" },
+    { "id": "work", "label": "Past work", "text": "Photos of jobs you’ve done.", "module": "work" },
+    { "id": "menu", "label": "Menu", "text": "Your food and drinks with prices.", "module": "food", "price": "menu" },
+    { "id": "prices", "label": "Price list", "text": "Services or products at set prices.", "module": "prices", "price": "menu" },
+    { "id": "booking", "label": "Bookings or quotes", "text": "Customers ask for a time or a quote.", "module": "booking", "price": "booking" },
+    { "id": "shop", "label": "Online shop", "text": "A few products people can buy online.", "module": "shop", "price": "orders" },
+    { "id": "page", "label": "Extra page", "text": "About, services, gallery or anything else.", "price": "extra-page" },
+    { "id": "news", "label": "News you edit yourself", "text": "Post specials and updates yourself.", "price": "news" }
+  ]
+}

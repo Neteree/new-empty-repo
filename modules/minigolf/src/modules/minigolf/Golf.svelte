@@ -8,7 +8,7 @@
   import { WebGLRenderer } from 'three';
   import Course from './Course.svelte';
   import { newBall, putt, toPar, type Hole } from './golf';
-  import { readBest, saveBest } from '../../lib/game/store';
+  import { readBest, saveBest } from '../../lib/store';
 
   let { holes, title }: { holes: Hole[]; title: string } = $props();
 

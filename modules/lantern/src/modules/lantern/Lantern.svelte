@@ -9,7 +9,7 @@
   import { CELLS, NB, DIST_CELLS, GEMS, GEM_NAMES, STOPS, PERKS, GOLD, GEM_CAP, VB, CHIP_POS, DBORDER, HEX_CELL, HEX_TILE, HEX_TILE_SH, OCT, STAR, SZ, hexPoints, type Tile, type Resolution, type Patron, type Card } from './lantern';
   import data from './lantern.json';
   import GameDialog from '../../components/game/GameDialog.svelte';
-  import { loadGame, saveGame, readBest, saveBest, readSetting, saveSetting } from '../../lib/game/store';
+  import { load as loadGame, save as saveGame, readBest, saveBest, readSetting, saveSetting } from '../../lib/store';
   import { freshSeed, today } from '../../lib/game/random';
   import { tone, arpeggio } from '../../lib/game/sound';
 

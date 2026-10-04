@@ -1,0 +1,44 @@
+---
+// Get started: one form for a new website, a change, or a question. Prices
+// for the "Build your site" list come from the price list module, so they
+// always match the site.
+import Base from '../layouts/Base.astro';
+import SectionHead from '../components/SectionHead.svelte';
+import Start from '../modules/start/Start.svelte';
+import page from '../modules/start/start.json';
+import { site } from '../site.config';
+
+const priceData = Object.values(import.meta.glob<{ default: { items: { id: string; price?: number }[] } }>('../modules/prices/prices.json', { eager: true }))[0];
+const prices = Object.fromEntries((priceData?.default.items ?? []).filter((item) => item.price !== undefined).map((item) => [item.id, item.price!]));
+---
+
+<Base title={`${page.note} · ${site.name}`} description={page.intro}>
+  <main class="start-page">
+    <SectionHead level={1} note={page.note} title="Let’s get started" intro={page.intro} />
+    <div class="form-card">
+      <Start client:only="svelte" {prices} />
+    </div>
+  </main>
+</Base>
+
+<style>
+  .start-page {
+    max-width: 46rem;
+    padding-block: clamp(2rem, 6vw, 4rem);
+  }
+
+  .start-page :global(.section-head) {
+    margin-bottom: 2rem;
+  }
+
+  .start-page :global(h1) {
+    font-size: clamp(2.2rem, 6vw, 3.4rem);
+  }
+
+  .form-card {
+    border: 2px solid var(--ink);
+    border-radius: 1.25rem;
+    padding: clamp(1.25rem, 4vw, 2.25rem);
+    box-shadow: 8px 8px 0 var(--accent);
+  }
+</style>

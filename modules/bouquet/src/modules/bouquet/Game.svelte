@@ -8,7 +8,7 @@
   import Garden from './Garden.svelte';
   import { isDone, newOrder, replant, SPOTS, stillNeeded, type Order, type Plant } from './game';
   import type { Bouquet } from './bouquet';
-  import { readBest, saveBest } from '../../lib/game/store';
+  import { readBest, saveBest } from '../../lib/store';
 
   let { game }: { game: Bouquet['game'] } = $props();
   const kinds = $derived(game.flowers.length);

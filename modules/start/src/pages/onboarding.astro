@@ -1,0 +1,19 @@
+---
+// The old onboarding link now goes to the one Get started form, keeping what the
+// link asked for (add-ons, or the client's site).
+const title = 'Moved to Get started';
+---
+
+<!doctype html>
+<html lang="en-NZ">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>{title}</title>
+    <script is:inline>location.replace('start.html' + (location.search ? location.search + '&' : '?') + 'path=new');</script>
+  </head>
+  <body>
+    <p>This page has moved: <a href="start.html?path=new">Get started</a>.</p>
+  </body>
+</html>
