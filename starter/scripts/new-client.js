@@ -102,7 +102,7 @@ const { modules: _, contact: __, menu: ___, words: ____, ...rest } = {
   ...details,
   social: { instagram: '', facebook: '', ...details.social },
   theme,
-  enquiry: { askBusiness: false, thanks: '', ...details.enquiry },
+  enquiry: { askBusiness: false, thanks: '', link: { label: '', href: '' }, ...details.enquiry },
   formKey: details.formKey ?? null,
   intakeUrl: details.intakeUrl ?? null,
   url: details.url ?? null,

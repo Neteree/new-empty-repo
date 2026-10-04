@@ -65,7 +65,11 @@ const galleryImages = await Promise.all(site.gallery.map((item) => picture(item.
               hours={site.hours}
             />
             <div class="form-card">
-              <EnquiryForm client:visible />
+              {site.enquiry.link?.href ? (
+                <a class="button" href={site.enquiry.link.href}>{site.enquiry.link.label}</a>
+              ) : (
+                <EnquiryForm client:visible />
+              )}
             </div>
           </section>
         );

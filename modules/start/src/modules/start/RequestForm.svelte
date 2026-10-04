@@ -109,7 +109,7 @@
   });
 
   // The client's current gallery, when the link names their site
-  // (request.html?site=https://their-site.pages.dev): each site publishes photos.json.
+  // (start.html?path=change&site=https://their-site.pages.dev): each site publishes photos.json.
   let existing = $state<ExistingPhoto[]>([]);
   const PLACEHOLDER = '[PLACEHOLDER';
   $effect(() => {

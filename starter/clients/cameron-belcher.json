@@ -14,7 +14,7 @@
   "hours": [],
   "enquiry": {
     "title": "Get in touch",
-    "intro": "Tell me a little about your business and I’ll get back to you to set up a free, no-pressure chat.",
+    "intro": "A new website, a change to yours, or just a question: it all starts here, and takes a few minutes.",
     "options": [
       "A new website",
       "A new site to replace an old one",
@@ -23,7 +23,11 @@
       "Not sure yet, let's chat"
     ],
     "askBusiness": true,
-    "thanks": "Your enquiry is on its way. I'll get back to you soon."
+    "thanks": "Your enquiry is on its way. I'll get back to you soon.",
+    "link": {
+      "label": "Get started",
+      "href": "start.html"
+    }
   },
   "theme": "studio",
   "url": "https://cameron-belcher-web.pages.dev",
@@ -42,8 +46,7 @@
     "prices",
     "steps",
     "faq",
-    "onboarding",
-    "requests"
+    "start"
   ],
   "highlights": {
     "section": {
@@ -166,7 +169,7 @@
         "name": "Your website",
         "category": "Start here",
         "price": 150,
-        "description": "A polished one-page site that tells people who you are and how to reach you: one-page custom design, enquiry form, Google Business Profile and local search basics, launched on your own domain, free hosting set up in your name."
+        "description": "A polished one-page site that tells people who you are and how to reach you: custom design, contact form, Google Business Profile and local search basics, your own domain, free hosting in your name. Reviews, questions and answers, highlights, how it works and past work are included."
       },
       {
         "id": "extra-page",
@@ -272,11 +275,6 @@
       }
     ]
   },
-  "requests": {
-    "note": "For clients",
-    "title": "Ask for a change",
-    "intro": "Add as many changes as you like. You’ll confirm the request from your email, and I’ll send you the price before any work starts. Small changes are $20."
-  },
   "contact": {
     "email": "cameronbe@missionreadyhq.com",
     "phone": ""
@@ -284,5 +282,9 @@
   "demo": false,
   "words": [
     "Squarespace"
-  ]
+  ],
+  "heroLink": {
+    "label": "Get started",
+    "href": "start.html"
+  }
 }

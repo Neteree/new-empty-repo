@@ -31,7 +31,11 @@
       "Something else"
     ],
     "askBusiness": false,
-    "thanks": ""
+    "thanks": "",
+    "link": {
+      "label": "",
+      "href": ""
+    }
   },
   "theme": "bold",
   "formKey": null,

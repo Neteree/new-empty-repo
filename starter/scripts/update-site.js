@@ -3,6 +3,11 @@
 // starter's; the client's content never is. No AI: it only copies files.
 //
 //   node scripts/update-site.js <site-folder> [--dry-run]
+//   node scripts/update-site.js <site-folder> --add reviews --remove faq
+//
+// --add brings in an add-on the site doesn't have yet (e.g. one a client has
+// just bought); --remove takes one out, with any pages it added. Then the
+// site is updated as usual.
 //
 // Kept as the site's own: src/data/site.json, photos, news posts, module data
 // (src/modules/<name>/*.json), files in public/ (icons, share image) and the lock file. New settings the starter has
@@ -16,8 +21,11 @@ import { writeCatalogue } from './catalogue.js';
 
 const [target, ...flags] = process.argv.slice(2);
 const dryRun = flags.includes('--dry-run');
+const named = (flag) => flags.flatMap((f, i) => (f === flag && flags[i + 1] ? flags[i + 1].split(',') : []));
+const adding = named('--add');
+const removing = named('--remove');
 if (!target || !existsSync(join(target, 'src/data/site.json'))) {
-  console.error('Usage: node scripts/update-site.js <site-folder> [--dry-run]  (the folder of a site made from this starter)');
+  console.error('Usage: node scripts/update-site.js <site-folder> [--dry-run] [--add <module,...>] [--remove <module,...>]  (the folder of a site made from this starter)');
   process.exit(1);
 }
 
@@ -90,8 +98,29 @@ for (const path of walk(starter)) {
 }
 fillJson(join(site, 'src/data/site.json'), join(starter, 'src/data/site.json'), 'site.json');
 
+// Add-ons being added or taken out.
+for (const name of [...adding, ...removing]) {
+  if (adding.includes(name) && !existsSync(join(modulesDir, name, 'src/modules', name))) {
+    console.error(`No such module: ${name}.`);
+    process.exit(1);
+  }
+}
+for (const name of removing) {
+  const pages = existsSync(join(modulesDir, name, 'src/pages')) ? walk(join(modulesDir, name, 'src/pages')).map((page) => join('src/pages', page)) : [];
+  for (const path of [join('src/modules', name), ...pages]) {
+    if (!existsSync(join(site, path))) continue;
+    report.removed.push(`${path} (${name} taken out)`);
+    if (!dryRun) rmSync(join(site, path), { recursive: true });
+  }
+}
+for (const name of adding) {
+  if (existsSync(join(site, 'src/modules', name))) continue;
+  report.added.push(`the ${name} add-on`);
+  if (!dryRun) mkdirSync(join(site, 'src/modules', name), { recursive: true });
+}
+
 // 2. The modules this site has: code is replaced, data (*.json) only gains new settings.
-const siteModules = existsSync(join(site, 'src/modules')) ? readdirSync(join(site, 'src/modules')) : [];
+const siteModules = existsSync(join(site, 'src/modules')) ? readdirSync(join(site, 'src/modules')).filter((name) => !removing.includes(name)) : [];
 const extraDeps = {};
 for (const name of siteModules) {
   if (!existsSync(join(modulesDir, name, 'src/modules', name))) {

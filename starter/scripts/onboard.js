@@ -13,6 +13,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { themes } from '../src/themes.ts';
 import { socialUrl } from './changes.js';
+import { loadLists } from './lists.js';
 
 const [input, target] = process.argv.slice(2);
 if (!input) {
@@ -37,7 +38,7 @@ if (answers.onboarding !== 1) {
   process.exit(1);
 }
 
-const missing = ['name', 'suburb', 'city', 'about', 'visit', 'theme'].filter((key) => !answers[key]);
+const missing = ['name', 'suburb', 'city', 'about', 'theme'].filter((key) => !answers[key]);
 if (!answers.hours?.length && !answers.noHours) missing.push('hours');
 if (missing.length) {
   console.error(`The answers are missing: ${missing.join(', ')}`);
@@ -71,7 +72,7 @@ const client = {
   heroNote: answers.standout ?? '',
   heroTitle: answers.headline || `[PLACEHOLDER: headline; ${answers.name} left it for us to suggest]`,
   heroText: answers.about,
-  visitText: answers.visit,
+  visitText: answers.visit ?? '',
   address: answers.address ?? '',
   // Only the number they chose to show on the site; contact.phone stays private.
   phone: answers.sitePhone ?? '',
@@ -86,17 +87,25 @@ const client = {
   modules: answers.modules ?? [],
   ...(answers.preOrder ? { menu: { preOrder: true } } : {}),
   ...(answers.quote ? { booking: { kind: 'quote' } } : {}),
-  // Content for the highlights and how-it-works add-ons, in the client's own words.
-  // Left out, the module's placeholders stay for Cameron to fill in.
-  ...(answers.highlights?.length && answers.modules?.includes('highlights')
-    ? { highlights: { section: { note: '', title: '' }, items: answers.highlights } }
-    : {}),
-  ...(answers.steps?.length && answers.modules?.includes('steps')
-    ? { steps: { section: { note: 'How it works', title: 'How it works', nav: 'How it works' }, steps: answers.steps } }
-    : {}),
+  // List sections the client filled in (reviews, questions, highlights, steps…),
+  // in their own words, laid over the module's data by its list key (see
+  // scripts/lists.js). Left out, the module's placeholders stay for Cameron.
+  ...listContent(answers),
   contact: answers.contact ?? {},
   demo: false,
 };
+
+function listContent(answers) {
+  const defs = loadLists();
+  const content = {};
+  for (const [module, rows] of Object.entries(answers.lists ?? {})) {
+    if (defs[module] && rows?.length && answers.modules?.includes(module)) content[module] = { [defs[module].key]: rows };
+  }
+  // Older answers sent highlights and steps on their own.
+  if (answers.highlights?.length && answers.modules?.includes('highlights')) content.highlights ??= { items: answers.highlights };
+  if (answers.steps?.length && answers.modules?.includes('steps')) content.steps ??= { steps: answers.steps };
+  return content;
+}
 
 const starter = resolve(import.meta.dirname, '..');
 const slug = answers.name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -110,5 +119,8 @@ console.log(`Wrote ${clientPath}`);
 
 const gaps = JSON.stringify(client).match(/\[PLACEHOLDER: [^\]]*\]/g) ?? [];
 for (const gap of gaps) console.log(`Still needed: ${gap}`);
+// Things they asked for that aren't add-ons yet (an extra page, something custom): for Cameron to quote and build.
+for (const extra of answers.extras ?? []) console.log(`Also asked for: ${extra}`);
+if (answers.estimate) console.log(`Their estimate: $${answers.estimate.total}${answers.estimate.custom ? ' + a quote for something else' : ''}`);
 
 if (target) execFileSync('node', [join(starter, 'scripts/new-client.js'), clientPath, target], { stdio: 'inherit' });

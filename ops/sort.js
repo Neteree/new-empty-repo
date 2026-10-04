@@ -19,7 +19,8 @@ export function queueOnboarding(item, answers, { email, files = [] } = {}) {
   const photos = files.filter((file) => file.slot === 'photos').length;
   const parts = [files.some((file) => file.slot === 'logo') && 'a logo', photos && `${photos} photo${photos === 1 ? '' : 's'}`].filter(Boolean);
   const uploads = parts.length ? ` with ${parts.join(' and ')}` : '';
-  return `Onboarding answers from ${answers.name}${uploads}. Waiting for you to approve the build.`;
+  const estimate = answers.estimate ? ` Their estimate: $${answers.estimate.total}${answers.estimate.custom ? ' + something to quote' : ''}.` : '';
+  return `New website from ${answers.name}${uploads}.${estimate} Waiting for you to check it and send a quote.`;
 }
 
 /** A change request from the request form. It only counts once the client confirms from their saved address. */
