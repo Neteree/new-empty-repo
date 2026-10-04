@@ -168,6 +168,9 @@
     if (!changes.some((c) => itemOf(c.kind) === item.id)) changes.push(blank(kindsFor(item)[0].id));
   }
   const changesFor = (item: Item) => changes.map((c, i) => [c, i] as const).filter(([c]) => itemOf(c.kind) === item.id);
+  // Only the changes under a ticked section are sent (an unticked one keeps what was typed).
+  const ticked = (c: Change) => build.chosen[itemOf(c.kind)];
+  const sending = $derived(changes.filter(ticked));
   let botcheck = $state(false);
   let tried = $state([false, false]);
   let status = $state<'idle' | 'sending' | 'sent' | 'failed'>('idle');
@@ -240,13 +243,13 @@
   // Every photo to upload, in the order toChanges() numbers them.
   const uploadsOf = (c: Change) =>
     c.kind === 'photos' ? c.photos : (c.kind === 'price-add' || c.kind === 'price-change') && c.itemPhoto === 'new' ? c.itemPhotoFile : listUploads(c);
-  const allPhotos = $derived(changes.flatMap(uploadsOf));
+  const allPhotos = $derived(sending.flatMap(uploadsOf));
   const errors = $derived({
     email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? '' : 'Enter the email address I have for you.',
     business: business.trim() ? '' : 'Enter your business name.',
-    changes: changes.map(problem),
+    changes: changes.map((c) => (ticked(c) ? problem(c) : '')),
     photos: allPhotos.length > MAX_PHOTOS ? `Please send up to ${MAX_PHOTOS} photos at a time.` : '',
-    nothing: changes.length || adding.length || build.custom.trim() ? '' : 'Choose something to change or add, or tell me what you’d like.',
+    nothing: sending.length || adding.length || build.custom.trim() ? '' : 'Choose something to change or add, or tell me what you’d like.',
   });
   const valid = $derived(!errors.email && !errors.business && !errors.photos && !errors.nothing && errors.changes.every((e) => !e));
 
@@ -257,7 +260,7 @@
   function toChanges() {
     // Uploaded photos are sent as one list; each photo change points at its place in it.
     let upload = 0;
-    return changes.flatMap((c) => {
+    return sending.flatMap((c) => {
       switch (c.kind) {
         case 'text':
           return { type: 'text', current: c.current.trim(), new: c.replacement.trim() };
@@ -354,7 +357,7 @@
       return;
     }
     // Open the first section with a change that needs finishing.
-    const unfinished = changes.find((c) => problem(c));
+    const unfinished = sending.find((c) => problem(c));
     if (unfinished) {
       tab = 0;
       build.open = itemOf(unfinished.kind);
@@ -604,7 +607,6 @@
       owned={has}
       {changeBody}
       onchange={startChange}
-      onclear={(item) => (changes = changes.filter((c) => itemOf(c.kind) !== item.id))}
     />
     {#if tried[1] && errors.photos}<p class="error">{errors.photos}</p>{/if}
     {#if prices['small-change'] !== undefined}

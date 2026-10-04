@@ -4,9 +4,10 @@
   // isn't listed yet. Used by the new-website form and the change form, so
   // both work the same way. A form can give its own questions for an item
   // (`bodies`, by item id); list sections (reviews, questions…) ask for their
-  // fields from their descriptions. On the change form, ticking what the site
-  // already has (`owned`) starts its changes (`changeBody`). Only the box
-  // ticks or unticks; the rest of the row opens and closes it. A search box
+  // fields from their descriptions. On the change form, what the site already
+  // has (`owned`) shows its changes (`changeBody`) when opened. Only the box
+  // ticks or unticks (what's ticked is sent); the rest of the row opens and
+  // closes it, and unticking leaves it open as it was. A search box
   // narrows the list (by name,
   // description and any `keywords`, such as the changes an item has). With
   // `tabs`, each group is a tab instead of a heading.
@@ -22,7 +23,6 @@
     owned = () => false,
     changeBody,
     onchange = () => {},
-    onclear = () => {},
     keywords = () => '',
     tabs = false,
     tab = $bindable(0),
@@ -35,7 +35,6 @@
     owned?: (item: Item) => boolean;
     changeBody?: Snippet<[Item]>;
     onchange?: (item: Item) => void;
-    onclear?: (item: Item) => void;
     keywords?: (item: Item) => string;
     tabs?: boolean;
     tab?: number;
@@ -58,17 +57,16 @@
     (document.getElementById(`${id}-tab-${tab}`) as HTMLElement | null)?.focus();
   }
 
-  /** Opens an item's questions (a list section starts with one empty row). */
+  /** Opens an item's questions (a list section starts with one empty row, a section on their site with one change). */
   function openItem(item: Item) {
+    if (owned(item) && changeBody) onchange(item);
     const def = listDef(item);
     if (def && !build.rows[item.id]?.length) build.rows[item.id] = [blankRow(def)];
     build.open = item.id;
   }
   function toggle(item: Item) {
     if (item.locked) return;
-    const on = (build.chosen[item.id] = !build.chosen[item.id]);
-    if (owned(item) && changeBody) (on ? onchange : onclear)(item);
-    if (on) openItem(item);
+    if ((build.chosen[item.id] = !build.chosen[item.id])) openItem(item);
   }
 </script>
 
@@ -124,10 +122,10 @@
         {#if open}
           <div class="item-body">
             {#if !build.chosen[item.id]}
-              <p class="hint">Tick the box to {changing ? 'choose what to change' : 'include it'}.</p>
+              <p class="hint">Tick the box to include it.</p>
             {/if}
             {#if changing}
-              {#if build.chosen[item.id]}{@render changeBody(item)}{/if}
+              {@render changeBody(item)}
             {:else if own}
               {@render own()}
             {:else if def}
