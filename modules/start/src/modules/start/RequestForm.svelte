@@ -25,14 +25,17 @@
     | 'product-add' | 'product-price' | 'product-link' | 'product-sold-out' | 'product-remove'
     // Add and remove for every list section (reviews, questions, steps…): see ListFields.svelte.
     | (string & {});
-  // Changes that belong to an add-on module only show when the client's site
-  // has it (from its photos.json), or always when the form doesn't know the site.
-  const moduleOf = (kind: Kind) =>
-    kind.startsWith('menu-') ? 'food'
+  // Which item on the list (start.json) each change belongs to.
+  const itemOf = (kind: Kind) =>
+    ['text', 'notice', 'news'].includes(kind) ? 'wording'
+    : ['hours', 'contact'].includes(kind) ? 'finding'
+    : kind === 'photos' ? 'photos'
+    : kind === 'theme' ? 'look'
+    : kind.startsWith('menu-') ? 'menu'
     : kind.startsWith('price') ? 'prices'
     : kind.startsWith('product-') ? 'shop'
     : kind === 'booking' ? 'booking'
-    : listKinds.find((k) => k.id === kind)?.module ?? null;
+    : (items.find((item) => item.module === listKinds.find((k) => k.id === kind)?.module)?.id ?? '');
   const allKinds: { id: Kind; label: string }[] = [
     { id: 'text', label: 'Change some wording' },
     { id: 'hours', label: 'Update opening hours' },
@@ -61,22 +64,25 @@
   ];
   let siteModules = $state<string[] | null>(null);
   let priceItems = $state<{ name: string; available: boolean }[]>([]);
-  const kinds = $derived(allKinds.filter((kind) => !siteModules || !moduleOf(kind.id) || siteModules.includes(moduleOf(kind.id)!)));
 
-  // "Add to your site": the new-website form's list, less what every site has
-  // and the add-ons this site already has. Sections that come with a new site
-  // cost a small change to add later; add-ons cost their price.
+  // One list, the new-website form's (start.json): what their site has can
+  // be changed; anything else can be added (a section that comes with a new
+  // site costs a small change, an add-on its price). Without knowing their
+  // site, every section with changes counts as theirs.
   const items = data.items as Item[];
   const priceOf = (item: Item) => prices[item.price ?? 'small-change'];
-  const addable = $derived(items.filter((item) => (item.module || item.price) && !siteModules?.includes(item.module ?? '') && (!item.price || prices[item.price] !== undefined)));
+  const kindsFor = (item: Item) => allKinds.filter((kind) => itemOf(kind.id) === item.id);
+  const has = (item: Item) => (item.module ? (siteModules?.includes(item.module) ?? kindsFor(item).length > 0) : !item.price);
+  const theirs = $derived(items.filter((item) => has(item) && kindsFor(item).length));
+  const addable = $derived(items.filter((item) => !has(item) && !item.changeOnly && (item.module || item.price) && (!item.price || prices[item.price] !== undefined)));
   let build = $state(blankBuild(items, () => false));
   const adding = $derived(addable.filter((item) => build.chosen[item.id]));
   const MAX_PHOTOS = 12;
   const MAX_BYTES = 15 * 1024 * 1024;
   const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
-  const blank = () => ({
-    kind: 'text' as Kind,
+  const blank = (kind: Kind) => ({
+    kind,
     current: '',
     replacement: '',
     hours: [] as { days: string; times: string }[],
@@ -123,11 +129,12 @@
   // (start.html?path=change&site=https://their-site.pages.dev): each site publishes photos.json.
   let existing = $state<ExistingPhoto[]>([]);
   const PLACEHOLDER = '[PLACEHOLDER';
-  $effect(() => {
-    const given = new URLSearchParams(location.search).get('site');
+  let address = $state(new URLSearchParams(location.search).get('site') ?? '');
+  loadSite(address);
+  function loadSite(given: string) {
     let siteUrl: URL;
     try {
-      siteUrl = new URL(given ?? '');
+      siteUrl = new URL(/^https?:\/\//.test(given.trim()) ? given.trim() : `https://${given.trim()}`);
     } catch {
       return;
     }
@@ -144,11 +151,16 @@
         });
       })
       .catch(() => {});
-  });
+  }
 
   let email = $state('');
   let business = $state('');
-  let changes = $state([blank()]);
+  let changes = $state<Change[]>([]);
+  /** Opens an item's changes, starting with one. */
+  function startChange(item: Item) {
+    if (!changes.some((c) => itemOf(c.kind) === item.id)) changes.push(blank(kindsFor(item)[0].id));
+  }
+  const changesFor = (item: Item) => changes.map((c, i) => [c, i] as const).filter(([c]) => itemOf(c.kind) === item.id);
   let botcheck = $state(false);
   let tried = $state(false);
   let status = $state<'idle' | 'sending' | 'sent' | 'failed'>('idle');
@@ -227,7 +239,7 @@
     business: business.trim() ? '' : 'Enter your business name.',
     changes: changes.map(problem),
     photos: allPhotos.length > MAX_PHOTOS ? `Please send up to ${MAX_PHOTOS} photos at a time.` : '',
-    nothing: changes.length || adding.length || build.custom.trim() ? '' : 'Choose a change, something to add, or tell me what you’d like.',
+    nothing: changes.length || adding.length || build.custom.trim() ? '' : 'Choose something to change or add, or tell me what you’d like.',
   });
   const valid = $derived(!errors.email && !errors.business && !errors.photos && !errors.nothing && errors.changes.every((e) => !e));
 
@@ -330,6 +342,9 @@
   async function submit(event: SubmitEvent) {
     event.preventDefault();
     tried = true;
+    // Open the first section with a change that needs finishing.
+    const unfinished = changes.find((c) => problem(c));
+    if (unfinished) build.open = itemOf(unfinished.kind);
     if (!valid || status === 'sending') return;
     if (!site.formKey && !site.intakeUrl) {
       status = 'sent';
@@ -383,181 +398,192 @@
       </div>
     </div>
 
-    <h3 class="group">Change something</h3>
-    {#each changes as change, i (i)}
-      <fieldset class="change">
-        <legend>Change {i + 1}</legend>
-        <div class="field">
-          <label for="r-kind-{i}">What would you like to do?</label>
-          <select id="r-kind-{i}" bind:value={change.kind}>
-            {#each kinds as kind (kind.id)}<option value={kind.id}>{kind.label}</option>{/each}
-          </select>
-        </div>
+    <div class="field">
+      <label for="r-site">Your website address</label>
+      <p class="hint" id="r-site-hint">So the list shows what’s on your site.</p>
+      <input id="r-site" type="url" inputmode="url" placeholder="yourbusiness.co.nz" bind:value={address} onchange={() => loadSite(address)} aria-describedby="r-site-hint" />
+    </div>
 
-        {#if change.kind === 'text'}
+    {#snippet changeCard(change: Change, i: number, n: number)}
+      {@const options = kindsFor({ id: itemOf(change.kind) } as Item)}
+      <fieldset class="change">
+        <legend>Change {n}</legend>
+        {#if options.length > 1}
           <div class="field">
-            <label for="r-current-{i}">Current wording</label>
-            <p class="hint" id="r-current-hint-{i}">Copy it exactly from your site.</p>
-            <textarea id="r-current-{i}" rows="2" bind:value={change.current} aria-describedby="r-current-hint-{i}"></textarea>
-          </div>
-          <div class="field">
-            <label for="r-new-{i}">New wording</label>
-            <textarea id="r-new-{i}" rows="2" bind:value={change.replacement}></textarea>
-          </div>
-        {:else if change.kind === 'hours'}
-          <div class="field">
-            <span class="label" id="r-hours-{i}-label">Your opening hours (tick every day you’re open)</span>
-            <HoursPicker id="r-hours-{i}" bind:hours={change.hours} />
-          </div>
-        {:else if change.kind === 'contact'}
-          <p class="hint">Fill in only what’s changing. To take something off your site, use “Something else”.</p>
-          <div class="field">
-            <label for="r-phone-{i}">Phone number for customers</label>
-            <input id="r-phone-{i}" type="tel" bind:value={change.phone} />
-          </div>
-          <div class="field">
-            <label for="r-address-{i}">Street address (for the map link)</label>
-            <input id="r-address-{i}" bind:value={change.address} />
-          </div>
-          <div class="field">
-            <label for="r-instagram-{i}">Instagram</label>
-            <input id="r-instagram-{i}" placeholder="@yourbusiness" bind:value={change.instagram} />
-          </div>
-          <div class="field">
-            <label for="r-facebook-{i}">Facebook page</label>
-            <input id="r-facebook-{i}" placeholder="facebook.com/yourbusiness" bind:value={change.facebook} />
-          </div>
-        {:else if change.kind === 'news'}
-          <div class="field">
-            <label for="r-title-{i}">Title</label>
-            <input id="r-title-{i}" bind:value={change.title} />
-          </div>
-          <div class="field">
-            <label for="r-excerpt-{i}">One-line summary</label>
-            <input id="r-excerpt-{i}" bind:value={change.excerpt} />
-          </div>
-          <div class="field">
-            <label for="r-body-{i}">The post</label>
-            <textarea id="r-body-{i}" rows="4" bind:value={change.body}></textarea>
-          </div>
-        {:else if change.kind === 'photos'}
-          <div class="field">
-            <span class="label">Your photos</span>
-            {#if firstPhotos(change)}
-              <PhotoPicker label="photos" bind:photos={change.photos} bind:descriptions={change.photoDescriptions} bind:existing pickMain bind:main={change.mainPhoto} noMainLabel="Keep my main photo as it is" />
-            {:else}
-              <PhotoPicker label="photos" bind:photos={change.photos} bind:descriptions={change.photoDescriptions} pickMain bind:main={change.mainPhoto} noMainLabel="Keep my main photo as it is" />
-            {/if}
-          </div>
-        {:else if change.kind === 'theme'}
-          <div class="field">
-            <label for="r-theme-{i}">New look</label>
-            <select id="r-theme-{i}" bind:value={change.theme}>
-              <option value="" disabled>Choose one</option>
-              {#each themes as option (option.id)}<option value={option.id}>{option.name}</option>{/each}
+            <label for="r-kind-{i}">What would you like to do?</label>
+            <select id="r-kind-{i}" bind:value={change.kind}>
+              {#each options as kind (kind.id)}<option value={kind.id}>{kind.label}</option>{/each}
             </select>
-            <p class="hint">{themes.find((option) => option.id === change.theme)?.text ?? 'The colours and fonts of your whole site.'}</p>
           </div>
-        {:else if change.kind.startsWith('price')}
-          <PriceFields bind:change={changes[i]} {i} items={priceItems} gallery={existing.filter((p) => !p.removed)} {canUpload} />
-        {:else if change.kind === 'booking'}
-          <div class="field">
-            <label for="r-booking-{i}">All the choices, one per line</label>
-            <p class="hint" id="r-booking-hint-{i}">Like “Haircut”, “Beard trim” or “Hot water repairs”. These replace the current list.</p>
-            <textarea id="r-booking-{i}" rows="5" bind:value={change.bookingOptions} aria-describedby="r-booking-hint-{i}"></textarea>
-          </div>
-        {:else if change.kind === 'notice'}
-          <div class="field">
-            <label for="r-notice-{i}">The notice</label>
-            <input id="r-notice-{i}" maxlength="160" placeholder="Closed 24 December to 6 January. Merry Christmas!" bind:value={change.noticeText} />
-          </div>
-          <div class="field">
-            <label for="r-until-{i}">Last day it shows <span class="optional">(optional)</span></label>
-            <p class="hint" id="r-until-hint-{i}">It disappears by itself after this day. Leave it empty to keep it up until you ask.</p>
-            <input id="r-until-{i}" type="date" bind:value={change.noticeUntil} aria-describedby="r-until-hint-{i}" />
-          </div>
-        {:else if listOf(change.kind)}
-          <ListFields bind:change={changes[i]} {i} gallery={existing.filter((p) => !p.removed)} {canUpload} />
-        {:else if change.kind.startsWith('product-')}
-          <div class="field">
-            <label for="r-pr-name-{i}">{change.kind === 'product-add' ? 'Name' : 'Item name, as it is in your shop'}</label>
-            <input id="r-pr-name-{i}" bind:value={change.name} />
-          </div>
-          {#if change.kind === 'product-add'}
-            <div class="field">
-              <label for="r-pr-desc-{i}">Short description <span class="optional">(optional)</span></label>
-              <input id="r-pr-desc-{i}" bind:value={change.description} />
-            </div>
-          {/if}
-          {#if change.kind === 'product-add' || change.kind === 'product-price'}
-            <div class="field">
-              <label for="r-pr-price-{i}">{change.kind === 'product-add' ? 'Price' : 'New price'}</label>
-              <input id="r-pr-price-{i}" inputmode="decimal" placeholder="$28" bind:value={change.price} />
-            </div>
-          {/if}
-          {#if change.kind === 'product-add' || change.kind === 'product-link'}
-            <div class="field">
-              <label for="r-pr-link-{i}">Stripe payment link {#if change.kind === 'product-add'}<span class="optional">(optional)</span>{/if}</label>
-              <p class="hint" id="r-pr-link-hint-{i}">From Stripe: Payment links, then Create. It starts https://buy.stripe.com/. Without one, the item shows “Ask us”.</p>
-              <input id="r-pr-link-{i}" type="url" placeholder="https://buy.stripe.com/…" bind:value={change.link} aria-describedby="r-pr-link-hint-{i}" />
-            </div>
-          {/if}
-          {#if change.kind === 'product-sold-out'}
-            <div class="checks">
-              <label><input type="radio" name="r-pr-sold-{i}" value={true} bind:group={change.soldOut} /> Sold out</label>
-              <label><input type="radio" name="r-pr-sold-{i}" value={false} bind:group={change.soldOut} /> Back on</label>
-            </div>
-          {/if}
-        {:else}
-          <div class="field">
-            <label for="r-name-{i}">Menu item name{change.kind === 'menu-add' ? '' : ', as it is on the menu'}</label>
-            <input id="r-name-{i}" bind:value={change.name} />
-          </div>
-          {#if change.kind === 'menu-add'}
-            <div class="field">
-              <label for="r-description-{i}">Description</label>
-              <textarea id="r-description-{i}" rows="2" bind:value={change.description}></textarea>
-            </div>
-            <div class="field">
-              <label for="r-category-{i}">Menu section <span class="optional">(optional)</span></label>
-              <input id="r-category-{i}" placeholder="Lunch" bind:value={change.category} />
-            </div>
-            <div class="checks">
-              <label><input type="checkbox" bind:checked={change.vegan} /> Vegan</label>
-              <label><input type="checkbox" bind:checked={change.glutenFree} /> Gluten-free</label>
-            </div>
-          {/if}
-          {#if change.kind === 'menu-add' || change.kind === 'menu-price'}
-            <div class="field">
-              <label for="r-price-{i}">{change.kind === 'menu-add' ? 'Price' : 'New price'}</label>
-              <input id="r-price-{i}" inputmode="decimal" placeholder="$6.50" bind:value={change.price} />
-            </div>
-          {/if}
-          {#if change.kind === 'menu-sold-out'}
-            <div class="checks">
-              <label><input type="radio" name="r-sold-{i}" value={true} bind:group={change.soldOut} /> Sold out</label>
-              <label><input type="radio" name="r-sold-{i}" value={false} bind:group={change.soldOut} /> Back on</label>
-            </div>
-          {/if}
         {/if}
+      {#if change.kind === 'text'}
+        <div class="field">
+          <label for="r-current-{i}">Current wording</label>
+          <p class="hint" id="r-current-hint-{i}">Copy it exactly from your site.</p>
+          <textarea id="r-current-{i}" rows="2" bind:value={change.current} aria-describedby="r-current-hint-{i}"></textarea>
+        </div>
+        <div class="field">
+          <label for="r-new-{i}">New wording</label>
+          <textarea id="r-new-{i}" rows="2" bind:value={change.replacement}></textarea>
+        </div>
+      {:else if change.kind === 'hours'}
+        <div class="field">
+          <span class="label" id="r-hours-{i}-label">Your opening hours (tick every day you’re open)</span>
+          <HoursPicker id="r-hours-{i}" bind:hours={change.hours} />
+        </div>
+      {:else if change.kind === 'contact'}
+        <p class="hint">Fill in only what’s changing. To take something off your site, use “Something else”.</p>
+        <div class="field">
+          <label for="r-phone-{i}">Phone number for customers</label>
+          <input id="r-phone-{i}" type="tel" bind:value={change.phone} />
+        </div>
+        <div class="field">
+          <label for="r-address-{i}">Street address (for the map link)</label>
+          <input id="r-address-{i}" bind:value={change.address} />
+        </div>
+        <div class="field">
+          <label for="r-instagram-{i}">Instagram</label>
+          <input id="r-instagram-{i}" placeholder="@yourbusiness" bind:value={change.instagram} />
+        </div>
+        <div class="field">
+          <label for="r-facebook-{i}">Facebook page</label>
+          <input id="r-facebook-{i}" placeholder="facebook.com/yourbusiness" bind:value={change.facebook} />
+        </div>
+      {:else if change.kind === 'news'}
+        <div class="field">
+          <label for="r-title-{i}">Title</label>
+          <input id="r-title-{i}" bind:value={change.title} />
+        </div>
+        <div class="field">
+          <label for="r-excerpt-{i}">One-line summary</label>
+          <input id="r-excerpt-{i}" bind:value={change.excerpt} />
+        </div>
+        <div class="field">
+          <label for="r-body-{i}">The post</label>
+          <textarea id="r-body-{i}" rows="4" bind:value={change.body}></textarea>
+        </div>
+      {:else if change.kind === 'photos'}
+        <div class="field">
+          <span class="label">Your photos</span>
+          {#if firstPhotos(change)}
+            <PhotoPicker label="photos" bind:photos={change.photos} bind:descriptions={change.photoDescriptions} bind:existing pickMain bind:main={change.mainPhoto} noMainLabel="Keep my main photo as it is" />
+          {:else}
+            <PhotoPicker label="photos" bind:photos={change.photos} bind:descriptions={change.photoDescriptions} pickMain bind:main={change.mainPhoto} noMainLabel="Keep my main photo as it is" />
+          {/if}
+        </div>
+      {:else if change.kind === 'theme'}
+        <div class="field">
+          <label for="r-theme-{i}">New look</label>
+          <select id="r-theme-{i}" bind:value={change.theme}>
+            <option value="" disabled>Choose one</option>
+            {#each themes as option (option.id)}<option value={option.id}>{option.name}</option>{/each}
+          </select>
+          <p class="hint">{themes.find((option) => option.id === change.theme)?.text ?? 'The colours and fonts of your whole site.'}</p>
+        </div>
+      {:else if change.kind.startsWith('price')}
+        <PriceFields bind:change={changes[i]} {i} items={priceItems} gallery={existing.filter((p) => !p.removed)} {canUpload} />
+      {:else if change.kind === 'booking'}
+        <div class="field">
+          <label for="r-booking-{i}">All the choices, one per line</label>
+          <p class="hint" id="r-booking-hint-{i}">Like “Haircut”, “Beard trim” or “Hot water repairs”. These replace the current list.</p>
+          <textarea id="r-booking-{i}" rows="5" bind:value={change.bookingOptions} aria-describedby="r-booking-hint-{i}"></textarea>
+        </div>
+      {:else if change.kind === 'notice'}
+        <div class="field">
+          <label for="r-notice-{i}">The notice</label>
+          <input id="r-notice-{i}" maxlength="160" placeholder="Closed 24 December to 6 January. Merry Christmas!" bind:value={change.noticeText} />
+        </div>
+        <div class="field">
+          <label for="r-until-{i}">Last day it shows <span class="optional">(optional)</span></label>
+          <p class="hint" id="r-until-hint-{i}">It disappears by itself after this day. Leave it empty to keep it up until you ask.</p>
+          <input id="r-until-{i}" type="date" bind:value={change.noticeUntil} aria-describedby="r-until-hint-{i}" />
+        </div>
+      {:else if listOf(change.kind)}
+        <ListFields bind:change={changes[i]} {i} gallery={existing.filter((p) => !p.removed)} {canUpload} />
+      {:else if change.kind.startsWith('product-')}
+        <div class="field">
+          <label for="r-pr-name-{i}">{change.kind === 'product-add' ? 'Name' : 'Item name, as it is in your shop'}</label>
+          <input id="r-pr-name-{i}" bind:value={change.name} />
+        </div>
+        {#if change.kind === 'product-add'}
+          <div class="field">
+            <label for="r-pr-desc-{i}">Short description <span class="optional">(optional)</span></label>
+            <input id="r-pr-desc-{i}" bind:value={change.description} />
+          </div>
+        {/if}
+        {#if change.kind === 'product-add' || change.kind === 'product-price'}
+          <div class="field">
+            <label for="r-pr-price-{i}">{change.kind === 'product-add' ? 'Price' : 'New price'}</label>
+            <input id="r-pr-price-{i}" inputmode="decimal" placeholder="$28" bind:value={change.price} />
+          </div>
+        {/if}
+        {#if change.kind === 'product-add' || change.kind === 'product-link'}
+          <div class="field">
+            <label for="r-pr-link-{i}">Stripe payment link {#if change.kind === 'product-add'}<span class="optional">(optional)</span>{/if}</label>
+            <p class="hint" id="r-pr-link-hint-{i}">From Stripe: Payment links, then Create. It starts https://buy.stripe.com/. Without one, the item shows “Ask us”.</p>
+            <input id="r-pr-link-{i}" type="url" placeholder="https://buy.stripe.com/…" bind:value={change.link} aria-describedby="r-pr-link-hint-{i}" />
+          </div>
+        {/if}
+        {#if change.kind === 'product-sold-out'}
+          <div class="checks">
+            <label><input type="radio" name="r-pr-sold-{i}" value={true} bind:group={changes[i].soldOut} /> Sold out</label>
+            <label><input type="radio" name="r-pr-sold-{i}" value={false} bind:group={changes[i].soldOut} /> Back on</label>
+          </div>
+        {/if}
+      {:else}
+        <div class="field">
+          <label for="r-name-{i}">Menu item name{change.kind === 'menu-add' ? '' : ', as it is on the menu'}</label>
+          <input id="r-name-{i}" bind:value={change.name} />
+        </div>
+        {#if change.kind === 'menu-add'}
+          <div class="field">
+            <label for="r-description-{i}">Description</label>
+            <textarea id="r-description-{i}" rows="2" bind:value={change.description}></textarea>
+          </div>
+          <div class="field">
+            <label for="r-category-{i}">Menu section <span class="optional">(optional)</span></label>
+            <input id="r-category-{i}" placeholder="Lunch" bind:value={change.category} />
+          </div>
+          <div class="checks">
+            <label><input type="checkbox" bind:checked={change.vegan} /> Vegan</label>
+            <label><input type="checkbox" bind:checked={change.glutenFree} /> Gluten-free</label>
+          </div>
+        {/if}
+        {#if change.kind === 'menu-add' || change.kind === 'menu-price'}
+          <div class="field">
+            <label for="r-price-{i}">{change.kind === 'menu-add' ? 'Price' : 'New price'}</label>
+            <input id="r-price-{i}" inputmode="decimal" placeholder="$6.50" bind:value={change.price} />
+          </div>
+        {/if}
+        {#if change.kind === 'menu-sold-out'}
+          <div class="checks">
+            <label><input type="radio" name="r-sold-{i}" value={true} bind:group={changes[i].soldOut} /> Sold out</label>
+            <label><input type="radio" name="r-sold-{i}" value={false} bind:group={changes[i].soldOut} /> Back on</label>
+          </div>
+        {/if}
+      {/if}
 
         {#if tried && errors.changes[i]}<p class="error">{errors.changes[i]}</p>{/if}
         <button class="small" type="button" onclick={() => changes.splice(i, 1)}>Remove this change</button>
       </fieldset>
-    {/each}
+    {/snippet}
+    {#snippet changeBody(item: Item)}
+      {#each changesFor(item) as [c, i], n (i)}{@render changeCard(c, i, n + 1)}{/each}
+      <button class="small" type="button" onclick={() => changes.push(blank(kindsFor(item)[0].id))}>{changesFor(item).length ? 'Another change here' : 'Change something here'}</button>
+    {/snippet}
 
-    <button class="small add" type="button" onclick={() => changes.push(blank())}>{changes.length ? 'Add another change' : 'Add a change'}</button>
-    {#if tried && errors.photos}<p class="error">{errors.photos}</p>{/if}
-
-    {#if addable.length}
-      <h3 class="group">Add to your site</h3>
-    {/if}
+    <p class="hint">Tap what you’d like to change or add.</p>
     <BuildList
       id="r"
       bind:build
-      groups={[{ items: addable }]}
-      priceText={(item) => (priceOf(item) === undefined ? '' : `+${money(priceOf(item))}`)}
+      groups={[{ title: 'On your site', items: theirs }, ...(addable.length ? [{ title: 'Add to your site', items: addable }] : [])]}
+      priceText={(item) => (has(item) ? '' : priceOf(item) === undefined ? '' : `+${money(priceOf(item))}`)}
+      owned={has}
+      {changeBody}
+      onchange={startChange}
+      busy={(item) => changesFor(item).length > 0}
     />
+    {#if tried && errors.photos}<p class="error">{errors.photos}</p>{/if}
     {#if prices['small-change'] !== undefined}
       <p class="hint">Small changes are {money(prices['small-change'])} each. I’ll confirm the price before any work starts.</p>
     {/if}
@@ -626,13 +652,6 @@
     font-family: var(--display);
     font-size: 1.2rem;
     padding-inline: 0.4rem;
-  }
-  .group {
-    margin: 0.4rem 0 -0.6rem;
-    font-size: 0.85rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
   }
   .checks {
     display: flex;

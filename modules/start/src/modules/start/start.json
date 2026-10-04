@@ -7,6 +7,7 @@
     { "id": "wording", "label": "Headline and wording", "text": "The words at the top of your site.", "on": true },
     { "id": "finding", "label": "Where to find you", "text": "Address or area, opening hours, phone and social links.", "on": true },
     { "id": "photos", "label": "Photos and logo", "text": "Your place, your products, your team.", "on": true },
+    { "id": "look", "label": "Your look", "text": "The colours and fonts of your whole site.", "changeOnly": true },
     { "id": "contact", "label": "Contact form", "text": "Customers message you from your site.", "on": true, "locked": true },
     { "id": "reviews", "label": "Reviews", "text": "What customers say about you.", "module": "reviews" },
     { "id": "faq", "label": "Questions and answers", "text": "Answers to what people often ask.", "module": "faq" },
