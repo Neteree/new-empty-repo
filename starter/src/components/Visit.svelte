@@ -1,4 +1,5 @@
 <script lang="ts">
+  import SectionHead from './SectionHead.svelte';
   // Beside the enquiry form: what to send, where to find the business, how to
   // call and when it's open.
   let {
@@ -17,11 +18,7 @@
 </script>
 
 <div class="enquire-info">
-  <div class="section-head">
-    <p class="hand-note">Enquiries</p>
-    <h2>{enquiry.title}</h2>
-    <p class="intro">{enquiry.intro}</p>
-  </div>
+  <SectionHead note="Enquiries" title={enquiry.title} intro={enquiry.intro} />
   <div id="visit" class="visit">
     {#if visitText || phone || map || hours.length}<h3>Find us</h3>{/if}
     {#if visitText}<p class="intro">{visitText}</p>{/if}
@@ -47,7 +44,7 @@
     gap: 2rem;
   }
 
-  .enquire-info .section-head {
+  .enquire-info :global(.section-head) {
     margin-bottom: 0;
   }
 

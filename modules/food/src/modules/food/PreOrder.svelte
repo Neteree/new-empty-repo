@@ -3,6 +3,7 @@
   import BakeArt from './BakeArt.svelte';
   import { bakes, preOrder, MAX_EACH, type Bake, type Tag } from './menu';
   import { order, restoreOnce } from './order.svelte';
+  import { moneyFor } from '../../lib/money';
 
   onMount(restoreOnce);
 
@@ -24,7 +25,8 @@
     return 'available';
   }
 
-  const money = (n: number) => `$${n.toFixed(2)}`;
+  // Totals use the same style as the prices, so cents show everywhere or nowhere.
+  const money = moneyFor(bakes.map((bake) => bake.price));
 </script>
 
 <div class="pre-order">

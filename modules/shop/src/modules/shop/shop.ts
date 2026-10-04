@@ -3,6 +3,7 @@
 // so there's no shopping cart or server to run: Stripe takes the payment and
 // emails the business. Never invent products or prices.
 import data from './shop.json';
+import { moneyFor } from '../../lib/money';
 
 export interface Product {
   id: string;
@@ -22,4 +23,5 @@ export const shop = data as {
   products: Product[];
 };
 
-export const money = (n: number) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
+/** Prices in one style for the whole shop (see lib/money.ts). */
+export const money = moneyFor(shop.products.map((product) => product.price));

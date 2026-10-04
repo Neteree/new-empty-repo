@@ -1,16 +1,13 @@
 ---
 // Booking or quote section shell, added to the home page by the starter. The
 // form is an island, like the enquiry form.
+import SectionHead from '../../components/SectionHead.svelte';
 import BookingForm from './BookingForm.svelte';
 import { booking } from './booking';
 ---
 
 <section id="book" class="section">
-  <div class="section-head">
-    <p class="hand-note">{booking.section.note}</p>
-    <h2>{booking.section.title}</h2>
-    {booking.section.intro && <p class="intro">{booking.section.intro}</p>}
-  </div>
+  <SectionHead note={booking.section.note} title={booking.section.title} intro={booking.section.intro} />
   <div class="form-card">
     <BookingForm client:visible settings={booking} />
   </div>

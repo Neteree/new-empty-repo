@@ -1,14 +1,12 @@
 <script lang="ts">
+  import SectionHead from './SectionHead.svelte';
   // News posts on the home page, newest first. Shown once there's a post.
   let { name, posts }: { name: string; posts: { href: string; date: string; title: string; excerpt: string }[] } = $props();
 </script>
 
 {#if posts.length}
   <section id="journal" class="section">
-    <div class="section-head">
-      <p class="hand-note">News</p>
-      <h2>Latest from {name}</h2>
-    </div>
+    <SectionHead note="News" title={`Latest from ${name}`} />
     <div class="posts">
       {#each posts as post (post.href)}
         <a class="post-card" href={post.href}>

@@ -45,6 +45,7 @@
 import { copyFileSync, existsSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
 import { listHandlers, loadLists } from './lists.js';
+import { money, parseMoney } from '../src/lib/money.ts';
 
 const SITE_JSON = 'src/data/site.json';
 const MENU_JSON = 'src/modules/food/menu.json';
@@ -333,16 +334,38 @@ function menu() {
   return readJson(MENU_JSON);
 }
 
-function findItem(data, name) {
-  const matches = data.items.filter((item) => item.name.toLowerCase() === name?.trim().toLowerCase());
-  if (matches.length !== 1) needsPerson(`Couldn’t find exactly one menu item called “${name}”.`);
+// Named items (menu items, price list items, products): found, added and
+// photographed the same way everywhere.
+const sameName = (item, name) => item.name.toLowerCase() === String(name ?? '').trim().toLowerCase();
+
+/** The one item called `name`, or "needs a person". `where` reads like "on the menu". */
+function findByName(items, name, where) {
+  const matches = items.filter((item) => sameName(item, name));
+  if (matches.length !== 1) needsPerson(`Couldn’t find exactly one item called “${name}” ${where}.`);
   return matches[0];
 }
 
+/** A new item's name, checked, and an id no other item has. */
+function newItem(items, name, where) {
+  if (!name?.trim()) needsPerson(`A new item ${where} needs a name.`);
+  if (items.some((item) => sameName(item, name))) needsPerson(`“${name.trim()}” is already ${where}.`);
+  let id = slugify(name);
+  while (items.some((item) => item.id === id)) id += '-2';
+  return { id, name: name.trim() };
+}
+
+/** Sets, replaces or removes an item's photo. */
+function setPhoto(item, { file, gallery, alt, remove }) {
+  if (remove) delete item.photo;
+  else if (file || gallery) item.photo = itemPhoto({ file, gallery, alt }, item.name);
+  else needsPerson('Choose a photo, or say to remove it.');
+  return remove ? `“${item.name}” has no photo now.` : `“${item.name}” now shows ${item.photo.file}.`;
+}
+
 function price(value) {
-  const number = Number(String(value).replace(/[$,\s]/g, ''));
-  if (!Number.isFinite(number) || number <= 0) needsPerson(`“${value}” isn’t a price.`);
-  return Math.round(number * 100) / 100;
+  const amount = parseMoney(value);
+  if (amount === null) needsPerson(`“${value}” isn’t a price.`);
+  return amount;
 }
 
 const TAGS = ['vegan', 'gluten-free'];
@@ -368,39 +391,37 @@ const menuChanges = {
   },
   'menu-add'({ name, description, price: cost, tags = [], days, category }) {
     const data = menu();
-    if (!name?.trim() || !description?.trim()) needsPerson('A new menu item needs a name and a description.');
-    if (data.items.some((item) => item.name.toLowerCase() === name.trim().toLowerCase())) needsPerson(`“${name}” is already on the menu.`);
+    const base = newItem(data.items, name, 'on the menu');
+    if (!description?.trim()) needsPerson('A new menu item needs a description.');
     const allDays = data.preOrder.days.map((day) => day.id);
     const itemDays = days ?? allDays;
     if (!itemDays.length || itemDays.some((day) => !allDays.includes(day))) needsPerson(`Days must be some of: ${allDays.join(', ')}.`);
     const badTags = tags.filter((tag) => !TAGS.includes(tag));
     if (badTags.length) needsPerson(`Unknown tags: ${badTags.join(', ')}.`);
-    let id = slugify(name);
-    while (data.items.some((item) => item.id === id)) id += '-2';
-    const item = { id, name: name.trim(), description: description.trim(), price: price(cost), tags, days: itemDays };
+    const item = { ...base, description: description.trim(), price: price(cost), tags, days: itemDays };
     if (category?.trim()) item.category = category.trim();
     data.items.push(item);
     writeJson(MENU_JSON, data);
-    return `Added “${name.trim()}” at $${price(cost).toFixed(2)}.`;
+    return `Added “${item.name}” at ${money(item.price)}.`;
   },
   'menu-remove'({ name }) {
     const data = menu();
-    const item = findItem(data, name);
+    const item = findByName(data.items, name, 'on the menu');
     data.items = data.items.filter((other) => other !== item);
     writeJson(MENU_JSON, data);
     return `Removed “${item.name}” from the menu.`;
   },
   'menu-price'({ name, price: cost }) {
     const data = menu();
-    const item = findItem(data, name);
+    const item = findByName(data.items, name, 'on the menu');
     const before = item.price;
     item.price = price(cost);
     writeJson(MENU_JSON, data);
-    return `“${item.name}” is now $${item.price.toFixed(2)} (was $${before.toFixed(2)}).`;
+    return `“${item.name}” is now ${money(item.price)} (was ${money(before)}).`;
   },
   'menu-sold-out'({ name, soldOut, days }) {
     const data = menu();
-    const item = findItem(data, name);
+    const item = findByName(data.items, name, 'on the menu');
     const target = days ?? item.days;
     if (soldOut) item.soldOut = [...new Set([...(item.soldOut ?? []), ...target])];
     else item.soldOut = (item.soldOut ?? []).filter((day) => !target.includes(day));
@@ -416,11 +437,6 @@ function priceList() {
   return readJson(PRICES_JSON);
 }
 
-function findPriceItem(data, name) {
-  const matches = data.items.filter((item) => item.name.toLowerCase() === name?.trim().toLowerCase());
-  if (matches.length !== 1) needsPerson(`Couldn’t find exactly one price list item called “${name}”.`);
-  return matches[0];
-}
 
 /** Sets one price, sizes, or neither ("Ask us") on an item, replacing what was there. */
 function setPricing(item, { price: cost, from, sizes }) {
@@ -438,7 +454,7 @@ function setPricing(item, { price: cost, from, sizes }) {
   }
 }
 
-/** A photo for a price list item: a new file or one already in the gallery. */
+/** A photo for an item: a new file or one already in the gallery. */
 function itemPhoto({ file, gallery, alt }, name) {
   if (gallery) {
     const match = (readJson(SITE_JSON).gallery ?? []).find((photo) => photo.file === gallery);
@@ -448,9 +464,8 @@ function itemPhoto({ file, gallery, alt }, name) {
   return { file: copyImage(file, 'item'), alt: alt?.trim() || PLACEHOLDER_ALT };
 }
 
-const dollars = (n) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
 const describePrice = (item) =>
-  item.sizes ? item.sizes.map((size) => `${size.label} ${dollars(size.price)}`).join(', ') : item.price !== undefined ? `${item.from ? 'from ' : ''}${dollars(item.price)}` : 'ask us';
+  item.sizes ? item.sizes.map((size) => `${size.label} ${money(size.price)}`).join(', ') : item.price !== undefined ? `${item.from ? 'from ' : ''}${money(item.price)}` : 'ask us';
 
 const priceChanges = {
   'prices-replace'({ items, footnote }) {
@@ -473,11 +488,7 @@ const priceChanges = {
   },
   'price-add'({ name, description, category, price: cost, from, sizes, photo }) {
     const data = priceList();
-    if (!name?.trim()) needsPerson('A new price list item needs a name.');
-    if (data.items.some((item) => item.name.toLowerCase() === name.trim().toLowerCase())) needsPerson(`“${name}” is already on the price list.`);
-    let id = slugify(name);
-    while (data.items.some((item) => item.id === id)) id += '-2';
-    const item = { id, name: name.trim() };
+    const item = newItem(data.items, name, 'on the price list');
     if (description?.trim()) item.description = description.trim();
     if (category?.trim()) item.category = category.trim();
     setPricing(item, { price: cost, from, sizes });
@@ -493,7 +504,7 @@ const priceChanges = {
   },
   'price-change'({ name, price: cost, from, sizes, description }) {
     const data = priceList();
-    const item = findPriceItem(data, name);
+    const item = findByName(data.items, name, 'on the price list');
     if (cost !== undefined || sizes !== undefined) setPricing(item, { price: cost, from, sizes });
     if (description !== undefined) {
       if (description.trim()) item.description = description.trim();
@@ -504,27 +515,24 @@ const priceChanges = {
   },
   'price-remove'({ name }) {
     const data = priceList();
-    const item = findPriceItem(data, name);
+    const item = findByName(data.items, name, 'on the price list');
     data.items = data.items.filter((other) => other !== item);
     writeJson(PRICES_JSON, data);
     return `Removed “${item.name}” from the price list.`;
   },
   'price-available'({ name, available }) {
     const data = priceList();
-    const item = findPriceItem(data, name);
+    const item = findByName(data.items, name, 'on the price list');
     if (available) delete item.unavailable;
     else item.unavailable = true;
     writeJson(PRICES_JSON, data);
     return `“${item.name}” is ${available ? 'back on' : 'hidden from'} the price list.`;
   },
-  'price-photo'({ name, file, gallery, alt, remove }) {
+  'price-photo'({ name, ...photo }) {
     const data = priceList();
-    const item = findPriceItem(data, name);
-    if (remove) delete item.photo;
-    else if (file || gallery) item.photo = itemPhoto({ file, gallery, alt }, name);
-    else needsPerson('Choose a photo, or say to remove it.');
+    const summary = setPhoto(findByName(data.items, name, 'on the price list'), photo);
     writeJson(PRICES_JSON, data);
-    return remove ? `“${item.name}” has no photo now.` : `“${item.name}” now shows ${item.photo.file}.`;
+    return summary;
   },
   'price-note'({ footnote }) {
     const data = priceList();
@@ -576,63 +584,51 @@ function stripeLink(link) {
   return clean;
 }
 
-function findProduct(data, name) {
-  const matches = data.products.filter((item) => item.name.toLowerCase() === name?.trim().toLowerCase());
-  if (matches.length !== 1) needsPerson(`Couldn’t find exactly one product called “${name}”.`);
-  return matches[0];
-}
 
 const shopChanges = {
   'product-add'({ name, description, price: cost, link, photo }) {
-    if (!name?.trim()) needsPerson('A product needs a name.');
     const data = moduleData(SHOP_JSON, 'shop');
     data.products = data.products.filter((item) => !isPlaceholder(item.name));
-    if (data.products.some((item) => item.name.toLowerCase() === name.trim().toLowerCase())) needsPerson(`“${name}” is already in the shop.`);
-    let id = slugify(name);
-    while (data.products.some((item) => item.id === id)) id += '-2';
-    const product = { id, name: name.trim(), description: description?.trim() ?? '', price: price(cost), link: stripeLink(link) };
+    const product = { ...newItem(data.products, name, 'in the shop'), description: description?.trim() ?? '', price: price(cost), link: stripeLink(link) };
     if (photo && (photo.file || photo.gallery)) product.photo = itemPhoto(photo, name);
     data.products.push(product);
     writeJson(SHOP_JSON, data);
-    return `Added “${product.name}” at $${product.price}${product.link ? '' : ' (no payment link yet, so it shows “Ask us”)'}.`;
+    return `Added “${product.name}” at ${money(product.price)}${product.link ? '' : ' (no payment link yet, so it shows “Ask us”)'}.`;
   },
   'product-remove'({ name }) {
     const data = moduleData(SHOP_JSON, 'shop');
-    const product = findProduct(data, name);
+    const product = findByName(data.products, name, 'in the shop');
     data.products = data.products.filter((item) => item !== product);
     writeJson(SHOP_JSON, data);
     return `Removed “${product.name}” from the shop.`;
   },
   'product-price'({ name, price: cost }) {
     const data = moduleData(SHOP_JSON, 'shop');
-    const product = findProduct(data, name);
+    const product = findByName(data.products, name, 'in the shop');
     product.price = price(cost);
     writeJson(SHOP_JSON, data);
-    return `“${product.name}” is now $${product.price}. Check its Stripe payment link charges the same.`;
+    return `“${product.name}” is now ${money(product.price)}. Check its Stripe payment link charges the same.`;
   },
   'product-link'({ name, link }) {
     const data = moduleData(SHOP_JSON, 'shop');
-    const product = findProduct(data, name);
+    const product = findByName(data.products, name, 'in the shop');
     product.link = stripeLink(link);
     writeJson(SHOP_JSON, data);
     return product.link ? `“${product.name}” can be bought online.` : `“${product.name}” now shows “Ask us”.`;
   },
   'product-sold-out'({ name, soldOut }) {
     const data = moduleData(SHOP_JSON, 'shop');
-    const product = findProduct(data, name);
+    const product = findByName(data.products, name, 'in the shop');
     if (soldOut) product.soldOut = true;
     else delete product.soldOut;
     writeJson(SHOP_JSON, data);
     return `“${product.name}” is ${soldOut ? 'sold out' : 'back in stock'}.`;
   },
-  'product-photo'({ name, file, gallery, alt, remove }) {
+  'product-photo'({ name, ...photo }) {
     const data = moduleData(SHOP_JSON, 'shop');
-    const product = findProduct(data, name);
-    if (remove) delete product.photo;
-    else if (file || gallery) product.photo = itemPhoto({ file, gallery, alt }, name);
-    else needsPerson('Choose a photo, or say to remove it.');
+    const summary = setPhoto(findByName(data.products, name, 'in the shop'), photo);
     writeJson(SHOP_JSON, data);
-    return remove ? `“${product.name}” has no photo now.` : `“${product.name}” now shows ${product.photo.file}.`;
+    return summary;
   },
 };
 

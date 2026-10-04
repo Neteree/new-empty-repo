@@ -1,19 +1,13 @@
 ---
 // Highlights section shell, added to the home page by the starter. No JavaScript.
+import SectionHead from '../../components/SectionHead.svelte';
 import Highlights from './Highlights.svelte';
 import { highlights } from './highlights';
 ---
 
 {highlights.items.length > 0 && (
   <section id="highlights" class="section" aria-labelledby="highlights-title">
-    {highlights.section.title ? (
-      <div class="section-head">
-        {highlights.section.note && <p class="hand-note">{highlights.section.note}</p>}
-        <h2 id="highlights-title">{highlights.section.title}</h2>
-      </div>
-    ) : (
-      <h2 id="highlights-title" class="visually-hidden">Why choose us</h2>
-    )}
+    <SectionHead id="highlights-title" note={highlights.section.note} title={highlights.section.title} hiddenTitle="Why choose us" />
     <Highlights items={highlights.items} />
   </section>
 )}

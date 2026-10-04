@@ -2,6 +2,7 @@
 // Menu section shell, added to the home page by the starter. With
 // pre-ordering on (menu.json preOrder.enabled) it's the interactive order
 // form; otherwise the plain menu (Menu.svelte), with no JavaScript.
+import SectionHead from '../../components/SectionHead.svelte';
 import PreOrder from './PreOrder.svelte';
 import Menu from './Menu.svelte';
 import { bakes, demoMenu, preOrder, section } from './menu';
@@ -9,11 +10,7 @@ import { site } from '../../site.config';
 ---
 
 <section id={preOrder.enabled ? 'order' : 'menu'} class="section">
-  <div class="section-head">
-    <p class="hand-note">{preOrder.enabled ? preOrder.label : section.note}</p>
-    <h2>{section.title}</h2>
-    {section.intro && <p class="intro">{section.intro}</p>}
-  </div>
+  <SectionHead note={preOrder.enabled ? preOrder.label : section.note} title={section.title} intro={section.intro} />
   {demoMenu && !site.demo && <p class="intro">[PLACEHOLDER: the client's real menu goes in src/modules/food/menu.json]</p>}
   {preOrder.enabled ? <PreOrder client:load /> : <Menu items={bakes} />}
 </section>

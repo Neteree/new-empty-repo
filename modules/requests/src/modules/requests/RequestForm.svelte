@@ -4,6 +4,7 @@
   // takes (new photos go to the intake and point at their upload by number). Nothing happens until the client confirms
   // from their saved email address and Cameron approves the price.
   import { site } from '../../site.config';
+  import { isPrice as priceOk } from '../../lib/money';
   import { send, canUpload } from '../../lib/send';
   import { looks as themes } from '../../lib/catalogue';
   import PhotoPicker, { type ExistingPhoto } from '../../components/forms/PhotoPicker.svelte';
@@ -142,7 +143,6 @@
   let status = $state<'idle' | 'sending' | 'sent' | 'failed'>('idle');
 
   type Change = ReturnType<typeof blank>;
-  const priceOk = (value: string) => Number(value.replace(/[$,\s]/g, '')) > 0;
   const STRIPE = /^https:\/\/buy\.stripe\.com\/[\w-]+$/;
 
   /** What's missing from one change, or '' when it's complete. */

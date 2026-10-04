@@ -3,6 +3,7 @@
 // there start as examples: replace them with the client's real prices, then
 // set demoPrices to false.
 import data from './prices.json';
+import { moneyFor } from '../../lib/money';
 
 export interface Size {
   /** e.g. 'Small'. */
@@ -42,7 +43,8 @@ export const { demoPrices, section } = prices;
 /** Only the items on sale right now. */
 export const items = prices.items.filter((item) => !item.unavailable);
 
-const money = (n: number) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
+// One style for the whole list (see lib/money.ts).
+const money = moneyFor(items.flatMap((item) => (item.sizes?.length ? item.sizes.map((size) => size.price) : item.price !== undefined ? [item.price] : [])));
 
 /** The price as shown: '$65', 'From $120', 'Small $45 · Large $90' or 'Ask us' (section.askText). */
 export function priceText(item: PriceItem): string {

@@ -1,17 +1,14 @@
 ---
 // Lantern Market's home page section: what the game is, a button to play it
 // (lantern.html) and the games it borrows from. No JavaScript.
+import SectionHead from '../../components/SectionHead.svelte';
 import data from './lantern.json';
 
 const { section, recipe } = data;
 ---
 
 <section id="lantern" class="section lantern-intro">
-  <div class="section-head">
-    <p class="hand-note">{section.note}</p>
-    <h2>{section.title}</h2>
-    <p class="intro">{section.intro}</p>
-  </div>
+  <SectionHead note={section.note} title={section.title} intro={section.intro} />
   <a class="button" href="lantern.html">{section.button}</a>
   <h3>What went into the pot</h3>
   <ul class="recipe">

@@ -1,4 +1,5 @@
 <script lang="ts" module>
+  import { isPrice as priceOk } from '../../lib/money';
   export type Pricing = 'one' | 'from' | 'sizes' | 'ask';
   export interface PriceChange {
     kind: string;
@@ -15,7 +16,6 @@
     itemPhotoFile: File[];
     itemPhotoAlt: string;
   }
-  const priceOk = (value: string) => Number(value.replace(/[$,\s]/g, '')) > 0;
 
   /** What's missing from a price list change, or '' when it's complete. */
   export function priceProblem(c: PriceChange): string {

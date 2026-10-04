@@ -1,15 +1,13 @@
 ---
 // FAQ section shell, added to the home page by the starter. No JavaScript.
+import SectionHead from '../../components/SectionHead.svelte';
 import Questions from './Questions.svelte';
 import { faq } from './faq';
 ---
 
 {faq.questions.length > 0 && (
   <section id="faq" class="section">
-    <div class="section-head">
-      <p class="hand-note">{faq.section.note}</p>
-      <h2>{faq.section.title}</h2>
-    </div>
+    <SectionHead note={faq.section.note} title={faq.section.title} />
     <Questions questions={faq.questions} />
   </section>
 )}
