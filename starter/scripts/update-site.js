@@ -5,13 +5,14 @@
 //   node scripts/update-site.js <site-folder> [--dry-run]
 //
 // Kept as the site's own: src/data/site.json, photos, news posts, module data
-// (src/modules/<name>/*.json) and the lock file. New settings the starter has
+// (src/modules/<name>/*.json), files in public/ (icons, share image) and the lock file. New settings the starter has
 // added are filled in with their defaults (never overwriting the client's);
 // package.json and cspell-words.txt are merged. Files that came from an older
 // starter and are gone now are removed (the site keeps a list of them in
 // .starter-files.json). Afterwards: cd <site> && npm install && npm run check.
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
+import { writeCatalogue } from './catalogue.js';
 
 const [target, ...flags] = process.argv.slice(2);
 const dryRun = flags.includes('--dry-run');
@@ -35,6 +36,7 @@ const isContent = (path) =>
   path === 'package-lock.json' ||
   path === 'cspell-words.txt' ||
   /^src\/assets\/photos\//.test(path) ||
+  (/^public\//.test(path) && !existsSync(join(starter, path))) ||
   /^src\/content\/journal\//.test(path);
 
 function walk(dir, base = dir) {
@@ -107,6 +109,9 @@ for (const name of siteModules) {
   const manifest = join(modulesDir, name, 'module.json');
   if (existsSync(manifest)) Object.assign(extraDeps, readJson(manifest).dependencies);
 }
+
+// The add-on modules the onboarding form offers, from the modules folder.
+if (!dryRun) writeCatalogue(site, modulesDir);
 
 // 3. The change-request agent lives at the repo root.
 put(resolve(starter, '../site_agent.py'), join(site, 'scripts/site_agent.py'));

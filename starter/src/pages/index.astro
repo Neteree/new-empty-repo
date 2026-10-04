@@ -47,7 +47,7 @@ const galleryImages = await Promise.all(site.gallery.map((item) => picture(item.
       note={`${site.suburb}, ${site.city}${site.heroNote && ` · ${site.heroNote}`}`}
       title={site.heroTitle}
       text={site.heroText}
-      button={{ label: site.enquiry.title, href: '#enquire' }}
+      button={site.heroLink?.label ? site.heroLink : { label: site.enquiry.title, href: '#enquire' }}
       image={heroImage}
     />
 

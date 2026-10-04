@@ -1,0 +1,25 @@
+---
+// Past work section shell, added to the home page by the starter: prepares
+// the pictures for Work.svelte. No JavaScript.
+import Work from './Work.svelte';
+import { work } from './work';
+import { picture } from '../../lib/images';
+
+const items = await Promise.all(
+  work.items.map(async ({ photo, ...item }) => ({
+    ...item,
+    image: await picture(photo.file, photo.alt, [480, 800, 1280], '(min-width: 60rem) 45vw, 95vw'),
+  })),
+);
+---
+
+{items.length > 0 && (
+  <section id="work" class="section">
+    <div class="section-head">
+      <p class="hand-note">{work.section.note}</p>
+      <h2>{work.section.title}</h2>
+      {work.section.intro && <p class="intro">{work.section.intro}</p>}
+    </div>
+    <Work {items} browser={work.section.frame === 'browser'} />
+  </section>
+)}

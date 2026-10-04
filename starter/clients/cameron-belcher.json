@@ -1,0 +1,288 @@
+{
+  "name": "Cameron Belcher",
+  "suburb": "Auckland",
+  "city": "New Zealand",
+  "description": "Fast, good-looking websites for Auckland small businesses, with no monthly fees. Pay once for the build, then only for the changes you ask for.",
+  "heroNote": "websites for local businesses",
+  "heroTitle": "Websites that bring local customers through the door.",
+  "heroText": "I design and build fast, good-looking websites for small businesses around Auckland. No monthly fees: pay once for the build, then only for the changes you ask for.",
+  "heroPhoto": {
+    "file": "cafe.jpg",
+    "alt": "A café website built with the same setup client sites use"
+  },
+  "visitText": "",
+  "hours": [],
+  "enquiry": {
+    "title": "Get in touch",
+    "intro": "Tell me a little about your business and I’ll get back to you to set up a free, no-pressure chat.",
+    "options": [
+      "A new website",
+      "A new site to replace an old one",
+      "Online orders or bookings",
+      "A game or something playful",
+      "Not sure yet, let's chat"
+    ],
+    "askBusiness": true,
+    "thanks": "Your enquiry is on its way. I'll get back to you soon."
+  },
+  "theme": "studio",
+  "url": "https://cameron-belcher-web.pages.dev",
+  "formKey": "f508dcc9-6877-487b-b5fd-63604d81d547",
+  "intakeUrl": "https://cameron-belcher-intake.neteree.workers.dev",
+  "sections": [
+    "highlights",
+    "work",
+    "prices",
+    "steps",
+    "faq"
+  ],
+  "modules": [
+    "highlights",
+    "work",
+    "prices",
+    "steps",
+    "faq",
+    "onboarding",
+    "requests"
+  ],
+  "highlights": {
+    "section": {
+      "note": "",
+      "title": ""
+    },
+    "items": [
+      {
+        "title": "Fast on phones",
+        "text": "Most of your customers look you up on their phone. Your site loads in a blink, even on patchy mobile data."
+      },
+      {
+        "title": "Found locally",
+        "text": "Set up for local search and your Google Business Profile, so people nearby find you when they search."
+      },
+      {
+        "title": "Easy to update",
+        "text": "Send me a quick message for changes, or add a simple editor and post your own news."
+      },
+      {
+        "title": "No monthly fees",
+        "text": "Pay once for your site. After that you only pay when you ask for a change."
+      }
+    ]
+  },
+  "work": {
+    "section": {
+      "note": "Work",
+      "title": "Recent projects",
+      "intro": "Demo sites and a game, showing the range of what I build. Every business gets its own look, not a template with the colours swapped.",
+      "nav": "Work",
+      "frame": "browser"
+    },
+    "items": [
+      {
+        "title": "Lantern Market",
+        "kind": "Browser game",
+        "photo": {
+          "file": "lantern.jpg",
+          "alt": "A night-market puzzle game with a hex board of numbered jewel tiles, patrons' order tickets and a stall market"
+        },
+        "text": "A full puzzle game built on the same setup as the business sites: one look, one set of parts, the same checks.",
+        "demo": true
+      },
+      {
+        "title": "Paper Boat Café",
+        "kind": "Café",
+        "photo": {
+          "file": "cafe.jpg",
+          "alt": "Café website in warm retro orange and brown with a coffee cup illustration and menu highlights"
+        },
+        "text": "Opening hours up front, menu favourites, and ordering ahead for pickup.",
+        "demo": true
+      },
+      {
+        "title": "Tideline Plumbing",
+        "kind": "Plumber",
+        "photo": {
+          "file": "plumber.jpg",
+          "alt": "Bold yellow and black plumbing website with a pipe illustration and a big phone number"
+        },
+        "text": "Built to get the phone ringing: emergency call-outs, fixed quotes and trust points.",
+        "demo": true
+      },
+      {
+        "title": "Kingfisher Barbers",
+        "kind": "Barber",
+        "photo": {
+          "file": "barber.jpg",
+          "alt": "Dark barbershop website with gold lettering, a price list and a barber pole"
+        },
+        "text": "A price list at a glance, opening hours and online booking.",
+        "demo": true
+      },
+      {
+        "title": "Clearwater Physio",
+        "kind": "Physiotherapy clinic",
+        "photo": {
+          "file": "physio.jpg",
+          "alt": "Calm sage-green physio website with an appointment booking panel"
+        },
+        "text": "A calm, trustworthy feel with appointment booking right on the home page.",
+        "demo": true
+      },
+      {
+        "title": "Early Crust",
+        "kind": "Bakery",
+        "photo": {
+          "file": "bakery.jpg",
+          "alt": "Bakery website in a blue and yellow print style with a weekend pre-order"
+        },
+        "text": "Weekend pre-orders with pickup times, sold-out items and a cake enquiry form.",
+        "demo": true
+      },
+      {
+        "title": "Stem & Loam",
+        "kind": "Florist",
+        "photo": {
+          "file": "florist-botanical.jpg",
+          "alt": "Florist website with a hand-drawn bouquet, script lettering and blush paper texture"
+        },
+        "text": "A romantic, hand-drawn look with a weekly flower list and a seasonal guide.",
+        "demo": true
+      }
+    ]
+  },
+  "prices": {
+    "demoPrices": false,
+    "section": {
+      "note": "Pricing",
+      "title": "Start small. Add as you grow.",
+      "intro": "One simple site to start, with extras you can add now or later. After launch, you only pay for the changes you ask for. Prices in NZD.",
+      "footnote": "Money tight right now? Get in touch anyway. We can split the cost into smaller payments or start with the basics and add to it later.",
+      "askText": "Quoted",
+      "nav": "Pricing"
+    },
+    "items": [
+      {
+        "id": "website",
+        "name": "Your website",
+        "category": "Start here",
+        "price": 150,
+        "description": "A polished one-page site that tells people who you are and how to reach you: one-page custom design, enquiry form, Google Business Profile and local search basics, launched on your own domain, free hosting set up in your name."
+      },
+      {
+        "id": "extra-page",
+        "name": "Extra page",
+        "category": "Add what you need, now or later",
+        "price": 40,
+        "description": "About, services, gallery, or anything else. Priced per page."
+      },
+      {
+        "id": "menu",
+        "name": "Menu or product list",
+        "category": "Add what you need, now or later",
+        "price": 60,
+        "description": "Your menu, services or products with prices."
+      },
+      {
+        "id": "booking",
+        "name": "Booking or quote form",
+        "category": "Add what you need, now or later",
+        "price": 60,
+        "description": "Customers send a booking or quote request straight to you."
+      },
+      {
+        "id": "news",
+        "name": "News you edit yourself",
+        "category": "Add what you need, now or later",
+        "price": 80,
+        "description": "Post news, specials or updates from a simple editor."
+      },
+      {
+        "id": "orders",
+        "name": "Online orders",
+        "category": "Add what you need, now or later",
+        "price": 350,
+        "description": "Orders, pre-orders or payments through Stripe, set up in your name."
+      },
+      {
+        "id": "small-change",
+        "name": "Small change",
+        "category": "After launch: pay per request",
+        "price": 20,
+        "description": "Text, photos, prices, opening hours or a menu update."
+      },
+      {
+        "id": "bigger-job",
+        "name": "Bigger job",
+        "category": "After launch: pay per request",
+        "description": "A redesign or something not listed above. Quoted up front."
+      }
+    ]
+  },
+  "steps": {
+    "section": {
+      "note": "How it works",
+      "title": "From first chat to live site",
+      "nav": "How it works"
+    },
+    "steps": [
+      {
+        "title": "A quick chat",
+        "text": "A free 20-minute call about your business and what you want the site to do."
+      },
+      {
+        "title": "Design and build",
+        "text": "I design and build your site, and you see a working preview to give feedback on."
+      },
+      {
+        "title": "Launch",
+        "text": "Once you’re happy, it goes live on your domain, with your Google profile connected."
+      },
+      {
+        "title": "Changes when you need them",
+        "text": "Send me a request whenever something changes. I tell you the price, then do it."
+      }
+    ]
+  },
+  "faq": {
+    "section": {
+      "note": "FAQ",
+      "title": "Questions people ask",
+      "nav": "FAQ"
+    },
+    "questions": [
+      {
+        "question": "Do I own my website?",
+        "answer": "Yes. Your domain, words and photos are yours. If you ever leave, you get a full copy of your site."
+      },
+      {
+        "question": "Can I change things myself?",
+        "answer": "Yes, if you add the news editor, you can post news and specials yourself. For anything else, just send me a message and I’ll do it."
+      },
+      {
+        "question": "Why not Wix, Squarespace or WordPress?",
+        "answer": "They’re fine for some people, but they take your time to set up and maintain, and often end up slow. My sites are custom and fast, and I make the changes for you when you need them."
+      },
+      {
+        "question": "Are there any ongoing costs?",
+        "answer": "Only your domain name, usually around $30 a year, paid straight to the registrar. Hosting is free and set up in your name, and there’s no monthly fee to me."
+      },
+      {
+        "question": "How do changes work?",
+        "answer": "Send me what you’d like changed. Small changes are a fixed price; anything bigger gets a quote before I start, so there are no surprises."
+      }
+    ]
+  },
+  "requests": {
+    "note": "For clients",
+    "title": "Ask for a change",
+    "intro": "Add as many changes as you like. You’ll confirm the request from your email, and I’ll send you the price before any work starts. Small changes are $20."
+  },
+  "contact": {
+    "email": "cameronbe@missionreadyhq.com",
+    "phone": ""
+  },
+  "demo": false,
+  "words": [
+    "Squarespace"
+  ]
+}

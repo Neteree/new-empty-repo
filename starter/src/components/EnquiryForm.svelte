@@ -1,12 +1,16 @@
 <script lang="ts">
-  // Enquiry form. Sends through Web3Forms (lib/send.ts), which emails the
-  // enquiry to the address behind `site.formKey`. Without a key it sends nothing. The
-  // "What do you need?" choices come from `site.enquiry.options`.
+  // Enquiry form. Sends through lib/send.ts: Web3Forms emails the enquiry to
+  // the address behind `site.formKey` (or, on a site with `intakeUrl`, it goes
+  // into the request queue). Without either it sends nothing. The "What do you
+  // need?" choices come from `site.enquiry.options`.
   import { site } from '../site.config';
-  import { sendForm } from '../lib/send';
+  import { send } from '../lib/send';
+
+  const connected = Boolean(site.formKey || site.intakeUrl);
 
   let name = $state('');
   let email = $state('');
+  let business = $state('');
   let need = $state('');
   let message = $state('');
   let botcheck = $state(false);
@@ -24,19 +28,24 @@
     event.preventDefault();
     tried = true;
     if (!valid || status === 'sending') return;
-    if (!site.formKey) {
+    if (!connected) {
       status = 'sent';
       return;
     }
     status = 'sending';
-    const sent = await sendForm(`Website enquiry from ${name.trim()}`, {
+    const answers = {
       name: name.trim(),
-      email,
+      email: email.trim(),
+      ...(site.enquiry.askBusiness ? { business: business.trim() || '-' } : {}),
       need,
       message: message.trim() || '-',
-      botcheck,
-    });
-    status = sent ? 'sent' : 'failed';
+    };
+    try {
+      await send({ kind: 'contact', subject: `Website enquiry from ${answers.name}`, fields: answers, payload: answers, botcheck });
+      status = 'sent';
+    } catch {
+      status = 'failed';
+    }
   }
 
   function reset() {
@@ -48,8 +57,8 @@
 {#if status === 'sent'}
   <div class="form-sent" role="status">
     <p class="big">Thanks, {name.trim().split(' ')[0]}.</p>
-    {#if site.formKey}
-      <p>Your enquiry is on its way. We'll get back to you soon.</p>
+    {#if connected}
+      <p>{site.enquiry.thanks || "Your enquiry is on its way. We'll get back to you soon."}</p>
     {:else}
       <p>This form isn't connected yet, so nothing was sent. Once it's live, enquiries will arrive straight away.</p>
     {/if}
@@ -69,6 +78,12 @@
         {#if tried && errors.email}<p class="error" id="enq-email-err">{errors.email}</p>{/if}
       </div>
     </div>
+    {#if site.enquiry.askBusiness}
+      <div class="field">
+        <label for="enq-business">Your business <span class="optional">(optional)</span></label>
+        <input id="enq-business" autocomplete="organization" bind:value={business} />
+      </div>
+    {/if}
     <div class="field">
       <label for="enq-need">What do you need?</label>
       <select id="enq-need" bind:value={need} aria-invalid={tried && !!errors.need} aria-describedby="enq-need-err">
@@ -88,8 +103,8 @@
     {#if status === 'failed'}
       <p class="error" role="alert">Sorry, that didn't send. Please try again in a moment.</p>
     {/if}
-    {#if !site.formKey && site.demo}<p class="note">Not connected yet: this form doesn't send anything.</p>{/if}
+    {#if !connected && site.demo}<p class="note">Not connected yet: this form doesn't send anything.</p>{/if}
     <!-- A real client's site can't go live until its form sends: the checks catch this placeholder. -->
-    {#if !site.formKey && !site.demo}<p class="note">[PLACEHOLDER: connect this form with the client's Web3Forms key (a "form-key" change)]</p>{/if}
+    {#if !connected && !site.demo}<p class="note">[PLACEHOLDER: connect this form with the client's Web3Forms key (a "form-key" change)]</p>{/if}
   </form>
 {/if}

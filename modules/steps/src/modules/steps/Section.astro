@@ -1,0 +1,15 @@
+---
+// How-it-works section shell, added to the home page by the starter. No JavaScript.
+import Steps from './Steps.svelte';
+import { steps } from './steps';
+---
+
+{steps.steps.length > 0 && (
+  <section id="how" class="section">
+    <div class="section-head">
+      <p class="hand-note">{steps.section.note}</p>
+      <h2>{steps.section.title}</h2>
+    </div>
+    <Steps steps={steps.steps} />
+  </section>
+)}

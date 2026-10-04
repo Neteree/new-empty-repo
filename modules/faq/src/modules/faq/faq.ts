@@ -7,4 +7,5 @@ export interface Question {
   answer: string;
 }
 
-export const faq = data as { section: { note: string; title: string }; questions: Question[] };
+/** `nav` is the menu label; blank keeps it out of the menu. */
+export const faq = data as { section: { note: string; title: string; nav: string }; questions: Question[] };

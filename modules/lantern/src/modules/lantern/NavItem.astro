@@ -1,0 +1,8 @@
+---
+// The game's link in the site menu.
+import data from './lantern.json';
+
+const { home } = Astro.props as { home: string };
+---
+
+<a href={`${home.replace(/index\.html$/, '')}lantern.html`}>{data.section.nav}</a>

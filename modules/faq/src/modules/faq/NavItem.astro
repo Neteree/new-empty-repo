@@ -1,0 +1,8 @@
+---
+// The questions' link in the site menu, when `section.nav` is set.
+import { faq } from './faq';
+
+const { home } = Astro.props as { home: string };
+---
+
+{faq.questions.length > 0 && faq.section.nav && <a href={`${home}#faq`}>{faq.section.nav}</a>}

@@ -23,19 +23,21 @@
     <p class="intro">{enquiry.intro}</p>
   </div>
   <div id="visit" class="visit">
-    <h3>Find us</h3>
-    <p class="intro">{visitText}</p>
+    {#if visitText || phone || map || hours.length}<h3>Find us</h3>{/if}
+    {#if visitText}<p class="intro">{visitText}</p>{/if}
     {#if phone || map}
       <p class="contact-links">
         {#if phone}<a href={phone.href}>{`Call ${phone.text}`}</a>{/if}
         {#if map}<a href={map}>Open in Google Maps</a>{/if}
       </p>
     {/if}
-    <dl class="hours">
-      {#each hours as row, i (i)}
-        <div><dt>{row.days}</dt><dd>{row.times}</dd></div>
-      {/each}
-    </dl>
+    {#if hours.length}
+      <dl class="hours">
+        {#each hours as row, i (i)}
+          <div><dt>{row.days}</dt><dd>{row.times}</dd></div>
+        {/each}
+      </dl>
+    {/if}
   </div>
 </div>
 

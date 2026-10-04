@@ -14,6 +14,8 @@ export interface Site {
   heroNote: string;
   heroTitle: string;
   heroText: string;
+  /** Optional main button beside the headline, e.g. { label: 'Play now', href: 'lantern.html' }. Blank goes to the enquiry form. */
+  heroLink: { label: string; href: string };
   /** Optional photo beside the headline: a file in src/assets/photos/ and its description. */
   heroPhoto: { file: string; alt: string } | null;
   /** Optional logo shown in the header instead of the name: a file in src/assets/photos/. */
@@ -27,12 +29,22 @@ export interface Site {
   phone: string;
   /** Optional social pages, as full links. Blank ones are hidden. */
   social: { instagram: string; facebook: string };
+  /** Opening hours. Empty hides them (e.g. a business people don't visit). */
   hours: { days: string; times: string }[];
-  enquiry: { title: string; intro: string; options: string[] };
+  /**
+   * The enquiry form. `askBusiness` adds a "Your business" field; `thanks` is shown once
+   * it's sent (blank for the usual wording).
+   */
+  enquiry: { title: string; intro: string; options: string[]; askBusiness: boolean; thanks: string };
   /** Look preset from src/themes.ts: bold, classic, calm or warm. */
   theme: string;
   /** Web3Forms access key (web3forms.com), tied to the inbox it emails. While null, the form sends nothing. */
   formKey: string | null;
+  /**
+   * The Cloudflare intake Worker (new-empty-repo/worker), only on the builder's own site.
+   * With it, forms go into the request queue and onboarding can take photo uploads. Null for clients.
+   */
+  intakeUrl: string | null;
   /** The live address, e.g. 'https://example.co.nz', once known. */
   url: string | null;
   /**

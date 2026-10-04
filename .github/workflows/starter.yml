@@ -1,5 +1,5 @@
-# Tests the starter and its modules: makes the two example client sites and
-# runs the full checks on each.
+# Tests the starter and its modules: makes each demo client site and runs the
+# full checks on each.
 name: Starter
 
 on:
@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        client: [example, bakery, florist-demo, trades-demo, minigolf-demo, services-demo, shop-demo]
+        client: [example, bakery, florist-demo, trades-demo, minigolf-demo, services-demo, shop-demo, lantern-demo]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
