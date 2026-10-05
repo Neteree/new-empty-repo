@@ -31,6 +31,16 @@
     }));
   });
   const anyPriced = $derived(items.some((item) => item.price));
+  /**
+   * On phones cards sit two to a row: an item without a photo is a short card
+   * across the row, and so is the last photo card when there's an odd one out,
+   * so no row is left with a gap or a blank box.
+   */
+  const wide = (list: Item[], item: Item) => {
+    if (!item.image) return true;
+    const photos = list.filter((each) => each.image);
+    return photos.length % 2 === 1 && photos.at(-1) === item;
+  };
   /** An item's price, or "Ask us" when its group has other prices. */
   const shown = (item: Item, priced: boolean) => item.price || (priced ? askText : '');
 </script>
@@ -48,7 +58,7 @@
       {:else if cards}
         <ul class="cards">
           {#each list as item (item.id)}
-            <li class="card" class:text-only={!item.image}>
+            <li class="card" class:wide={wide(list, item)}>
               {#if item.image}<Picture image={item.image} />{/if}
               <div class="card-text">
                 <p class="name">{item.name}</p>
@@ -188,17 +198,10 @@
       border-radius: 0.75rem;
       box-shadow: 4px 4px 0 var(--highlight);
     }
-    /* A card without a photo fills its space with a tint and keeps its name
-       level with the photo cards beside it. */
-    .card.text-only {
-      background: color-mix(in srgb, var(--accent) 10%, var(--paper));
-      justify-content: flex-end;
-    }
-    /* An odd one out at the end takes the whole row, so no gap is left beside it. */
-    .card:last-child:nth-child(odd) {
+    .card.wide {
       grid-column: 1 / -1;
     }
-    .card:last-child:nth-child(odd) :global(img) {
+    .card.wide :global(img) {
       aspect-ratio: 2 / 1;
     }
     .card-text {
