@@ -48,6 +48,24 @@
     aspect-ratio: 1;
     object-fit: cover;
   }
+  /* Phones: two photos a row, so the gallery reads as a set, not a long scroll. */
+  @media (max-width: 40rem) {
+    .gallery {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+    .gallery li {
+      border-radius: 0.75rem;
+      box-shadow: 4px 4px 0 var(--highlight);
+    }
+    /* An odd one out at the end takes the whole row, so no gap is left beside it. */
+    .gallery li:last-child:nth-child(odd) {
+      grid-column: 1 / -1;
+    }
+    .gallery li:last-child:nth-child(odd) :global(img) {
+      aspect-ratio: 2 / 1;
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
     .gallery li {
       transition: none;

@@ -31,6 +31,15 @@
     }));
   });
   const anyPriced = $derived(items.some((item) => item.price));
+  /**
+   * On phones cards sit two to a row, and the last photo card takes the whole
+   * row when there's an odd one out, so no row is left with a gap. (An item
+   * without a photo is always a short card across the row, never a blank box.)
+   */
+  const wide = (list: Item[], item: Item) => {
+    const photos = list.filter((each) => each.image);
+    return photos.length % 2 === 1 && photos.at(-1) === item;
+  };
   /** An item's price, or "Ask us" when its group has other prices. */
   const shown = (item: Item, priced: boolean) => item.price || (priced ? askText : '');
 </script>
@@ -48,7 +57,7 @@
       {:else if cards}
         <ul class="cards">
           {#each list as item (item.id)}
-            <li class="card">
+            <li class="card" class:wide={wide(list, item)} class:no-photo={!item.image}>
               {#if item.image}<Picture image={item.image} />{/if}
               <div class="card-text">
                 <p class="name">{item.name}</p>
@@ -137,6 +146,10 @@
     box-shadow: 6px 6px 0 var(--highlight);
   }
 
+  .card.no-photo {
+    grid-column: 1 / -1;
+  }
+
   .card :global(img) {
     display: block;
     width: 100%;
@@ -176,6 +189,33 @@
   .description {
     margin: 0;
     color: var(--ink-soft);
+  }
+
+  /* Phones: two cards a row with smaller type, so photos don't fill the screen one by one. */
+  @media (max-width: 40rem) {
+    .cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+    .card {
+      border-radius: 0.75rem;
+      box-shadow: 4px 4px 0 var(--highlight);
+    }
+    .card.wide {
+      grid-column: 1 / -1;
+    }
+    .card.wide :global(img) {
+      aspect-ratio: 2 / 1;
+    }
+    .card-text {
+      padding: 0.6rem 0.75rem 0.75rem;
+    }
+    .card .name {
+      font-size: 1.05rem;
+    }
+    .card .description {
+      font-size: 0.9rem;
+    }
   }
 
   .list {

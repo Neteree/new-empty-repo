@@ -65,4 +65,22 @@
       grid-template-columns: 1fr;
     }
   }
+
+  /* Phones: a smaller headline, so the photo shows on the first screen. */
+  @media (max-width: 40rem) {
+    .hero {
+      gap: 1.5rem;
+    }
+    h1 {
+      font-size: clamp(2.2rem, 10vw, 2.8rem);
+      margin-block: 0.4rem 0.9rem;
+    }
+    .lede {
+      font-size: 1.05rem;
+      margin-bottom: 1.4rem;
+    }
+    .hero :global(.hero-photo) {
+      box-shadow: 4px 4px 0 var(--highlight);
+    }
+  }
 </style>
