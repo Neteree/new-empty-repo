@@ -100,7 +100,11 @@ const business = {
       <header class="masthead">
         <a class="wordmark" href={home}>
           {site.logo ? (
-            <Image class="logo" src={photo(site.logo.file)} alt={site.name} height={96} />
+            site.logo.withName ? (
+              <><Image class="logo with-name" src={photo(site.logo.file)} alt="" height={128} />{site.name}</>
+            ) : (
+              <Image class="logo" src={photo(site.logo.file)} alt={site.name} height={96} />
+            )
           ) : (
             <><span class="mark" aria-hidden="true"></span>{site.name}</>
           )}
@@ -269,6 +273,10 @@ const business = {
     display: block;
     height: 3rem;
     width: auto;
+  }
+
+  .logo.with-name {
+    height: 3.75rem;
   }
 
   .mark {

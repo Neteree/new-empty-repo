@@ -18,8 +18,8 @@ export interface Site {
   heroLink: { label: string; href: string };
   /** Optional photo beside the headline: a file in src/assets/photos/ and its description. */
   heroPhoto: { file: string; alt: string } | null;
-  /** Optional logo shown in the header instead of the name: a file in src/assets/photos/. */
-  logo: { file: string } | null;
+  /** Optional logo in the header: a file in src/assets/photos/. It replaces the name, or sits beside it with `withName`. */
+  logo: { file: string; withName?: boolean } | null;
   /** Photos for the gallery section, in order. The section only shows once there's at least one. */
   gallery: { file: string; alt: string }[];
   /** How the gallery shows: 'grid' (tiles), 'slider' (one big photo at a time), 'mosaic' (one large photo with the rest around it), 'strip' (photos drifting sideways) or 'hidden' (no gallery section: the photos stay on hand for the main photo and price list). */
