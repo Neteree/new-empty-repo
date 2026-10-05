@@ -22,8 +22,8 @@ export interface Site {
   logo: { file: string } | null;
   /** Photos for the gallery section, in order. The section only shows once there's at least one. */
   gallery: { file: string; alt: string }[];
-  /** How the gallery shows: 'grid' (tiles), 'slider' (one big photo at a time), 'mosaic' (one large photo with the rest around it) or 'strip' (photos drifting sideways). */
-  galleryLayout: 'grid' | 'slider' | 'mosaic' | 'strip';
+  /** How the gallery shows: 'grid' (tiles), 'slider' (one big photo at a time), 'mosaic' (one large photo with the rest around it), 'strip' (photos drifting sideways) or 'hidden' (no gallery section: the photos stay on hand for the main photo and price list). */
+  galleryLayout: 'grid' | 'slider' | 'mosaic' | 'strip' | 'hidden';
   visitText: string;
   /** Optional street address for a map link, e.g. '12 Main Road, Green Bay, Auckland'. Blank hides the link. */
   address: string;

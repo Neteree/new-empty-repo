@@ -44,7 +44,7 @@ const heroImage = site.heroPhoto
 // The slider shows one photo across the page, with small thumbnails to pick from.
 const slider = site.galleryLayout === 'slider';
 const galleryImages = await Promise.all(
-  site.gallery.map((item) => (slider ? picture(item.file, item.alt, [800, 1200, 1800], '100vw') : picture(item.file, item.alt, [400, 800], '(max-width: 40rem) 100vw, 33vw'))),
+  (site.galleryLayout === 'hidden' ? [] : site.gallery).map((item) => (slider ? picture(item.file, item.alt, [800, 1200, 1800], '100vw') : picture(item.file, item.alt, [400, 800], '(max-width: 40rem) 100vw, 33vw'))),
 );
 const galleryThumbs = slider ? await Promise.all(site.gallery.map((item) => picture(item.file, '', [160], '4rem'))) : [];
 ---
@@ -62,7 +62,7 @@ const galleryThumbs = slider ? await Promise.all(site.gallery.map((item) => pict
     />
 
     {order.map((id) => {
-      if (id === 'gallery') return <Gallery images={galleryImages} layout={site.galleryLayout} thumbImages={galleryThumbs} />;
+      if (id === 'gallery') return site.galleryLayout === 'hidden' ? null : <Gallery images={galleryImages} layout={site.galleryLayout} thumbImages={galleryThumbs} />;
       if (id === 'news') return <Journal name={site.name} {posts} />;
       if (id === 'enquire')
         return (
