@@ -29,16 +29,16 @@
   }
   /* Framed like the site's cards, so photos of mixed quality still look like a set. */
   .gallery li {
-    border: 2px solid var(--ink);
-    border-radius: 1rem;
+    border: var(--frame);
+    border-radius: var(--radius);
     overflow: hidden;
     background: var(--paper);
-    box-shadow: 6px 6px 0 var(--highlight);
+    box-shadow: var(--lift);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
   .gallery li:hover {
     transform: translate(-2px, -2px);
-    box-shadow: 8px 8px 0 var(--highlight);
+    box-shadow: var(--lift-l);
   }
   .gallery :global(img) {
     display: block;
@@ -55,8 +55,8 @@
       gap: 0.75rem;
     }
     .gallery li {
-      border-radius: 0.75rem;
-      box-shadow: 4px 4px 0 var(--highlight);
+      border-radius: var(--radius-s);
+      box-shadow: var(--lift-s);
     }
     /* An odd one out at the end takes the whole row, so no gap is left beside it. */
     .gallery li:last-child:nth-child(odd) {

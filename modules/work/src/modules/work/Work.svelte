@@ -37,8 +37,8 @@
     margin: 0 0 1rem;
     border-radius: 0.8rem;
     overflow: hidden;
-    border: 2px solid var(--ink);
-    box-shadow: 6px 6px 0 var(--highlight);
+    border: var(--frame);
+    box-shadow: var(--lift);
   }
 
   figure :global(img) {

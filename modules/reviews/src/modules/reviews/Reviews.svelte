@@ -34,9 +34,9 @@
     height: 100%;
     margin: 0;
     padding: 1.4rem 1.5rem;
-    border: 2px solid var(--ink);
+    border: var(--frame);
     border-radius: 1rem;
-    box-shadow: 6px 6px 0 var(--highlight);
+    box-shadow: var(--lift);
   }
   .stars {
     margin: 0;

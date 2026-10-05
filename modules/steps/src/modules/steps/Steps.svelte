@@ -42,7 +42,7 @@
     font-family: var(--display);
     font-weight: var(--display-weight);
     font-size: 1.2rem;
-    box-shadow: 3px 3px 0 var(--highlight);
+    box-shadow: var(--lift-s);
   }
 
   h3 {

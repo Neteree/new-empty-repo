@@ -41,11 +41,11 @@
     width: min(36rem, calc(100vw - 2rem));
     max-height: calc(100dvh - 2rem);
     padding: 0;
-    border: 2px solid var(--ink);
+    border: var(--frame);
     border-radius: 1rem;
     background: var(--paper);
     color: var(--ink);
-    box-shadow: 8px 8px 0 var(--accent);
+    box-shadow: var(--lift-l-accent);
   }
 
   .game-dialog::backdrop {
