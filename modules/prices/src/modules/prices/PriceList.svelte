@@ -139,11 +139,11 @@
   .card {
     display: flex;
     flex-direction: column;
-    border: 2px solid var(--ink);
-    border-radius: 1rem;
+    border: var(--frame);
+    border-radius: var(--radius);
     overflow: hidden;
     background: var(--paper);
-    box-shadow: 6px 6px 0 var(--highlight);
+    box-shadow: var(--lift);
   }
 
   .card.no-photo {
@@ -198,8 +198,8 @@
       gap: 0.75rem;
     }
     .card {
-      border-radius: 0.75rem;
-      box-shadow: 4px 4px 0 var(--highlight);
+      border-radius: var(--radius-s);
+      box-shadow: var(--lift-s);
     }
     .card.wide {
       grid-column: 1 / -1;

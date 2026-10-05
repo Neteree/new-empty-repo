@@ -5,6 +5,11 @@
 // Variables: paper (background), ink and ink-soft (text), accent (buttons,
 // links) with on-accent (text on it), highlight (badges, shadows) with
 // on-highlight, rule (lines), error, and ticket-* for paper-slip panels.
+//
+// Beyond colours and fonts, a look sets the shape of the page: how the top of
+// the home page is laid out (hero) and how cards, photos and buttons are
+// framed (frame). Both become CSS variables or a prop, so every section and
+// module follows the look without knowing which one it is.
 
 type Colours = Record<string, string>;
 
@@ -23,9 +28,42 @@ export interface Theme {
   private?: boolean;
   /** A look that is dark in both modes: its `light` colours are dark too. */
   alwaysDark?: boolean;
+  /** The top of the home page: headline beside the photo (default), photo first, headline over the photo, or headline above a wide photo. */
+  hero?: HeroLayout;
+  /** How cards, photos and buttons are framed (default 'bold'). */
+  frame?: keyof typeof frames;
   light: Colours;
   dark: Colours;
 }
+
+export type HeroLayout = 'split' | 'flip' | 'cover' | 'stacked';
+
+/**
+ * Frame styles as CSS variables: --frame is a card's border, --lift its
+ * shadow (-s small, -l large, -accent in the accent colour), --radius its
+ * corners (-s on phones) and --button-radius the buttons'.
+ */
+const soft = (blur: number, y: number) => `0 ${y}px ${blur}px -${Math.round(blur * 0.6)}px color-mix(in srgb, var(--ink) 35%, transparent)`;
+export const frames = {
+  /** An ink outline and a solid offset shadow: hand-made and chunky. */
+  bold: {
+    frame: '2px solid var(--ink)', radius: '1rem', 'radius-s': '0.75rem', 'button-radius': '999px',
+    'lift-s': '4px 4px 0 var(--highlight)', lift: '6px 6px 0 var(--highlight)', 'lift-l': '8px 8px 0 var(--highlight)',
+    'lift-s-accent': '3px 3px 0 var(--accent)', 'lift-accent': '6px 6px 0 var(--accent)', 'lift-l-accent': '8px 8px 0 var(--accent)',
+  },
+  /** A hairline and a gentle drop shadow, so photos lead. */
+  soft: {
+    frame: '1px solid var(--rule)', radius: '1.25rem', 'radius-s': '0.9rem', 'button-radius': '999px',
+    'lift-s': 'none', lift: soft(30, 12), 'lift-l': soft(60, 24),
+    'lift-s-accent': 'none', 'lift-accent': soft(30, 12), 'lift-l-accent': soft(60, 24),
+  },
+  /** Thin ink lines, square corners, no shadows: a printed, magazine feel. */
+  line: {
+    frame: '1px solid var(--ink)', radius: '0', 'radius-s': '0', 'button-radius': '0',
+    'lift-s': 'none', lift: 'none', 'lift-l': 'none',
+    'lift-s-accent': 'none', 'lift-accent': 'none', 'lift-l-accent': 'none',
+  },
+};
 
 const ticket = {
   ticket: '#fffdf7',
@@ -109,6 +147,91 @@ export const themes: Record<string, Theme> = {
       paper: '#1d1410', ink: '#f6ebe3', 'ink-soft': '#c2aea3', accent: '#f08a67', 'on-accent': '#1d1410',
       highlight: '#f2c14e', 'on-highlight': '#3a2218', rule: '#3d2c24', error: '#ff8a80',
       ...ticket, 'ticket-accent': '#a8422a',
+    },
+  },
+  bloom: {
+    label: 'Bloom: blush and berry, a big photo with graceful serif headings',
+    fonts: 'Cormorant+Garamond:wght@600;700&family=Jost:wght@400;500;600',
+    display: "'Cormorant Garamond', Garamond, Georgia, serif",
+    displayWeight: 600,
+    body: "'Jost', 'Segoe UI', system-ui, sans-serif",
+    hand: "'Cormorant Garamond', Garamond, Georgia, serif",
+    grain: false,
+    hero: 'cover',
+    frame: 'soft',
+    light: {
+      paper: '#fbf7f4', ink: '#2b1d24', 'ink-soft': '#6a5560', accent: '#8c2f55', 'on-accent': '#ffffff',
+      highlight: '#f3c9cf', 'on-highlight': '#2b1d24', rule: '#ead9dc', error: '#a3261e',
+      ...ticket, 'ticket-accent': '#8c2f55',
+    },
+    dark: {
+      paper: '#1c1418', ink: '#f6ecef', 'ink-soft': '#c7b1b9', accent: '#f29ab9', 'on-accent': '#1c1418',
+      highlight: '#f3c9cf', 'on-highlight': '#2b1d24', rule: '#3e2c34', error: '#ff8a80',
+      ...ticket, 'ticket-accent': '#8c2f55',
+    },
+  },
+  editorial: {
+    label: 'Editorial: black and white like a magazine, a wide photo under a centred headline',
+    fonts: 'Bodoni+Moda:opsz,wght@6..96,500;6..96,600&family=Inter:wght@400;500;600',
+    display: "'Bodoni Moda', 'Didot', Georgia, serif",
+    displayWeight: 500,
+    body: "'Inter', 'Segoe UI', system-ui, sans-serif",
+    hand: "'Inter', 'Segoe UI', system-ui, sans-serif",
+    grain: false,
+    hero: 'stacked',
+    frame: 'line',
+    light: {
+      paper: '#ffffff', ink: '#111111', 'ink-soft': '#4d4d4d', accent: '#9e1b32', 'on-accent': '#ffffff',
+      highlight: '#e9e4dc', 'on-highlight': '#111111', rule: '#d9d9d9', error: '#a3261e',
+      ...ticket, 'ticket-accent': '#9e1b32',
+    },
+    dark: {
+      paper: '#111111', ink: '#f4f4f4', 'ink-soft': '#b5b5b5', accent: '#ff8a9e', 'on-accent': '#111111',
+      highlight: '#3a3631', 'on-highlight': '#f4f4f4', rule: '#333333', error: '#ff8a80',
+      ...ticket, 'ticket-accent': '#9e1b32',
+    },
+  },
+  garden: {
+    label: 'Garden: sage green and cream, photo first, soft rounded type',
+    fonts: 'Lora:wght@500;600&family=Work+Sans:wght@400;500;600',
+    display: "'Lora', Georgia, serif",
+    displayWeight: 600,
+    body: "'Work Sans', 'Segoe UI', system-ui, sans-serif",
+    hand: "'Lora', Georgia, serif",
+    grain: false,
+    hero: 'flip',
+    frame: 'soft',
+    light: {
+      paper: '#f3f1e8', ink: '#203126', 'ink-soft': '#526456', accent: '#3d6b4f', 'on-accent': '#ffffff',
+      highlight: '#c9d8b6', 'on-highlight': '#203126', rule: '#d9dccb', error: '#a3261e',
+      ...ticket, 'ticket-accent': '#3d6b4f',
+    },
+    dark: {
+      paper: '#141c16', ink: '#edf1e8', 'ink-soft': '#aab8aa', accent: '#9cc9a6', 'on-accent': '#141c16',
+      highlight: '#c9d8b6', 'on-highlight': '#203126', rule: '#2b3a2f', error: '#ff8a80',
+      ...ticket, 'ticket-accent': '#3d6b4f',
+    },
+  },
+  boutique: {
+    label: 'Boutique: deep plum and gold, dark and luxurious, thin lines',
+    fonts: 'Playfair+Display:wght@500;600&family=Montserrat:wght@400;500;600',
+    display: "'Playfair Display', Georgia, serif",
+    displayWeight: 500,
+    body: "'Montserrat', 'Segoe UI', system-ui, sans-serif",
+    hand: "'Playfair Display', Georgia, serif",
+    grain: false,
+    alwaysDark: true,
+    hero: 'cover',
+    frame: 'line',
+    light: {
+      paper: '#1f1420', ink: '#f5ece6', 'ink-soft': '#c9b8bd', accent: '#d9b46a', 'on-accent': '#1f1420',
+      highlight: '#5a3a55', 'on-highlight': '#f5ece6', rule: '#4a3348', error: '#ff8a80',
+      ...ticket, 'ticket-accent': '#7a4a2a',
+    },
+    dark: {
+      paper: '#1f1420', ink: '#f5ece6', 'ink-soft': '#c9b8bd', accent: '#d9b46a', 'on-accent': '#1f1420',
+      highlight: '#5a3a55', 'on-highlight': '#f5ece6', rule: '#4a3348', error: '#ff8a80',
+      ...ticket, 'ticket-accent': '#7a4a2a',
     },
   },
   night: {

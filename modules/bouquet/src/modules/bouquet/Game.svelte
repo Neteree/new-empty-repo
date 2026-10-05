@@ -213,11 +213,11 @@
   .garden {
     position: relative;
     aspect-ratio: 4 / 3;
-    border: 2px solid var(--ink);
+    border: var(--frame);
     border-radius: 1rem;
     overflow: hidden;
     background: radial-gradient(circle at 50% 30%, var(--paper), color-mix(in srgb, var(--highlight) 55%, var(--paper)));
-    box-shadow: 8px 8px 0 var(--highlight);
+    box-shadow: var(--lift-l);
     touch-action: manipulation;
   }
   @media (max-width: 40rem) {

@@ -97,7 +97,7 @@
   }
   .path:hover {
     transform: translate(-2px, -2px);
-    box-shadow: 4px 4px 0 var(--accent);
+    box-shadow: var(--lift-s-accent);
   }
   .path-title {
     font-family: var(--display);

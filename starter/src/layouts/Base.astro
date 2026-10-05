@@ -1,7 +1,7 @@
 ---
 import { site } from '../site.config';
 import { Image } from 'astro:assets';
-import { themes } from '../themes';
+import { frames, themes } from '../themes';
 import { photo } from '../lib/photos';
 import { mapLink, phoneLink, phoneText, socialLinks } from '../lib/contact';
 import { stillShowing } from '../lib/dates';
@@ -39,7 +39,7 @@ const vars = (colours: Record<string, string>) =>
   Object.entries(colours).map(([name, value]) => `--${name}: ${value};`).join(' ');
 const grain = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.09 0 0 0 0 0.13 0 0 0 0 0.24 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E")`;
 const themeCss = `
-  :root { ${vars(theme.light)} --display: ${theme.display}; --display-weight: ${theme.displayWeight}; --body: ${theme.body}; --hand: ${theme.hand}; --paper-grain: ${theme.grain ? grain : 'none'}; color-scheme: ${theme.alwaysDark ? 'dark' : 'light'}; }
+  :root { ${vars(theme.light)} --display: ${theme.display}; --display-weight: ${theme.displayWeight}; --body: ${theme.body}; --hand: ${theme.hand}; --paper-grain: ${theme.grain ? grain : 'none'}; ${vars(frames[theme.frame ?? 'bold'])} color-scheme: ${theme.alwaysDark ? 'dark' : 'light'}; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) { ${vars(theme.dark)} color-scheme: dark; } }
   :root[data-theme='dark'] { ${vars(theme.dark)} color-scheme: dark; }`;
 const hasJournal = Object.keys(import.meta.glob('../content/journal/**/*.md')).length > 0;
@@ -191,18 +191,18 @@ const business = {
     background: var(--accent);
     color: var(--on-accent);
     border: none;
-    border-radius: 999px;
+    border-radius: var(--button-radius);
     padding: 0.85rem 1.6rem;
     font-weight: 700;
     text-decoration: none;
     cursor: pointer;
-    box-shadow: 4px 4px 0 var(--highlight);
+    box-shadow: var(--lift-s);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
 
   .button:hover {
     transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0 var(--highlight);
+    box-shadow: var(--lift);
   }
 
   .hand-note {
@@ -272,7 +272,7 @@ const business = {
     height: 1.3rem;
     border-radius: 50%;
     background: var(--highlight);
-    box-shadow: 3px 3px 0 var(--accent);
+    box-shadow: var(--lift-s-accent);
   }
 
   .masthead nav {

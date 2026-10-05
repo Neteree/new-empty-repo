@@ -48,11 +48,11 @@
   li {
     display: flex;
     flex-direction: column;
-    border: 2px solid var(--ink);
+    border: var(--frame);
     border-radius: 1rem;
     overflow: hidden;
     background: var(--paper);
-    box-shadow: 6px 6px 0 var(--highlight);
+    box-shadow: var(--lift);
   }
   li :global(img) {
     display: block;

@@ -14,6 +14,7 @@ import { picture } from '../lib/images';
 import { mapLink, phoneLink, phoneText } from '../lib/contact';
 import { site } from '../site.config';
 import { sectionOrder } from '../lib/sections';
+import { themes } from '../themes';
 
 // Add-on modules (menu and pre-order, price list…) each add a section
 // with a Section.astro in src/modules/<name>/. The order of the sections
@@ -34,8 +35,11 @@ const posts = (hasPosts ? await getCollection('journal') : [])
     excerpt: post.data.excerpt,
   }));
 
+// The look decides how the top of the page is laid out; a wide layout needs a wider photo.
+const heroLayout = (themes[site.theme] ?? themes.bold).hero ?? 'split';
+const wideHero = heroLayout === 'cover' || heroLayout === 'stacked';
 const heroImage = site.heroPhoto
-  ? await picture(site.heroPhoto.file, site.heroPhoto.alt, [480, 800, 1200], '(max-width: 52rem) 100vw, 40vw', 'eager')
+  ? await picture(site.heroPhoto.file, site.heroPhoto.alt, wideHero ? [800, 1200, 1800] : [480, 800, 1200], wideHero ? '100vw' : '(max-width: 52rem) 100vw, 40vw', 'eager')
   : null;
 const galleryImages = await Promise.all(site.gallery.map((item) => picture(item.file, item.alt, [400, 800], '(max-width: 40rem) 100vw, 33vw')));
 ---
@@ -49,6 +53,7 @@ const galleryImages = await Promise.all(site.gallery.map((item) => picture(item.
       text={site.heroText}
       button={site.heroLink?.label ? site.heroLink : { label: site.enquiry.title, href: '#enquire' }}
       image={heroImage}
+      layout={heroLayout}
     />
 
     {order.map((id) => {
@@ -88,10 +93,10 @@ const galleryImages = await Promise.all(site.gallery.map((item) => picture(item.
   }
 
   .form-card {
-    border: 2px solid var(--ink);
+    border: var(--frame);
     border-radius: 1.25rem;
     padding: clamp(1.25rem, 3vw, 2rem);
-    box-shadow: 8px 8px 0 var(--accent);
+    box-shadow: var(--lift-l-accent);
   }
 
   @media (max-width: 52rem) {

@@ -1,7 +1,10 @@
 <script lang="ts">
   // The top of the home page: where the business is, its headline and a
-  // button to the enquiry form, beside its main photo (or drawn art until
-  // there is one).
+  // button to the enquiry form, with its main photo (or drawn art until
+  // there is one). The look picks the layout: the headline beside the photo
+  // (split), the photo first (flip), the headline on a panel over a big photo
+  // (cover), or a centred headline above a wide photo (stacked).
+  import type { HeroLayout } from '../themes';
   import type { Picture as PictureData } from '../lib/images';
   import Picture from './Picture.svelte';
   import HeroArt from './HeroArt.svelte';
@@ -13,11 +16,14 @@
     text,
     button,
     image = null,
-  }: { name: string; note: string; title: string; text: string; button: { label: string; href: string }; image?: PictureData | null } = $props();
+    layout = 'split',
+  }: { name: string; note: string; title: string; text: string; button: { label: string; href: string }; image?: PictureData | null; layout?: HeroLayout } = $props();
+  // Cover needs a photo to sit on; without one it falls back to the side-by-side layout.
+  const shape = $derived(layout === 'cover' && !image ? 'split' : layout);
 </script>
 
-<section class="hero">
-  <div>
+<section class="hero {shape}">
+  <div class="words">
     <p class="hand-note">{note}</p>
     <h1>{title}</h1>
     <p class="lede">{text}</p>
@@ -44,8 +50,8 @@
     height: auto;
     aspect-ratio: 4 / 3;
     object-fit: cover;
-    border-radius: 1rem;
-    box-shadow: 8px 8px 0 var(--highlight);
+    border-radius: var(--radius);
+    box-shadow: var(--lift-l);
   }
 
   h1 {
@@ -60,9 +66,80 @@
     margin: 0 0 2rem;
   }
 
+  /* Photo first; the headline keeps the wider column. */
+  .flip {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  }
+  .flip .words {
+    order: 2;
+  }
+
+  /* A centred headline above a wide photo. */
+  .stacked {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+  .stacked .lede {
+    margin-inline: auto;
+  }
+  .stacked {
+    gap: 1.5rem;
+  }
+  .stacked h1 {
+    max-width: 18ch;
+    margin-inline: auto;
+    font-size: clamp(2.6rem, 6vw, 4.4rem);
+    margin-block: 0.3rem 1rem;
+  }
+  .stacked .lede {
+    margin-bottom: 1.5rem;
+  }
+  .stacked :global(.hero-photo) {
+    aspect-ratio: 21 / 9;
+  }
+
+  /* The headline on a panel over a big photo. */
+  .cover {
+    grid-template-columns: 1fr;
+    position: relative;
+  }
+  .cover :global(.hero-photo) {
+    grid-area: 1 / 1;
+    aspect-ratio: 16 / 9;
+    min-height: 32rem;
+  }
+  .cover .words {
+    grid-area: 1 / 1;
+    align-self: end;
+    z-index: 1;
+    max-width: 34rem;
+    margin: 0 0 2.5rem 2.5rem;
+    padding: 2rem 2.25rem;
+    background: var(--paper);
+    border-radius: var(--radius);
+    box-shadow: var(--lift-l);
+  }
+  .cover h1 {
+    font-size: clamp(2.4rem, 5vw, 3.8rem);
+  }
+
   @media (max-width: 52rem) {
     .hero {
       grid-template-columns: 1fr;
+    }
+    .flip .words {
+      order: 0;
+    }
+    /* On narrow screens the panel sits under the photo instead of over it. */
+    .cover .words {
+      grid-area: auto;
+      margin: -3rem 1rem 0;
+    }
+    .cover :global(.hero-photo) {
+      grid-area: auto;
+      min-height: 0;
+      aspect-ratio: 4 / 3;
     }
   }
 
@@ -80,7 +157,7 @@
       margin-bottom: 1.4rem;
     }
     .hero :global(.hero-photo) {
-      box-shadow: 4px 4px 0 var(--highlight);
+      box-shadow: var(--lift-s);
     }
   }
 </style>
