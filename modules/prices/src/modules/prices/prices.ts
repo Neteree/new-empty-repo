@@ -46,9 +46,12 @@ export const items = prices.items.filter((item) => !item.unavailable);
 // One style for the whole list (see lib/money.ts).
 const money = moneyFor(items.flatMap((item) => (item.sizes?.length ? item.sizes.map((size) => size.price) : item.price !== undefined ? [item.price] : [])));
 
-/** The price as shown: '$65', 'From $120', 'Small $45 · Large $90' or 'Ask us' (section.askText). */
+/** What items without a price say, e.g. 'Ask us' or 'Quoted'. */
+export const askText = section.askText || 'Ask us';
+
+/** The price as shown: '$65', 'From $120', 'Small $45 · Large $90', or '' when there is none (see askText). */
 export function priceText(item: PriceItem): string {
   if (item.sizes?.length) return item.sizes.map((size) => `${size.label} ${money(size.price)}`).join(' · ');
-  if (item.price === undefined) return section.askText || 'Ask us';
+  if (item.price === undefined) return '';
   return `${item.from ? 'From ' : ''}${money(item.price)}`;
 }
