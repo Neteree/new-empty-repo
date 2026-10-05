@@ -13,7 +13,7 @@
 //   sections       { order: [...] }                    the order of the home page sections (see src/lib/sections.ts)
 //   photo          { slot: 'hero', file, alt }         set the hero photo from an uploaded file
 //                  { slot: 'hero', gallery, alt? }     …or use a gallery photo (by file name)
-//   logo           { file }                            show a logo in the header instead of the name
+//   logo           { file, withName? } or { remove: true }  show a logo in the header (beside the name with withName), or take it off
 //   gallery-add    { photos?: [{ file, alt? }], folder? }  add photos (a folder adds every image in it)
 //   gallery-describe { file, alt }                     describe a gallery photo
 //   gallery-remove { file }                            take a photo out of the gallery
@@ -270,12 +270,18 @@ function photo({ slot, file, gallery, alt }) {
   return `The main photo is now ${name}${alt === PLACEHOLDER_ALT ? ' (it still needs a description: see src/data/site.json)' : ` (“${alt}”)`}.`;
 }
 
-function logo({ file }) {
-  const name = copyImage(file, 'logo', [...IMAGE_TYPES, '.svg']);
+function logo({ file, withName, remove }) {
   const site = readJson(SITE_JSON);
-  site.logo = { file: name };
+  if (remove) {
+    if (!site.logo) needsPerson('This site has no logo to take off.');
+    site.logo = null;
+    writeJson(SITE_JSON, site);
+    return 'The logo is off; the header shows the name.';
+  }
+  const name = copyImage(file, 'logo', [...IMAGE_TYPES, '.svg']);
+  site.logo = withName ? { file: name, withName: true } : { file: name };
   writeJson(SITE_JSON, site);
-  return 'The logo now shows in the header.';
+  return withName ? 'The logo now shows in the header, beside the name.' : 'The logo now shows in the header.';
 }
 
 // Photos come as a list, a folder of images, or both. A photo without a

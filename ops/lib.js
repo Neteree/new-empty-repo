@@ -63,7 +63,7 @@ export function describeChange(change) {
     case 'menu-replace':
       return `Replace the menu with ${change.items.length} items`;
     case 'logo':
-      return 'New logo';
+      return change.remove ? 'Take the logo off' : 'New logo';
     case 'gallery-add': {
       const count = change.photos?.length ?? 0;
       return count ? `Add ${count} photo${count === 1 ? '' : 's'} to the gallery` : 'Add photos to the gallery';
