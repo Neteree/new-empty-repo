@@ -83,6 +83,7 @@ const { modules: _, contact: __, menu: ___, words: ____, ...rest } = {
   heroPhoto: null,
   logo: null,
   gallery: [],
+  galleryLayout: 'grid',
   ...details,
   social: { instagram: '', facebook: '', ...details.social },
   theme,

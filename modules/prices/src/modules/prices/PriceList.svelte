@@ -1,52 +1,62 @@
 <script lang="ts">
-  // The price list, grouped by category in the order they first appear. A
-  // group with any photos shows as cards (items without a photo are text-only
-  // cards); one without is a plain list. "Ask us" is said once: above the
-  // list when nothing has a price, under a group's heading when only that
-  // group has none, and on an item only beside priced ones. A plain group of
-  // just names (occasions, services) shows them as a row of tags.
-  import type { Picture as PictureData } from '../../lib/images';
+  // The price list, with its heading, in one of four layouts (section.layout
+  // in prices.json):
+  // - cards: grouped by category; a group with photos shows as cards, one
+  //   without as a plain list, one of just names as tags. "Ask us" is said
+  //   once: above the list when nothing has a price, under a group's heading
+  //   when only that group has none, and on an item only beside priced ones.
+  // - carousel: every item from the groups with photos in one row that swipes
+  //   sideways (arrows beside the heading); other groups follow as usual.
+  // - tabs: a tab per group, showing its photo and its list.
+  // - rows: a big photo beside each group, alternating sides.
   import Picture from '../../components/Picture.svelte';
+  import SectionHead from '../../components/SectionHead.svelte';
+  import PriceCarousel from './PriceCarousel.svelte';
+  import PriceTabs from './PriceTabs.svelte';
+  import PriceRows from './PriceRows.svelte';
+  import { groupItems, type Layout, type ShownItem } from './shown';
 
-  interface Item {
-    id: string;
-    name: string;
-    description?: string;
-    category?: string;
-    /** The price as shown, e.g. 'From $120', or '' for none (see priceText in prices.ts). */
-    price: string;
-    image: PictureData | null;
-  }
-  let { items, askText = 'Ask us', footnote = '' }: { items: Item[]; askText?: string; footnote?: string } = $props();
+  let {
+    items,
+    head,
+    askText = 'Ask us',
+    footnote = '',
+    layout = 'cards',
+  }: { items: ShownItem[]; head: { note: string; title: string; intro: string }; askText?: string; footnote?: string; layout?: Layout } = $props();
 
-  const groups = $derived.by(() => {
-    const map = new Map<string, Item[]>();
-    for (const item of items) map.set(item.category ?? '', [...(map.get(item.category ?? '') ?? []), item]);
-    return [...map].map(([category, list]) => ({
-      category,
-      list,
-      priced: list.some((item) => item.price),
-      cards: list.some((item) => item.image),
-      tags: !list.some((item) => item.price || item.image || item.description),
-    }));
-  });
+  const groups = $derived(groupItems(items));
+  // The carousel takes the groups with photos; the rest show as usual below it.
+  const rest = $derived(layout === 'carousel' ? groups.filter((group) => !group.cards) : groups);
   const anyPriced = $derived(items.some((item) => item.price));
   /**
    * On phones cards sit two to a row, and the last photo card takes the whole
    * row when there's an odd one out, so no row is left with a gap. (An item
    * without a photo is always a short card across the row, never a blank box.)
    */
-  const wide = (list: Item[], item: Item) => {
+  const wide = (list: ShownItem[], item: ShownItem) => {
     const photos = list.filter((each) => each.image);
     return photos.length % 2 === 1 && photos.at(-1) === item;
   };
   /** An item's price, or "Ask us" when its group has other prices. */
-  const shown = (item: Item, priced: boolean) => item.price || (priced ? askText : '');
+  const shown = (item: ShownItem, priced: boolean) => item.price || (priced ? askText : '');
 </script>
 
-{#if !anyPriced}<p class="ask">{askText}</p>{/if}
-<div class="groups">
-  {#each groups as { category, list, priced, cards, tags } (category)}
+{#snippet heading()}<SectionHead note={head.note} title={head.title} intro={head.intro} />{/snippet}
+
+{#if layout === 'carousel'}
+  <PriceCarousel items={groups.filter((group) => group.cards).flatMap((group) => group.list)} {askText} head={heading} />
+{:else}
+  {@render heading()}
+{/if}
+
+{#if layout === 'tabs'}
+  <PriceTabs {groups} {askText} />
+{:else if layout === 'rows'}
+  <PriceRows {groups} {askText} />
+{:else}
+{#if !anyPriced && layout === 'cards'}<p class="ask">{askText}</p>{/if}
+<div class="groups" class:after-carousel={layout === 'carousel'}>
+  {#each rest as { category, list, priced, cards, tags } (category)}
     <div class="group">
       {#if category}<h3>{category}</h3>{/if}
       {#if anyPriced && !priced}<p class="ask">{askText}</p>{/if}
@@ -86,12 +96,17 @@
     </div>
   {/each}
 </div>
+{/if}
 {#if footnote}<p class="footnote">{footnote}</p>{/if}
 
 <style>
   .groups {
     display: grid;
     gap: 2.5rem;
+  }
+
+  .after-carousel {
+    margin-top: 2.5rem;
   }
 
   .group h3 {

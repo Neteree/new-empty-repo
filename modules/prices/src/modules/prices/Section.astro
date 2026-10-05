@@ -1,12 +1,15 @@
 ---
 // Price list section shell, added to the home page by the starter: prepares
-// the items (shown price, optimised photos) for PriceList.svelte. No JavaScript.
-import SectionHead from '../../components/SectionHead.svelte';
+// the items (shown price, optimised photos) for PriceList.svelte. Only the
+// carousel and tabs layouts use JavaScript (lib/carousel.ts, lib/tabs.ts).
 import PriceList from './PriceList.svelte';
 import { askText, demoPrices, items, priceText, section } from './prices';
 import { picture } from '../../lib/images';
 import { site } from '../../site.config';
 
+// Tabs and rows show one large photo per group; the carousel a narrow card each.
+const carousel = section.layout === 'carousel';
+const large = section.layout === 'tabs' || section.layout === 'rows';
 const shown = await Promise.all(
   items.map(async (item) => ({
     id: item.id,
@@ -14,15 +17,14 @@ const shown = await Promise.all(
     description: item.description,
     category: item.category,
     price: priceText(item),
-    image: item.photo ? await picture(item.photo.file, item.photo.alt, [400, 800], '(max-width: 40rem) 100vw, 25vw') : null,
+    image: item.photo ? await picture(item.photo.file, item.photo.alt, large ? [600, 1000] : [400, 800], large ? '(max-width: 40rem) 100vw, 50vw' : carousel ? '(max-width: 40rem) 75vw, 18rem' : '(max-width: 40rem) 100vw, 25vw') : null,
   })),
 );
 ---
 
 {shown.length > 0 && (
   <section id="prices" class="section">
-    <SectionHead note={section.note} title={section.title} intro={section.intro} />
     {demoPrices && !site.demo && <p class="intro">[PLACEHOLDER: the client's real prices go in src/modules/prices/prices.json]</p>}
-    <PriceList items={shown} {askText} footnote={section.footnote} />
+    <PriceList items={shown} head={section} {askText} footnote={section.footnote} layout={section.layout} />
   </section>
 )}

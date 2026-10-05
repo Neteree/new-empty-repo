@@ -98,6 +98,17 @@ for (const page of pages) {
       await tab.evaluate((top) => window.scrollTo(0, top), y);
       await tab.waitForTimeout(50);
     }
+    // Carousels scroll sideways: swipe each one through too, so its photos load.
+    await tab.evaluate(async () => {
+      for (const track of document.querySelectorAll('[data-carousel] .track')) {
+        track.scrollIntoView({ block: 'center' });
+        for (let x = 0; x <= track.scrollWidth; x += track.clientWidth / 2) {
+          track.scrollTo({ left: x, behavior: 'instant' });
+          await new Promise((done) => setTimeout(done, 50));
+        }
+        track.scrollTo({ left: 0, behavior: 'instant' });
+      }
+    });
     await tab.waitForFunction(() => [...document.images].every((img) => img.complete), null, { timeout: 15000 }).catch(() => {});
     await tab.evaluate(() => window.scrollTo(0, 0));
 

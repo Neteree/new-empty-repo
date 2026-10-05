@@ -45,6 +45,7 @@
   "heroPhoto": null,
   "logo": null,
   "gallery": [],
+  "galleryLayout": "grid",
   "notice": {
     "text": "",
     "until": ""
