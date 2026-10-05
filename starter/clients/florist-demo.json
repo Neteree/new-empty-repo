@@ -18,5 +18,8 @@
   },
   "theme": "calm",
   "modules": ["prices", "bouquet"],
+  "prices": {
+    "section": { "note": "Prices", "title": "What it costs", "intro": "", "footnote": "", "askText": "Ask us", "layout": "tabs", "nav": "Prices" }
+  },
   "demo": true
 }

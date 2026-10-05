@@ -1,60 +1,62 @@
 <script lang="ts">
-  // The price list, grouped by category in the order they first appear. A
-  // group with any photos shows as cards (items without a photo are text-only
-  // cards); one without is a plain list. "Ask us" is said once: above the
-  // list when nothing has a price, under a group's heading when only that
-  // group has none, and on an item only beside priced ones. A plain group of
-  // just names (occasions, services) shows them as a row of tags. With the
-  // carousel layout each group of cards is a row that swipes sideways, and an
-  // item without a photo is a coloured card with its name.
-  import type { Picture as PictureData } from '../../lib/images';
+  // The price list, with its heading, in one of four layouts (section.layout
+  // in prices.json):
+  // - cards: grouped by category; a group with photos shows as cards, one
+  //   without as a plain list, one of just names as tags. "Ask us" is said
+  //   once: above the list when nothing has a price, under a group's heading
+  //   when only that group has none, and on an item only beside priced ones.
+  // - carousel: every item from the groups with photos in one row that swipes
+  //   sideways (arrows beside the heading); other groups follow as usual.
+  // - tabs: a tab per group, showing its photo and its list.
+  // - rows: a big photo beside each group, alternating sides.
   import Picture from '../../components/Picture.svelte';
-  import Carousel from '../../components/Carousel.svelte';
+  import SectionHead from '../../components/SectionHead.svelte';
+  import PriceCarousel from './PriceCarousel.svelte';
+  import PriceTabs from './PriceTabs.svelte';
+  import PriceRows from './PriceRows.svelte';
+  import { groupItems, type Layout, type ShownItem } from './shown';
 
-  interface Item {
-    id: string;
-    name: string;
-    description?: string;
-    category?: string;
-    /** The price as shown, e.g. 'From $120', or '' for none (see priceText in prices.ts). */
-    price: string;
-    image: PictureData | null;
-  }
   let {
     items,
+    head,
     askText = 'Ask us',
     footnote = '',
     layout = 'cards',
-  }: { items: Item[]; askText?: string; footnote?: string; layout?: 'cards' | 'carousel' } = $props();
+  }: { items: ShownItem[]; head: { note: string; title: string; intro: string }; askText?: string; footnote?: string; layout?: Layout } = $props();
 
-  const groups = $derived.by(() => {
-    const map = new Map<string, Item[]>();
-    for (const item of items) map.set(item.category ?? '', [...(map.get(item.category ?? '') ?? []), item]);
-    return [...map].map(([category, list]) => ({
-      category,
-      list,
-      priced: list.some((item) => item.price),
-      cards: list.some((item) => item.image),
-      tags: !list.some((item) => item.price || item.image || item.description),
-    }));
-  });
+  const groups = $derived(groupItems(items));
+  // The carousel takes the groups with photos; the rest show as usual below it.
+  const rest = $derived(layout === 'carousel' ? groups.filter((group) => !group.cards) : groups);
   const anyPriced = $derived(items.some((item) => item.price));
   /**
    * On phones cards sit two to a row, and the last photo card takes the whole
    * row when there's an odd one out, so no row is left with a gap. (An item
    * without a photo is always a short card across the row, never a blank box.)
    */
-  const wide = (list: Item[], item: Item) => {
+  const wide = (list: ShownItem[], item: ShownItem) => {
     const photos = list.filter((each) => each.image);
     return photos.length % 2 === 1 && photos.at(-1) === item;
   };
   /** An item's price, or "Ask us" when its group has other prices. */
-  const shown = (item: Item, priced: boolean) => item.price || (priced ? askText : '');
+  const shown = (item: ShownItem, priced: boolean) => item.price || (priced ? askText : '');
 </script>
 
-{#if !anyPriced}<p class="ask">{askText}</p>{/if}
-<div class="groups">
-  {#each groups as { category, list, priced, cards, tags } (category)}
+{#snippet heading()}<SectionHead note={head.note} title={head.title} intro={head.intro} />{/snippet}
+
+{#if layout === 'carousel'}
+  <PriceCarousel items={groups.filter((group) => group.cards).flatMap((group) => group.list)} {askText} head={heading} />
+{:else}
+  {@render heading()}
+{/if}
+
+{#if layout === 'tabs'}
+  <PriceTabs {groups} {askText} />
+{:else if layout === 'rows'}
+  <PriceRows {groups} {askText} />
+{:else}
+{#if !anyPriced && layout === 'cards'}<p class="ask">{askText}</p>{/if}
+<div class="groups" class:after-carousel={layout === 'carousel'}>
+  {#each rest as { category, list, priced, cards, tags } (category)}
     <div class="group">
       {#if category}<h3>{category}</h3>{/if}
       {#if anyPriced && !priced}<p class="ask">{askText}</p>{/if}
@@ -62,19 +64,6 @@
         <ul class="tags">
           {#each list as item (item.id)}<li>{item.name}</li>{/each}
         </ul>
-      {:else if cards && layout === 'carousel'}
-        <Carousel label={category || 'Prices'}>
-          {#each list as item (item.id)}
-            <li class="slide">
-              {#if item.image}<Picture image={item.image} />{:else}<p class="slide-blank" aria-hidden="true">{item.name}</p>{/if}
-              <div class="card-text">
-                <p class="name">{item.name}</p>
-                {#if shown(item, priced)}<p class="price">{shown(item, priced)}</p>{/if}
-                {#if item.description}<p class="description">{item.description}</p>{/if}
-              </div>
-            </li>
-          {/each}
-        </Carousel>
       {:else if cards}
         <ul class="cards">
           {#each list as item (item.id)}
@@ -107,12 +96,17 @@
     </div>
   {/each}
 </div>
+{/if}
 {#if footnote}<p class="footnote">{footnote}</p>{/if}
 
 <style>
   .groups {
     display: grid;
     gap: 2.5rem;
+  }
+
+  .after-carousel {
+    margin-top: 2.5rem;
   }
 
   .group h3 {
@@ -171,46 +165,6 @@
     grid-column: 1 / -1;
   }
 
-  /* Carousel slides: a fixed width, so the next one peeks in at the edge. */
-  .slide {
-    width: min(17rem, 75vw);
-    display: flex;
-    flex-direction: column;
-    border: var(--frame);
-    border-radius: var(--radius);
-    overflow: hidden;
-    background: var(--paper);
-  }
-
-  .slide :global(img),
-  .slide-blank {
-    display: block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 4 / 5;
-    object-fit: cover;
-  }
-
-  .slide-blank {
-    margin: 0;
-    display: grid;
-    place-items: center;
-    padding: 1rem;
-    text-align: center;
-    background: color-mix(in srgb, var(--highlight) 45%, var(--paper));
-    color: var(--ink);
-    font-family: var(--display);
-    font-style: italic;
-    font-size: 1.6rem;
-  }
-
-  .slide .name {
-    font-family: var(--display);
-    font-weight: var(--display-weight);
-    font-size: 1.3rem;
-    line-height: 1.15;
-  }
-
   .card :global(img) {
     display: block;
     width: 100%;
@@ -226,8 +180,7 @@
     padding: 1rem 1.1rem 1.2rem;
   }
 
-  .card-text p,
-  .slide .card-text p {
+  .card-text p {
     margin: 0;
   }
 

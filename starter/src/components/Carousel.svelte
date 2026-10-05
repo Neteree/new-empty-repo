@@ -1,33 +1,63 @@
 <script lang="ts">
-  // A row of slides that scrolls sideways and snaps to each one, with arrow
-  // buttons and optional thumbnails underneath. Swiping and scrolling work
-  // without JavaScript; lib/carousel.ts (loaded on every page) wires up the
-  // arrows and thumbnails and hides the arrows when everything already fits.
-  // The parent renders the slides (<li>s) and styles them.
+  // A row of slides that scrolls sideways and snaps to each one. The arrows
+  // sit beside the `head` (usually the section heading) when there is one,
+  // otherwise under the slides; optional thumbnails sit centred underneath.
+  // Swiping and scrolling work without JavaScript; lib/carousel.ts (loaded on
+  // every page) wires up the arrows and thumbnails, and hides the arrows when
+  // everything already fits. The parent renders the slides (<li>s) and styles them.
   import type { Snippet } from 'svelte';
 
-  let { label, children, thumbs }: { label: string; children: Snippet; thumbs?: Snippet } = $props();
+  let { label, children, head, thumbs }: { label: string; children: Snippet; head?: Snippet; thumbs?: Snippet } = $props();
 </script>
 
+{#snippet arrows()}
+  <div class="arrows">
+    <button type="button" class="arrow" data-go="-1" aria-label="Previous">←</button>
+    <button type="button" class="arrow" data-go="1" aria-label="Next">→</button>
+  </div>
+{/snippet}
+
 <div class="carousel" data-carousel>
+  {#if head}
+    <div class="head">
+      <div class="head-text">{@render head()}</div>
+      {@render arrows()}
+    </div>
+  {/if}
   <ul class="track" tabindex="0" aria-label={label}>
     {@render children()}
   </ul>
-  <div class="controls">
-    {#if thumbs}<div class="thumbs">{@render thumbs()}</div>{/if}
-    <div class="arrows">
-      <button type="button" class="arrow" data-go="-1" aria-label="Previous">←</button>
-      <button type="button" class="arrow" data-go="1" aria-label="Next">→</button>
-    </div>
-  </div>
+  {#if thumbs}<div class="thumbs">{@render thumbs()}</div>{/if}
+  {#if !head}<div class="foot">{@render arrows()}</div>{/if}
 </div>
 
 <style>
   .carousel {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+    min-width: 0;
+  }
+
+  .head {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
     gap: 1rem;
     min-width: 0;
+  }
+
+  .head-text {
+    min-width: 0;
+  }
+
+  .head-text :global(.section-head) {
+    margin-bottom: 0;
+  }
+
+  .foot {
+    display: flex;
+    justify-content: flex-end;
   }
 
   .track {
@@ -52,22 +82,14 @@
     scroll-snap-align: start;
   }
 
-  .controls {
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-
   .arrows {
     display: flex;
+    flex: none;
     gap: 0.5rem;
-    margin-left: auto;
   }
 
   :global([data-fits]) .arrows {
-    display: none;
+    visibility: hidden;
   }
 
   .arrow {
@@ -88,10 +110,12 @@
 
   .thumbs {
     display: flex;
+    justify-content: safe center;
     gap: 0.4rem;
     min-width: 0;
     overflow-x: auto;
     scrollbar-width: none;
+    padding: 2px;
   }
 
   .thumbs > :global(*) {

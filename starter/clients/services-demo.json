@@ -36,5 +36,8 @@
       { "question": "How do I pay?", "answer": "Example answer: card or cash.\n\nThis barber is made up, so there's nothing to pay." }
     ]
   },
+  "prices": {
+    "section": { "note": "Prices", "title": "What it costs", "intro": "", "footnote": "", "askText": "Ask us", "layout": "rows", "nav": "Prices" }
+  },
   "demo": true
 }
