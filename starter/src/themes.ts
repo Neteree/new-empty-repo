@@ -44,7 +44,7 @@ export type HeroLayout = 'split' | 'flip' | 'cover' | 'stacked';
  * corners (-s on phones and form fields), --button-radius the buttons' and
  * tags', and --title-shadow the footer name's.
  */
-const soft = (blur: number, y: number) => `0 ${y}px ${blur}px -${Math.round(blur * 0.6)}px color-mix(in srgb, var(--ink) 35%, transparent)`;
+const soft = (blur: number, y: number) => `0 ${y}px ${blur}px -${Math.round(blur * 0.6)}px rgb(0 0 0 / 0.28)`;
 export const frames = {
   /** An ink outline and a solid offset shadow: hand-made and chunky. */
   bold: {
@@ -236,24 +236,25 @@ export const themes: Record<string, Theme> = {
     },
   },
   lavender: {
-    label: 'Lavender: periwinkle and soft wing pink, graceful serif headings, soft rounded frames, big photo',
+    label: 'Lavender: deep periwinkle night with soft wing pink, graceful serif headings, soft rounded frames, big photo',
     fonts: 'Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Manrope:wght@400;500;700',
     display: "'Cormorant Garamond', Garamond, Georgia, serif",
     displayWeight: 700,
     body: "'Manrope', 'Segoe UI', system-ui, sans-serif",
     hand: "'Cormorant Garamond', Garamond, Georgia, serif",
     grain: false,
+    alwaysDark: true,
     hero: 'cover',
     frame: 'soft',
     light: {
-      paper: '#f7f5fb', ink: '#26223f', 'ink-soft': '#5a5574', accent: '#5650a0', 'on-accent': '#ffffff',
-      highlight: '#ecc3cf', 'on-highlight': '#26223f', rule: '#e0dcec', error: '#a3261e',
-      ...ticket, 'ticket-accent': '#5650a0',
+      paper: '#1c1930', ink: '#f3f0fa', 'ink-soft': '#c4bed9', accent: '#b9b3f2', 'on-accent': '#1c1930',
+      highlight: '#e9b7c8', 'on-highlight': '#26223f', rule: '#3b3558', error: '#ff8a80',
+      ticket: '#f7f5fb', 'ticket-ink': '#26223f', 'ticket-soft': '#5a5574', 'ticket-rule': '#d9d4e8', 'ticket-accent': '#5650a0',
     },
     dark: {
-      paper: '#1b1829', ink: '#f1eef8', 'ink-soft': '#bdb7d3', accent: '#b9b4ee', 'on-accent': '#1b1829',
-      highlight: '#ecc3cf', 'on-highlight': '#26223f', rule: '#373250', error: '#ff8a80',
-      ...ticket, 'ticket-accent': '#5650a0',
+      paper: '#1c1930', ink: '#f3f0fa', 'ink-soft': '#c4bed9', accent: '#b9b3f2', 'on-accent': '#1c1930',
+      highlight: '#e9b7c8', 'on-highlight': '#26223f', rule: '#3b3558', error: '#ff8a80',
+      ticket: '#f7f5fb', 'ticket-ink': '#26223f', 'ticket-soft': '#5a5574', 'ticket-rule': '#d9d4e8', 'ticket-accent': '#5650a0',
     },
   },
   night: {
