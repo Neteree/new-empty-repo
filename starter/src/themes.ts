@@ -235,6 +235,27 @@ export const themes: Record<string, Theme> = {
       ...ticket, 'ticket-accent': '#7a4a2a',
     },
   },
+  lavender: {
+    label: 'Lavender: periwinkle and soft wing pink, graceful serif headings, soft rounded frames, big photo',
+    fonts: 'Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Manrope:wght@400;500;700',
+    display: "'Cormorant Garamond', Garamond, Georgia, serif",
+    displayWeight: 700,
+    body: "'Manrope', 'Segoe UI', system-ui, sans-serif",
+    hand: "'Cormorant Garamond', Garamond, Georgia, serif",
+    grain: false,
+    hero: 'cover',
+    frame: 'soft',
+    light: {
+      paper: '#f7f5fb', ink: '#26223f', 'ink-soft': '#5a5574', accent: '#5650a0', 'on-accent': '#ffffff',
+      highlight: '#ecc3cf', 'on-highlight': '#26223f', rule: '#e0dcec', error: '#a3261e',
+      ...ticket, 'ticket-accent': '#5650a0',
+    },
+    dark: {
+      paper: '#1b1829', ink: '#f1eef8', 'ink-soft': '#bdb7d3', accent: '#b9b4ee', 'on-accent': '#1b1829',
+      highlight: '#ecc3cf', 'on-highlight': '#26223f', rule: '#373250', error: '#ff8a80',
+      ...ticket, 'ticket-accent': '#5650a0',
+    },
+  },
   night: {
     label: 'Night market: lantern orange and brass on deep indigo, signboard headings',
     fonts: 'Bungee&family=Atkinson+Hyperlegible:wght@400;700&family=Fredoka:wght@500;700',
