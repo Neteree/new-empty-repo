@@ -109,7 +109,10 @@ const business = {
             <><span class="mark" aria-hidden="true"></span>{site.name}</>
           )}
         </a>
-        <nav aria-label="Main">
+        <button type="button" class="menu-button" aria-expanded="false" aria-controls="main-menu">
+          <span class="menu-bars" aria-hidden="true"></span><span class="visually-hidden">Menu</span>
+        </button>
+        <nav id="main-menu" aria-label="Main">
           {moduleNav.map((NavItem) => <NavItem home={home} />)}
           {site.gallery.length > 0 && site.galleryLayout !== 'hidden' && <a href={`${home}#gallery`}>Gallery</a>}
           {hasJournal && <a href={`${home}#journal`}>News</a>}
@@ -135,6 +138,7 @@ const business = {
     <script>
       import '../lib/carousel';
       import '../lib/tabs';
+      import '../lib/menu';
     </script>
   </body>
 </html>
@@ -249,13 +253,119 @@ const business = {
     white-space: nowrap;
   }
 
+  /* Logo and menu share one line; on phones the links fold into a menu button. */
   .masthead {
+    position: relative;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem 2rem;
     padding-block: 1.4rem;
+  }
+
+  .menu-button {
+    display: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: var(--frame);
+    border-radius: var(--button-radius);
+    background: var(--paper);
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  /* Three bars that turn into a cross when the menu is open. */
+  .menu-bars,
+  .menu-bars::before,
+  .menu-bars::after {
+    display: block;
+    width: 1.25rem;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+
+  .menu-bars {
+    position: relative;
+  }
+
+  .menu-bars::before,
+  .menu-bars::after {
+    content: '';
+    position: absolute;
+    left: 0;
+  }
+
+  .menu-bars::before {
+    top: -6px;
+  }
+
+  .menu-bars::after {
+    top: 6px;
+  }
+
+  [data-open] .menu-bars {
+    background: transparent;
+  }
+
+  [data-open] .menu-bars::before {
+    transform: translateY(6px) rotate(45deg);
+  }
+
+  [data-open] .menu-bars::after {
+    transform: translateY(-6px) rotate(-45deg);
+  }
+
+  @media (max-width: 40rem) {
+    .masthead[data-menu] {
+      flex-wrap: nowrap;
+    }
+
+    .masthead[data-menu] .wordmark {
+      min-width: 0;
+      font-size: clamp(1.15rem, 5.5vw, 1.6rem);
+    }
+
+    .masthead[data-menu] .menu-button {
+      display: inline-flex;
+    }
+
+    .masthead[data-menu] nav {
+      display: none;
+      position: absolute;
+      z-index: 20;
+      top: 100%;
+      left: 0;
+      right: 0;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+      padding: 0.5rem 0;
+      background: var(--paper);
+      border: var(--frame);
+      border-radius: var(--radius);
+      box-shadow: var(--lift);
+    }
+
+    .masthead[data-open] nav {
+      display: flex;
+    }
+
+    .masthead[data-menu] nav > a {
+      padding: 0.85rem 1.25rem;
+      font-size: 1.1rem;
+      color: var(--ink);
+    }
+
+    .masthead[data-menu] nav > a + a {
+      border-top: 1px solid var(--rule);
+    }
   }
 
   .wordmark {
