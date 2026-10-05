@@ -38,10 +38,14 @@ const theme = themes[site.theme] ?? themes.bold;
 const vars = (colours: Record<string, string>) =>
   Object.entries(colours).map(([name, value]) => `--${name}: ${value};`).join(' ');
 const grain = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.09 0 0 0 0 0.13 0 0 0 0 0.24 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E")`;
+// The dot beside the name, when there's no logo: the look's highlight, or a
+// gradient of the client's own colours (site.json "markColours").
+const markCss = (site.markColours?.length ?? 0) > 1 ? `.masthead .wordmark .mark { background: linear-gradient(135deg, ${site.markColours!.join(', ')}); }` : '';
 const themeCss = `
   :root { ${vars(theme.light)} --display: ${theme.display}; --display-weight: ${theme.displayWeight}; --body: ${theme.body}; --hand: ${theme.hand}; --paper-grain: ${theme.grain ? grain : 'none'}; ${vars(frames[theme.frame ?? 'bold'])} color-scheme: ${theme.alwaysDark ? 'dark' : 'light'}; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) { ${vars(theme.dark)} color-scheme: dark; } }
-  :root[data-theme='dark'] { ${vars(theme.dark)} color-scheme: dark; }`;
+  :root[data-theme='dark'] { ${vars(theme.dark)} color-scheme: dark; }
+  ${markCss}`;
 const hasJournal = Object.keys(import.meta.glob('../content/journal/**/*.md')).length > 0;
 const notice = site.notice?.text && stillShowing(site.notice.until) ? site.notice : null;
 const hideOldNotice = `document.querySelectorAll('[data-until]').forEach((n) => { if (n.dataset.until < new Date().toLocaleDateString('en-CA', { timeZone: 'Pacific/Auckland' })) n.hidden = true; });`;

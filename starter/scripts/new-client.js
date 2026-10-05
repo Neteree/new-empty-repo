@@ -82,6 +82,7 @@ const { modules: _, contact: __, menu: ___, words: ____, ...rest } = {
   phone: '',
   heroPhoto: null,
   logo: null,
+  markColours: [],
   gallery: [],
   galleryLayout: 'grid',
   ...details,

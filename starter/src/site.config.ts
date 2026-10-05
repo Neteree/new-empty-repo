@@ -20,6 +20,8 @@ export interface Site {
   heroPhoto: { file: string; alt: string } | null;
   /** Optional logo in the header: a file in src/assets/photos/. It replaces the name, or sits beside it with `withName`. */
   logo: { file: string; withName?: boolean } | null;
+  /** Without a logo, a dot sits beside the name: two or more colours make it a gradient (e.g. from an old logo). */
+  markColours?: string[];
   /** Photos for the gallery section, in order. The section only shows once there's at least one. */
   gallery: { file: string; alt: string }[];
   /** How the gallery shows: 'grid' (tiles), 'slider' (one big photo at a time), 'mosaic' (one large photo with the rest around it), 'strip' (photos drifting sideways) or 'hidden' (no gallery section: the photos stay on hand for the main photo and price list). */
