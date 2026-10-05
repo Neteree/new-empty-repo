@@ -131,13 +131,17 @@
     .flip .words {
       order: 0;
     }
-    /* On narrow screens the panel sits under the photo instead of over it. */
+    /* On narrow screens the photo comes first and the panel overlaps its foot. */
+    .cover {
+      gap: 0;
+    }
     .cover .words {
-      grid-area: auto;
-      margin: -3rem 1rem 0;
+      grid-area: 2 / 1;
+      margin: -3rem 0.75rem 0;
+      padding: 1.5rem 1.25rem;
     }
     .cover :global(.hero-photo) {
-      grid-area: auto;
+      grid-area: 1 / 1;
       min-height: 0;
       aspect-ratio: 4 / 3;
     }

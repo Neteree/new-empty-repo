@@ -94,7 +94,7 @@ const galleryImages = await Promise.all(site.gallery.map((item) => picture(item.
 
   .form-card {
     border: var(--frame);
-    border-radius: 1.25rem;
+    border-radius: var(--radius);
     padding: clamp(1.25rem, 3vw, 2rem);
     box-shadow: var(--lift-l-accent);
   }

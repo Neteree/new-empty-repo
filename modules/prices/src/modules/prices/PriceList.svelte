@@ -117,8 +117,8 @@
   }
 
   .tags li {
-    border: 2px solid var(--ink);
-    border-radius: 999px;
+    border: var(--frame);
+    border-radius: var(--button-radius);
     padding: 0.35rem 0.9rem;
     background: var(--paper);
     font-weight: 600;

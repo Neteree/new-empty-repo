@@ -41,25 +41,26 @@ export type HeroLayout = 'split' | 'flip' | 'cover' | 'stacked';
 /**
  * Frame styles as CSS variables: --frame is a card's border, --lift its
  * shadow (-s small, -l large, -accent in the accent colour), --radius its
- * corners (-s on phones) and --button-radius the buttons'.
+ * corners (-s on phones and form fields), --button-radius the buttons' and
+ * tags', and --title-shadow the footer name's.
  */
 const soft = (blur: number, y: number) => `0 ${y}px ${blur}px -${Math.round(blur * 0.6)}px color-mix(in srgb, var(--ink) 35%, transparent)`;
 export const frames = {
   /** An ink outline and a solid offset shadow: hand-made and chunky. */
   bold: {
-    frame: '2px solid var(--ink)', radius: '1rem', 'radius-s': '0.75rem', 'button-radius': '999px',
+    frame: '2px solid var(--ink)', radius: '1rem', 'radius-s': '0.75rem', 'button-radius': '999px', 'title-shadow': '3px 3px 0 var(--highlight)',
     'lift-s': '4px 4px 0 var(--highlight)', lift: '6px 6px 0 var(--highlight)', 'lift-l': '8px 8px 0 var(--highlight)',
     'lift-s-accent': '3px 3px 0 var(--accent)', 'lift-accent': '6px 6px 0 var(--accent)', 'lift-l-accent': '8px 8px 0 var(--accent)',
   },
   /** A hairline and a gentle drop shadow, so photos lead. */
   soft: {
-    frame: '1px solid var(--rule)', radius: '1.25rem', 'radius-s': '0.9rem', 'button-radius': '999px',
+    frame: '1px solid var(--rule)', radius: '1.25rem', 'radius-s': '0.9rem', 'button-radius': '999px', 'title-shadow': 'none',
     'lift-s': 'none', lift: soft(30, 12), 'lift-l': soft(60, 24),
     'lift-s-accent': 'none', 'lift-accent': soft(30, 12), 'lift-l-accent': soft(60, 24),
   },
   /** Thin ink lines, square corners, no shadows: a printed, magazine feel. */
   line: {
-    frame: '1px solid var(--ink)', radius: '0', 'radius-s': '0', 'button-radius': '0',
+    frame: '1px solid var(--ink)', radius: '0', 'radius-s': '0', 'button-radius': '0', 'title-shadow': 'none',
     'lift-s': 'none', lift: 'none', 'lift-l': 'none',
     'lift-s-accent': 'none', 'lift-accent': 'none', 'lift-l-accent': 'none',
   },
