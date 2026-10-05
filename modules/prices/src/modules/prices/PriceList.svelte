@@ -48,7 +48,7 @@
       {:else if cards}
         <ul class="cards">
           {#each list as item (item.id)}
-            <li class="card">
+            <li class="card" class:text-only={!item.image}>
               {#if item.image}<Picture image={item.image} />{/if}
               <div class="card-text">
                 <p class="name">{item.name}</p>
@@ -176,6 +176,40 @@
   .description {
     margin: 0;
     color: var(--ink-soft);
+  }
+
+  /* Phones: two cards a row with smaller type, so photos don't fill the screen one by one. */
+  @media (max-width: 40rem) {
+    .cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+    .card {
+      border-radius: 0.75rem;
+      box-shadow: 4px 4px 0 var(--highlight);
+    }
+    /* A card without a photo fills its space with a tint and keeps its name
+       level with the photo cards beside it. */
+    .card.text-only {
+      background: color-mix(in srgb, var(--accent) 10%, var(--paper));
+      justify-content: flex-end;
+    }
+    /* An odd one out at the end takes the whole row, so no gap is left beside it. */
+    .card:last-child:nth-child(odd) {
+      grid-column: 1 / -1;
+    }
+    .card:last-child:nth-child(odd) :global(img) {
+      aspect-ratio: 2 / 1;
+    }
+    .card-text {
+      padding: 0.6rem 0.75rem 0.75rem;
+    }
+    .card .name {
+      font-size: 1.05rem;
+    }
+    .card .description {
+      font-size: 0.9rem;
+    }
   }
 
   .list {
