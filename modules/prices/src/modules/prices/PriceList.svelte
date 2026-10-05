@@ -32,12 +32,11 @@
   });
   const anyPriced = $derived(items.some((item) => item.price));
   /**
-   * On phones cards sit two to a row: an item without a photo is a short card
-   * across the row, and so is the last photo card when there's an odd one out,
-   * so no row is left with a gap or a blank box.
+   * On phones cards sit two to a row, and the last photo card takes the whole
+   * row when there's an odd one out, so no row is left with a gap. (An item
+   * without a photo is always a short card across the row, never a blank box.)
    */
   const wide = (list: Item[], item: Item) => {
-    if (!item.image) return true;
     const photos = list.filter((each) => each.image);
     return photos.length % 2 === 1 && photos.at(-1) === item;
   };
@@ -58,7 +57,7 @@
       {:else if cards}
         <ul class="cards">
           {#each list as item (item.id)}
-            <li class="card" class:wide={wide(list, item)}>
+            <li class="card" class:wide={wide(list, item)} class:no-photo={!item.image}>
               {#if item.image}<Picture image={item.image} />{/if}
               <div class="card-text">
                 <p class="name">{item.name}</p>
@@ -145,6 +144,10 @@
     overflow: hidden;
     background: var(--paper);
     box-shadow: 6px 6px 0 var(--highlight);
+  }
+
+  .card.no-photo {
+    grid-column: 1 / -1;
   }
 
   .card :global(img) {
