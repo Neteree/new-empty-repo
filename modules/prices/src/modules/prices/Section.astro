@@ -7,6 +7,7 @@ import { askText, demoPrices, items, priceText, section } from './prices';
 import { picture } from '../../lib/images';
 import { site } from '../../site.config';
 
+const carousel = section.layout === 'carousel';
 const shown = await Promise.all(
   items.map(async (item) => ({
     id: item.id,
@@ -14,7 +15,7 @@ const shown = await Promise.all(
     description: item.description,
     category: item.category,
     price: priceText(item),
-    image: item.photo ? await picture(item.photo.file, item.photo.alt, [400, 800], '(max-width: 40rem) 100vw, 25vw') : null,
+    image: item.photo ? await picture(item.photo.file, item.photo.alt, [400, 800], carousel ? '(max-width: 40rem) 75vw, 18rem' : '(max-width: 40rem) 100vw, 25vw') : null,
   })),
 );
 ---
@@ -23,6 +24,6 @@ const shown = await Promise.all(
   <section id="prices" class="section">
     <SectionHead note={section.note} title={section.title} intro={section.intro} />
     {demoPrices && !site.demo && <p class="intro">[PLACEHOLDER: the client's real prices go in src/modules/prices/prices.json]</p>}
-    <PriceList items={shown} {askText} footnote={section.footnote} />
+    <PriceList items={shown} {askText} footnote={section.footnote} layout={section.layout} />
   </section>
 )}

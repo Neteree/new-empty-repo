@@ -34,7 +34,8 @@ interface Prices {
   demoPrices: boolean;
   /** Wording for the section on the home page; `footnote` goes under the list, e.g. 'Prices include GST.' */
   /** `askText` shows for items without a price ('Ask us', 'Quoted'); `nav` is the menu label. */
-  section: { note: string; title: string; intro: string; footnote: string; askText: string; nav: string };
+  /** `layout`: 'cards' (a grid of cards) or 'carousel' (each group's cards in a row that swipes sideways). */
+  section: { note: string; title: string; intro: string; footnote: string; askText: string; layout?: 'cards' | 'carousel'; nav: string };
   items: PriceItem[];
 }
 

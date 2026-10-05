@@ -22,6 +22,8 @@ export interface Site {
   logo: { file: string } | null;
   /** Photos for the gallery section, in order. The section only shows once there's at least one. */
   gallery: { file: string; alt: string }[];
+  /** How the gallery shows: 'grid' (every photo as a tile) or 'slider' (one big photo at a time, thumbnails underneath). */
+  galleryLayout: 'grid' | 'slider';
   visitText: string;
   /** Optional street address for a map link, e.g. '12 Main Road, Green Bay, Auckland'. Blank hides the link. */
   address: string;
@@ -62,4 +64,4 @@ export interface Site {
   demo: boolean;
 }
 
-export const site: Site = data;
+export const site: Site = data as Site;

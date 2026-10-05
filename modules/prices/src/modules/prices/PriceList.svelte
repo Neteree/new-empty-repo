@@ -4,9 +4,12 @@
   // cards); one without is a plain list. "Ask us" is said once: above the
   // list when nothing has a price, under a group's heading when only that
   // group has none, and on an item only beside priced ones. A plain group of
-  // just names (occasions, services) shows them as a row of tags.
+  // just names (occasions, services) shows them as a row of tags. With the
+  // carousel layout each group of cards is a row that swipes sideways, and an
+  // item without a photo is a coloured card with its name.
   import type { Picture as PictureData } from '../../lib/images';
   import Picture from '../../components/Picture.svelte';
+  import Carousel from '../../components/Carousel.svelte';
 
   interface Item {
     id: string;
@@ -17,7 +20,12 @@
     price: string;
     image: PictureData | null;
   }
-  let { items, askText = 'Ask us', footnote = '' }: { items: Item[]; askText?: string; footnote?: string } = $props();
+  let {
+    items,
+    askText = 'Ask us',
+    footnote = '',
+    layout = 'cards',
+  }: { items: Item[]; askText?: string; footnote?: string; layout?: 'cards' | 'carousel' } = $props();
 
   const groups = $derived.by(() => {
     const map = new Map<string, Item[]>();
@@ -54,6 +62,19 @@
         <ul class="tags">
           {#each list as item (item.id)}<li>{item.name}</li>{/each}
         </ul>
+      {:else if cards && layout === 'carousel'}
+        <Carousel label={category || 'Prices'}>
+          {#each list as item (item.id)}
+            <li class="slide">
+              {#if item.image}<Picture image={item.image} />{:else}<p class="slide-blank" aria-hidden="true">{item.name}</p>{/if}
+              <div class="card-text">
+                <p class="name">{item.name}</p>
+                {#if shown(item, priced)}<p class="price">{shown(item, priced)}</p>{/if}
+                {#if item.description}<p class="description">{item.description}</p>{/if}
+              </div>
+            </li>
+          {/each}
+        </Carousel>
       {:else if cards}
         <ul class="cards">
           {#each list as item (item.id)}
@@ -150,6 +171,46 @@
     grid-column: 1 / -1;
   }
 
+  /* Carousel slides: a fixed width, so the next one peeks in at the edge. */
+  .slide {
+    width: min(17rem, 75vw);
+    display: flex;
+    flex-direction: column;
+    border: var(--frame);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--paper);
+  }
+
+  .slide :global(img),
+  .slide-blank {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+  }
+
+  .slide-blank {
+    margin: 0;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    text-align: center;
+    background: color-mix(in srgb, var(--highlight) 45%, var(--paper));
+    color: var(--ink);
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 1.6rem;
+  }
+
+  .slide .name {
+    font-family: var(--display);
+    font-weight: var(--display-weight);
+    font-size: 1.3rem;
+    line-height: 1.15;
+  }
+
   .card :global(img) {
     display: block;
     width: 100%;
@@ -165,7 +226,8 @@
     padding: 1rem 1.1rem 1.2rem;
   }
 
-  .card-text p {
+  .card-text p,
+  .slide .card-text p {
     margin: 0;
   }
 

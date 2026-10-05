@@ -41,7 +41,12 @@ const wideHero = heroLayout === 'cover' || heroLayout === 'stacked';
 const heroImage = site.heroPhoto
   ? await picture(site.heroPhoto.file, site.heroPhoto.alt, wideHero ? [800, 1200, 1800] : [480, 800, 1200], wideHero ? '100vw' : '(max-width: 52rem) 100vw, 40vw', 'eager')
   : null;
-const galleryImages = await Promise.all(site.gallery.map((item) => picture(item.file, item.alt, [400, 800], '(max-width: 40rem) 100vw, 33vw')));
+// The slider shows one photo across the page, with small thumbnails to pick from.
+const slider = site.galleryLayout === 'slider';
+const galleryImages = await Promise.all(
+  site.gallery.map((item) => (slider ? picture(item.file, item.alt, [800, 1200, 1800], '100vw') : picture(item.file, item.alt, [400, 800], '(max-width: 40rem) 100vw, 33vw'))),
+);
+const galleryThumbs = slider ? await Promise.all(site.gallery.map((item) => picture(item.file, '', [160], '4rem'))) : [];
 ---
 
 <Base title={site.name} description={site.description}>
@@ -57,7 +62,7 @@ const galleryImages = await Promise.all(site.gallery.map((item) => picture(item.
     />
 
     {order.map((id) => {
-      if (id === 'gallery') return <Gallery images={galleryImages} />;
+      if (id === 'gallery') return <Gallery images={galleryImages} layout={site.galleryLayout} thumbImages={galleryThumbs} />;
       if (id === 'news') return <Journal name={site.name} {posts} />;
       if (id === 'enquire')
         return (
