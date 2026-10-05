@@ -44,6 +44,7 @@
   "demo": true,
   "heroPhoto": null,
   "logo": null,
+  "markColours": [],
   "gallery": [],
   "galleryLayout": "grid",
   "notice": {
