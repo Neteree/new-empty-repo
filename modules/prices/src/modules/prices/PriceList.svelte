@@ -1,7 +1,10 @@
 <script lang="ts">
   // The price list, grouped by category in the order they first appear. A
   // group with any photos shows as cards (items without a photo are text-only
-  // cards); one without is a plain list.
+  // cards); one without is a plain list. "Ask us" is said once: above the
+  // list when nothing has a price, under a group's heading when only that
+  // group has none, and on an item only beside priced ones. A plain group of
+  // just names (occasions, services) shows them as a row of tags.
   import type { Picture as PictureData } from '../../lib/images';
   import Picture from '../../components/Picture.svelte';
 
@@ -10,31 +13,46 @@
     name: string;
     description?: string;
     category?: string;
-    /** The price as shown, e.g. 'From $120' (see priceText in prices.ts). */
+    /** The price as shown, e.g. 'From $120', or '' for none (see priceText in prices.ts). */
     price: string;
     image: PictureData | null;
   }
-  let { items, footnote = '' }: { items: Item[]; footnote?: string } = $props();
+  let { items, askText = 'Ask us', footnote = '' }: { items: Item[]; askText?: string; footnote?: string } = $props();
 
   const groups = $derived.by(() => {
     const map = new Map<string, Item[]>();
     for (const item of items) map.set(item.category ?? '', [...(map.get(item.category ?? '') ?? []), item]);
-    return [...map];
+    return [...map].map(([category, list]) => ({
+      category,
+      list,
+      priced: list.some((item) => item.price),
+      cards: list.some((item) => item.image),
+      tags: !list.some((item) => item.price || item.image || item.description),
+    }));
   });
+  const anyPriced = $derived(items.some((item) => item.price));
+  /** An item's price, or "Ask us" when its group has other prices. */
+  const shown = (item: Item, priced: boolean) => item.price || (priced ? askText : '');
 </script>
 
+{#if !anyPriced}<p class="ask">{askText}</p>{/if}
 <div class="groups">
-  {#each groups as [category, list] (category)}
+  {#each groups as { category, list, priced, cards, tags } (category)}
     <div class="group">
       {#if category}<h3>{category}</h3>{/if}
-      {#if list.some((item) => item.image)}
+      {#if anyPriced && !priced}<p class="ask">{askText}</p>{/if}
+      {#if tags}
+        <ul class="tags">
+          {#each list as item (item.id)}<li>{item.name}</li>{/each}
+        </ul>
+      {:else if cards}
         <ul class="cards">
           {#each list as item (item.id)}
             <li class="card">
               {#if item.image}<Picture image={item.image} />{/if}
               <div class="card-text">
                 <p class="name">{item.name}</p>
-                <p class="price">{item.price}</p>
+                {#if shown(item, priced)}<p class="price">{shown(item, priced)}</p>{/if}
                 {#if item.description}<p class="description">{item.description}</p>{/if}
               </div>
             </li>
@@ -46,8 +64,10 @@
             <li class="item">
               <div class="line">
                 <span class="name">{item.name}</span>
-                <span class="dots" aria-hidden="true"></span>
-                <span class="price">{item.price}</span>
+                {#if shown(item, priced)}
+                  <span class="dots" aria-hidden="true"></span>
+                  <span class="price">{shown(item, priced)}</span>
+                {/if}
               </div>
               {#if item.description}<p class="description">{item.description}</p>{/if}
             </li>
@@ -68,6 +88,31 @@
   .group h3 {
     font-size: 1.5rem;
     margin-bottom: 0.9rem;
+  }
+
+  .group .ask {
+    margin-top: -0.5rem;
+  }
+
+  .ask {
+    margin: 0 0 0.9rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    max-width: 44rem;
+  }
+
+  .tags li {
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    background: var(--paper);
+    font-weight: 600;
   }
 
   ul {
