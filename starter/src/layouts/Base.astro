@@ -107,7 +107,7 @@ const business = {
         </a>
         <nav aria-label="Main">
           {moduleNav.map((NavItem) => <NavItem home={home} />)}
-          {site.gallery.length > 0 && <a href={`${home}#gallery`}>Gallery</a>}
+          {site.gallery.length > 0 && site.galleryLayout !== 'hidden' && <a href={`${home}#gallery`}>Gallery</a>}
           {hasJournal && <a href={`${home}#journal`}>News</a>}
           <a href={`${home}#enquire`}>{site.enquiry.title}</a>
           {hasVisit && <a href={`${home}#visit`}>Visit</a>}
