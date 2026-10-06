@@ -1,31 +1,36 @@
 <script lang="ts">
   import SectionHead from './SectionHead.svelte';
   // Beside the enquiry form: what to send, where to find the business, how to
-  // call and when it's open.
+  // call, its social pages, when it's open and who made the site.
   let {
     enquiry,
     visitText,
     phone,
     map,
+    social,
     hours,
+    credit,
   }: {
     enquiry: { title: string; intro: string };
     visitText: string;
     phone: { href: string; text: string } | null;
     map: string;
+    social: { label: string; url: string }[];
     hours: { days: string; times: string }[];
+    credit: { text: string; href: string } | null;
   } = $props();
 </script>
 
 <div class="enquire-info">
   <SectionHead note="Enquiries" title={enquiry.title} intro={enquiry.intro} />
   <div id="visit" class="visit">
-    {#if visitText || phone || map || hours.length}<h3>Find us</h3>{/if}
+    {#if visitText || phone || map || social.length || hours.length}<h3>Find us</h3>{/if}
     {#if visitText}<p class="intro">{visitText}</p>{/if}
-    {#if phone || map}
+    {#if phone || map || social.length}
       <p class="contact-links">
         {#if phone}<a href={phone.href}>{`Call ${phone.text}`}</a>{/if}
         {#if map}<a href={map}>Open in Google Maps</a>{/if}
+        {#each social as link (link.url)}<a href={link.url}>{link.label}</a>{/each}
       </p>
     {/if}
     {#if hours.length}
@@ -36,6 +41,9 @@
       </dl>
     {/if}
   </div>
+  {#if credit}
+    <p class="credit">{#if credit.href}<a href={credit.href}>{credit.text}</a>{:else}{credit.text}{/if}</p>
+  {/if}
 </div>
 
 <style>
@@ -85,6 +93,27 @@
 
   .hours dt {
     font-weight: 700;
+  }
+
+  .credit {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+
+  .credit a {
+    color: inherit;
+  }
+
+  /* On phones the credit goes under the form, at the end of the page. */
+  @media (max-width: 52rem) {
+    .enquire-info {
+      display: contents;
+    }
+
+    .credit {
+      order: 1;
+    }
   }
 
   .hours dd {

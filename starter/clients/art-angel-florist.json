@@ -8,6 +8,7 @@
   "heroText": "Fresh flowers and hand-tied bouquets for birthdays, weddings and every day. Order in store or send us a message.",
   "visitText": "174a Golf Road, Titirangi, Auckland.",
   "address": "174a Golf Road, Titirangi, Auckland",
+  "footer": false,
   "credit": { "text": "Website by Cameron Belcher", "href": "https://cameron-belcher-web.pages.dev" },
   "hours": [
     {
