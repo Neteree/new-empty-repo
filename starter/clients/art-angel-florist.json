@@ -1,12 +1,13 @@
 {
   "name": "Art Angel Florist",
-  "suburb": "Green Bay",
+  "suburb": "Titirangi",
   "city": "Auckland",
-  "description": "Art Angel Florist, Green Bay, Auckland. Fresh flowers and hand-tied bouquets for birthdays, weddings and every day.",
+  "description": "Art Angel Florist, Titirangi, Auckland. Fresh flowers and hand-tied bouquets for birthdays, weddings and every day.",
   "heroNote": "Locally grown stems, arranged the same day.",
   "heroTitle": "Flowers picked for the moment.",
   "heroText": "Fresh flowers and hand-tied bouquets for birthdays, weddings and every day. Order in store or send us a message.",
-  "visitText": "24 Test Road, Mt Eden, Auckland. Parking out front.",
+  "visitText": "174a Golf Road, Titirangi, Auckland.",
+  "address": "174a Golf Road, Titirangi, Auckland",
   "hours": [
     {
       "days": "Monday to Friday",
