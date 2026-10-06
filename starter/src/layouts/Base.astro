@@ -137,6 +137,7 @@ const business = {
           )}
         </div>
         {site.demo && <p class="demo">A demo site. Nothing here is real or for sale.</p>}
+        {site.credit && <p class="credit">{site.credit.href ? <a href={site.credit.href}>{site.credit.text}</a> : site.credit.text}</p>}
       </footer>
     </div>
     <script>
@@ -459,10 +460,15 @@ const business = {
     text-shadow: var(--title-shadow);
   }
 
-  .demo {
+  .demo,
+  .credit {
     margin: 0;
     font-size: 0.9rem;
     color: var(--ink-soft);
+  }
+
+  .credit a {
+    color: inherit;
   }
 
   /* Forms (enquiry, bookings and quotes), shared so every form on the site matches. */
