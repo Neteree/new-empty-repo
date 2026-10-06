@@ -13,7 +13,15 @@
   "hours": [
     {
       "days": "Monday to Friday",
-      "times": "9am - 5pm"
+      "times": "9am – 6pm"
+    },
+    {
+      "days": "Saturday",
+      "times": "9am – 3pm"
+    },
+    {
+      "days": "After hours",
+      "times": "By arrangement"
     }
   ],
   "enquiry": {
