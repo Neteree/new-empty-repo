@@ -1,11 +1,12 @@
 <script lang="ts">
   import SectionHead from './SectionHead.svelte';
   // Beside the enquiry form: what to send, where to find the business, how to
-  // call, its social pages, when it's open and who made the site.
+  // call or email, its social pages, when it's open and who made the site.
   let {
     enquiry,
     visitText,
     phone,
+    email,
     map,
     social,
     hours,
@@ -14,6 +15,7 @@
     enquiry: { title: string; intro: string };
     visitText: string;
     phone: { href: string; text: string } | null;
+    email: { href: string; text: string } | null;
     map: string;
     social: { label: string; url: string }[];
     hours: { days: string; times: string }[];
@@ -24,11 +26,12 @@
 <div class="enquire-info">
   <SectionHead note="Enquiries" title={enquiry.title} intro={enquiry.intro} />
   <div id="visit" class="visit">
-    {#if visitText || phone || map || social.length || hours.length}<h3>Find us</h3>{/if}
+    {#if visitText || phone || email || map || social.length || hours.length}<h3>Find us</h3>{/if}
     {#if visitText}<p class="intro">{visitText}</p>{/if}
-    {#if phone || map || social.length}
+    {#if phone || email || map || social.length}
       <p class="contact-links">
         {#if phone}<a href={phone.href}>{`Call ${phone.text}`}</a>{/if}
+        {#if email}<a href={email.href}>{email.text}</a>{/if}
         {#if map}<a href={map}>Open in Google Maps</a>{/if}
         {#each social as link (link.url)}<a href={link.url}>{link.label}</a>{/each}
       </p>

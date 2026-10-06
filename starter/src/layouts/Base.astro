@@ -3,7 +3,7 @@ import { site } from '../site.config';
 import { Image } from 'astro:assets';
 import { frames, themes } from '../themes';
 import { photo } from '../lib/photos';
-import { mapLink, phoneLink, phoneText, socialLinks } from '../lib/contact';
+import { emailLink, mapLink, phoneLink, phoneText, socialLinks } from '../lib/contact';
 import { stillShowing } from '../lib/dates';
 import Notice from '../components/Notice.svelte';
 import { sectionOrder } from '../lib/sections';
@@ -27,7 +27,7 @@ const navItems = Object.fromEntries(
   Object.entries(import.meta.glob<{ default: any }>('../modules/*/NavItem.astro', { eager: true })).map(([path, mod]) => [path.split('/')[2], mod.default]),
 );
 const moduleNav = sectionOrder(site.sections, Object.keys(navItems)).filter((id) => navItems[id]).map((id) => navItems[id]);
-const hasVisit = Boolean(site.visitText || site.phone || site.address || site.hours.length);
+const hasVisit = Boolean(site.visitText || site.phone || site.email || site.address || site.hours.length);
 // Optional files in public/: an icon, a phone home screen icon and a link-preview image (1200x630).
 const icons = { svg: existsSync('public/favicon.svg'), touch: existsSync('public/apple-touch-icon.png') };
 const shareImage = site.url && existsSync('public/og.png') ? `${site.url}/og.png` : null;
@@ -51,7 +51,7 @@ const notice = site.notice?.text && stillShowing(site.notice.until) ? site.notic
 const hideOldNotice = `document.querySelectorAll('[data-until]').forEach((n) => { if (n.dataset.until < new Date().toLocaleDateString('en-CA', { timeZone: 'Pacific/Auckland' })) n.hidden = true; });`;
 
 // What search engines read about the business ("local search basics"): its
-// name, area, address, phone and social pages, as schema.org data.
+// name, area, address, phone, email and social pages, as schema.org data.
 const business = {
   '@context': 'https://schema.org',
   '@type': 'LocalBusiness',
@@ -59,6 +59,7 @@ const business = {
   description: site.description,
   ...(site.url ? { url: `${site.url}/` } : {}),
   ...(site.phone ? { telephone: site.phone } : {}),
+  ...(site.email ? { email: site.email } : {}),
   address: site.address
     ? { '@type': 'PostalAddress', streetAddress: site.address, addressLocality: site.suburb, addressRegion: site.city, addressCountry: 'NZ' }
     : { '@type': 'PostalAddress', addressLocality: site.suburb, addressRegion: site.city, addressCountry: 'NZ' },
@@ -130,9 +131,10 @@ const business = {
         {site.footer && (
         <div class="footer-main">
           <p class="sign">{site.name}</p>
-          {(phoneLink || site.address || socialLinks.length > 0) && (
+          {(phoneLink || emailLink || site.address || socialLinks.length > 0) && (
             <ul class="footer-links">
               {phoneLink && <li><a href={phoneLink}>{phoneText}</a></li>}
+              {emailLink && <li><a href={emailLink}>{site.email}</a></li>}
               {site.address && <li>{mapLink ? <a href={mapLink}>{site.address}</a> : site.address}</li>}
               {socialLinks.map((link) => <li><a href={link.url}>{link.label}</a></li>)}
             </ul>

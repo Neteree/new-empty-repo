@@ -113,7 +113,7 @@ export function describeChange(change) {
     case 'product-photo':
       return change.remove ? `Remove the photo from “${change.name}”` : `New photo for “${change.name}”`;
     case 'contact':
-      return `Contact details: ${['phone', 'address', 'instagram', 'facebook'].filter((key) => change[key] !== undefined).map((key) => `${key} ${change[key] || '(remove)'}`).join('; ')}`;
+      return `Contact details: ${['phone', 'email', 'address', 'instagram', 'facebook'].filter((key) => change[key] !== undefined).map((key) => `${key} ${change[key] || '(remove)'}`).join('; ')}`;
     case 'menu-add':
       return `Add “${change.name}” to the menu at ${change.price}`;
     case 'menu-price':
