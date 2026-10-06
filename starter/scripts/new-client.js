@@ -83,6 +83,7 @@ const { modules: _, contact: __, menu: ___, words: ____, ...rest } = {
   heroPhoto: null,
   logo: null,
   markColours: [],
+  credit: null,
   gallery: [],
   galleryLayout: 'grid',
   ...details,
