@@ -35,6 +35,8 @@ export interface Site {
   address: string;
   /** Optional public phone number shown on the site as a tap-to-call link. Blank hides it. */
   phone: string;
+  /** Optional public email shown on the site as a link to write to. Blank hides it. */
+  email: string;
   /** Optional social pages, as full links. Blank ones are hidden. */
   social: { instagram: string; facebook: string };
   /** Opening hours. Empty hides them (e.g. a business people don't visit). */

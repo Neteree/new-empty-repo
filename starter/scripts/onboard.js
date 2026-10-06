@@ -76,6 +76,7 @@ const client = {
   address: answers.address ?? '',
   // Only the number they chose to show on the site; contact.phone stays private.
   phone: answers.sitePhone ?? '',
+  email: answers.siteEmail ?? '',
   social,
   hours: answers.hours ?? [],
   enquiry: {

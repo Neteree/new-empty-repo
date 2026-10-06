@@ -74,12 +74,13 @@ appendFileSync(join(target, 'cspell-words.txt'), `${names.join('\n')}\n`);
 cpSync(resolve(starter, '../site_agent.py'), join(target, 'scripts/site_agent.py'));
 
 // `contact` (the client's own email and phone) is for Cameron only, never the site;
-// `phone`, `address` and `social` are the public ones.
+// `phone`, `email`, `address` and `social` are the public ones.
 const { modules: _, contact: __, menu: ___, words: ____, ...rest } = {
   heroNote: '',
   heroLink: { label: '', href: '' },
   address: '',
   phone: '',
+  email: '',
   heroPhoto: null,
   logo: null,
   markColours: [],

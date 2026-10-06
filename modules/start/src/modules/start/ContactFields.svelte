@@ -1,17 +1,19 @@
 <script lang="ts">
-  // Public contact details (phone, map address, Instagram, Facebook): the
+  // Public contact details (phone, email, map address, Instagram, Facebook): the
   // same questions for a new website and for a change to one.
   let {
     id,
     phone = $bindable(''),
+    email = $bindable(''),
     address = $bindable(''),
     instagram = $bindable(''),
     facebook = $bindable(''),
-  }: { id: string; phone?: string; address?: string; instagram?: string; facebook?: string } = $props();
+  }: { id: string; phone?: string; email?: string; address?: string; instagram?: string; facebook?: string } = $props();
 </script>
 
 <div class="field"><label for="{id}-address">Street address for a map link</label><input id="{id}-address" placeholder="12 Main Road, Green Bay, Auckland" bind:value={address} /></div>
 <div class="field"><label for="{id}-phone">Phone number for customers</label><p class="hint" id="{id}-phone-hint">Shown on your site so people can tap to call.</p><input id="{id}-phone" type="tel" bind:value={phone} aria-describedby="{id}-phone-hint" /></div>
+<div class="field"><label for="{id}-email">Email for customers</label><p class="hint" id="{id}-email-hint">Shown on your site so people can write to you.</p><input id="{id}-email" type="email" bind:value={email} aria-describedby="{id}-email-hint" /></div>
 <div class="row">
   <div class="field"><label for="{id}-instagram">Instagram</label><input id="{id}-instagram" placeholder="@yourbusiness" bind:value={instagram} /></div>
   <div class="field"><label for="{id}-facebook">Facebook page</label><input id="{id}-facebook" placeholder="facebook.com/yourbusiness" bind:value={facebook} /></div>

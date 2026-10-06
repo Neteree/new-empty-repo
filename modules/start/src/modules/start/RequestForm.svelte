@@ -46,7 +46,7 @@
   const allKinds: { id: Kind; label: string }[] = [
     { id: 'text', label: 'Change some wording' },
     { id: 'hours', label: 'Update opening hours' },
-    { id: 'contact', label: 'Update your phone, address or social links' },
+    { id: 'contact', label: 'Update your phone, email, address or social links' },
     { id: 'news', label: 'Post news or a special' },
     // Photos can only be sent through the intake.
     ...(canUpload ? [{ id: 'photos' as Kind, label: 'Change your photos or logo' }] : []),
@@ -112,6 +112,7 @@
     // The photo to put beside the headline: 'existing:<file>', 'new:<index>' or null (no change).
     mainPhoto: null as string | null,
     phone: '',
+    email: '',
     address: '',
     instagram: '',
     facebook: '',
@@ -188,7 +189,7 @@
       case 'text':
         return c.current.trim() && c.replacement.trim() ? '' : 'Fill in the current and new wording.';
       case 'contact':
-        return [c.phone, c.address, c.instagram, c.facebook].some((v) => v.trim()) ? '' : 'Fill in at least one new detail.';
+        return [c.phone, c.email, c.address, c.instagram, c.facebook].some((v) => v.trim()) ? '' : 'Fill in at least one new detail.';
       case 'hours':
         return c.noHours || c.hours.length ? '' : 'Tick the days you’re open and choose times that close after they open.';
       case 'news':
@@ -272,7 +273,7 @@
           return c.noHours ? { type: 'hours', hours: [], none: true } : { type: 'hours', hours: c.hours };
         case 'contact': {
           // Only the details they filled in change; the rest stay as they are.
-          const details = Object.fromEntries((['phone', 'address', 'instagram', 'facebook'] as const).filter((key) => c[key].trim()).map((key) => [key, c[key].trim()]));
+          const details = Object.fromEntries((['phone', 'email', 'address', 'instagram', 'facebook'] as const).filter((key) => c[key].trim()).map((key) => [key, c[key].trim()]));
           return { type: 'contact', ...details };
         }
         case 'news':
@@ -457,7 +458,7 @@
         <HoursFields id="r-hours-{i}" bind:hours={change.hours} bind:none={change.noHours} />
       {:else if change.kind === 'contact'}
         <p class="hint">Fill in only what’s changing. To take something off your site, use “Something else”.</p>
-        <ContactFields id="r-{i}" bind:phone={change.phone} bind:address={change.address} bind:instagram={change.instagram} bind:facebook={change.facebook} />
+        <ContactFields id="r-{i}" bind:phone={change.phone} bind:email={change.email} bind:address={change.address} bind:instagram={change.instagram} bind:facebook={change.facebook} />
       {:else if change.kind === 'news'}
         <div class="field">
           <label for="r-title-{i}">Title</label>

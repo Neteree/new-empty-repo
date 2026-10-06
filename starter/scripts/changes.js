@@ -8,7 +8,7 @@
 //   hours          { hours: [{ days, times }] } or { none: true }  replace the opening hours, or take them off
 //   form-key       { key }                             connect the enquiry form (the client's Web3Forms key)
 //   theme          { theme }                           switch the look (a name from src/themes.ts, e.g. bold, calm or night)
-//   contact        { phone?, address?, instagram?, facebook? }  public contact details ('' removes one)
+//   contact        { phone?, email?, address?, instagram?, facebook? }  public contact details ('' removes one)
 //   notice         { text, until? }                    a notice across the top of every page until a date ('' text removes it)
 //   sections       { order: [...] }                    the order of the home page sections (see src/lib/sections.ts)
 //   photo          { slot: 'hero', file, alt }         set the hero photo from an uploaded file
@@ -193,7 +193,7 @@ export function socialUrl(value, site) {
   return parsed.href.replace(/\/$/, '');
 }
 
-function contact({ phone, address, instagram, facebook }) {
+function contact({ phone, email, address, instagram, facebook }) {
   const site = readJson(SITE_JSON);
   const done = [];
   if (phone !== undefined) {
@@ -201,6 +201,11 @@ function contact({ phone, address, instagram, facebook }) {
     if (phone.trim() && (digits.length < 7 || digits.length > 15 || /[^\d\s()+-]/.test(phone.trim()))) needsPerson(`“${phone}” doesn’t look like a phone number.`);
     site.phone = phone.trim();
     done.push(site.phone ? `phone ${site.phone}` : 'phone removed');
+  }
+  if (email !== undefined) {
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) needsPerson(`“${email}” doesn’t look like an email address.`);
+    site.email = email.trim();
+    done.push(site.email ? `email ${site.email}` : 'email removed');
   }
   if (address !== undefined) {
     site.address = address.trim();

@@ -42,6 +42,7 @@
     hours: [] as { days: string; times: string }[],
     address: '',
     sitePhone: '',
+    siteEmail: '',
     instagram: '',
     facebook: '',
     enquiryTypes: '',
@@ -133,6 +134,7 @@
       visit: build.chosen.finding ? a.visit.trim() : '',
       address: build.chosen.finding ? a.address.trim() : '',
       sitePhone: build.chosen.finding ? a.sitePhone.trim() : '',
+      siteEmail: build.chosen.finding ? a.siteEmail.trim() : '',
       instagram: build.chosen.finding ? a.instagram.trim() : '',
       facebook: build.chosen.finding ? a.facebook.trim() : '',
       hours: build.chosen.finding && !a.noHours ? a.hours : [],
@@ -241,7 +243,7 @@
       {#snippet findingBody()}
         <div class="field"><label for="n-visit">Where customers find you</label><p class="hint" id="n-visit-hint">Your address and any tips, or the areas you cover if you come to them.</p><textarea id="n-visit" rows="2" bind:value={a.visit} aria-describedby="n-visit-hint"></textarea></div>
         <HoursFields id="n-hours" bind:hours={a.hours} bind:none={a.noHours} />
-        <ContactFields id="n" bind:phone={a.sitePhone} bind:address={a.address} bind:instagram={a.instagram} bind:facebook={a.facebook} />
+        <ContactFields id="n" bind:phone={a.sitePhone} bind:email={a.siteEmail} bind:address={a.address} bind:instagram={a.instagram} bind:facebook={a.facebook} />
       {/snippet}
       {#snippet photosBody()}
         {#if canUpload}
