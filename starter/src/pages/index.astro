@@ -11,7 +11,7 @@ import Gallery from '../components/Gallery.svelte';
 import Journal from '../components/Journal.svelte';
 import Visit from '../components/Visit.svelte';
 import { picture } from '../lib/images';
-import { mapLink, phoneLink, phoneText } from '../lib/contact';
+import { mapLink, phoneLink, phoneText, socialLinks } from '../lib/contact';
 import { site } from '../site.config';
 import { sectionOrder } from '../lib/sections';
 import { themes } from '../themes';
@@ -72,7 +72,9 @@ const galleryThumbs = slider ? await Promise.all(site.gallery.map((item) => pict
               visitText={site.visitText}
               phone={phoneLink ? { href: phoneLink, text: phoneText } : null}
               map={mapLink}
+              social={socialLinks}
               hours={site.hours}
+              credit={site.credit}
             />
             <div class="form-card">
               {site.enquiry.link?.href ? (

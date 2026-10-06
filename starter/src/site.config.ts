@@ -22,8 +22,10 @@ export interface Site {
   logo: { file: string; withName?: boolean } | null;
   /** Without a logo, a dot sits beside the name: two or more colours make it a gradient (e.g. from an old logo). */
   markColours?: string[];
-  /** Optional small line at the foot of every page naming who made the site, e.g. { text: 'Website by Cameron Belcher', href: 'https://…' }. */
+  /** Optional small line under the Find us details naming who made the site, e.g. { text: 'Website by Cameron Belcher', href: 'https://…' }. */
   credit: { text: string; href: string } | null;
+  /** The name, phone, address and social links again at the foot of every page. False leaves them to the Find us section. */
+  footer: boolean;
   /** Photos for the gallery section, in order. The section only shows once there's at least one. */
   gallery: { file: string; alt: string }[];
   /** How the gallery shows: 'grid' (tiles), 'slider' (one big photo at a time), 'mosaic' (one large photo with the rest around it), 'strip' (photos drifting sideways) or 'hidden' (no gallery section: the photos stay on hand for the main photo and price list). */

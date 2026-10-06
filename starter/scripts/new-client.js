@@ -84,6 +84,7 @@ const { modules: _, contact: __, menu: ___, words: ____, ...rest } = {
   logo: null,
   markColours: [],
   credit: null,
+  footer: true,
   gallery: [],
   galleryLayout: 'grid',
   ...details,

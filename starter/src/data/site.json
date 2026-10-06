@@ -46,6 +46,7 @@
   "logo": null,
   "markColours": [],
   "credit": null,
+  "footer": true,
   "gallery": [],
   "galleryLayout": "grid",
   "notice": {
