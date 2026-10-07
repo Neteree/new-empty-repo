@@ -9,10 +9,12 @@ compatibility_date = "2026-09-01"
 # Sites allowed to send forms here (the live site and local testing).
 [vars]
 ALLOWED_ORIGINS = "https://cameron-belcher-web.pages.dev,http://localhost:4321"
+# The address client enquiries are sent from, on a domain in this account with
+# Email Routing on, e.g. "enquiries@artangelflorist.co.nz". Blank: sending is off.
+MAIL_FROM = ""
 
-# Sends client sites' enquiries (POST /enquiry). Needs Email Routing on a
-# domain in this account; MAIL_FROM (an address on it) is set by the deploy.
-# The deploy leaves this out until MAIL_FROM is set (see worker/README.md).
+# Sends client sites' enquiries (POST /enquiry). The deploy leaves this out
+# while MAIL_FROM is blank (see worker/README.md).
 # send-email-start
 [[send_email]]
 name = "MAILER"
