@@ -56,6 +56,11 @@ export interface Site {
    * With it, forms go into the request queue and onboarding can take photo uploads. Null for clients.
    */
   intakeUrl: string | null;
+  /**
+   * Optional: the intake Worker's /enquiry address. With it, the site's forms are emailed to the
+   * client through Cloudflare (set up in new-empty-repo/worker/README.md) instead of Web3Forms.
+   */
+  mailUrl: string | null;
   /** The live address, e.g. 'https://example.co.nz', once known. */
   url: string | null;
   /**

@@ -1,5 +1,6 @@
 // Tests the intake Worker. Start it first with `npx wrangler dev --local`
-// (ADMIN_TOKEN=local-test-token in .dev.vars), then: node test.mjs
+// (ADMIN_TOKEN=local-test-token and MAIL_FROM=enquiries@example.com in .dev.vars,
+// after `TEST_CLIENT=http://localhost:4322=florist@example.com node clients.js`), then: node test.mjs
 import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 
@@ -84,5 +85,28 @@ await test('a pulled submission is not listed again', async () => {
   assert.equal((await fetch(`${base}/done?id=${id}`, { method: 'POST', headers: admin })).status, 200);
   const { items } = await (await fetch(`${base}/items`, { headers: admin })).json();
   assert.equal(items.length, 0);
+});
+
+// Client enquiries (POST /enquiry), from the test client's site.
+const clientSite = 'http://localhost:4322';
+const enquiry = (body, from = clientSite) =>
+  fetch(`${base}/enquiry`, { method: 'POST', body: JSON.stringify(body), headers: { Origin: from, 'Content-Type': 'application/json' } });
+const answers = { name: 'Jo', email: 'jo@example.com', need: 'Wedding flowers', message: 'Hi\r\nBcc: someone@example.com' };
+await test('emails a client site’s enquiry', async () => {
+  const response = await enquiry({ subject: 'Enquiry from Jo', fields: answers });
+  assert.equal(response.status, 200, await response.clone().text());
+  assert.equal((await response.json()).ok, true);
+});
+await test('only client sites can send enquiries', async () => {
+  assert.equal((await enquiry({ subject: 'x', fields: answers }, 'https://evil.example')).status, 403);
+  assert.equal((await enquiry({ subject: 'x', fields: answers }, origin)).status, 403);
+});
+await test('rejects empty, unreadable and oversized enquiries', async () => {
+  assert.equal((await enquiry({ subject: 'x', fields: {} })).status, 400);
+  assert.equal((await fetch(`${base}/enquiry`, { method: 'POST', body: 'not json', headers: { Origin: clientSite } })).status, 400);
+  assert.equal((await enquiry({ subject: 'x', fields: { message: 'x'.repeat(5001) } })).status, 400);
+});
+await test('quietly drops bot enquiries', async () => {
+  assert.equal((await enquiry({ subject: 'x', fields: answers, botcheck: true })).status, 200);
 });
 console.log(`\nAll ${passed} tests passed.`);

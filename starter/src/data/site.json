@@ -41,6 +41,7 @@
   "theme": "bold",
   "formKey": null,
   "intakeUrl": null,
+  "mailUrl": null,
   "url": null,
   "demo": true,
   "heroPhoto": null,

@@ -1,14 +1,20 @@
 // Intake: receives form submissions and photo uploads from Cameron's site and
-// keeps them in R2 until `node ops/pull.js` brings them into the request queue.
+// keeps them in R2 until `node ops/pull.js` brings them into the request queue,
+// and emails client sites' enquiries straight to the client.
 // No AI and no decisions here: it only checks, stores and hands over.
 //
 //   POST /submit                 public: multipart form with `kind`, `payload` (JSON),
 //                                `botcheck`, and optional files `logo` (one) and `photos` (several)
+//   POST /enquiry                public, from a client site in src/clients.json: JSON
+//                                { subject, fields, botcheck }, emailed to that client
 //   GET  /items                  admin: submissions not yet pulled
 //   GET  /file?key=…             admin: one uploaded file
 //   POST /done?id=…              admin: mark a submission as pulled
 //
 // Admin routes need `Authorization: Bearer <ADMIN_TOKEN>` (a Worker secret).
+
+import { EmailMessage } from 'cloudflare:email';
+import clients from './clients.json';
 
 const KINDS = ['contact', 'onboarding', 'request'];
 const MAX_PHOTOS = 12;
@@ -32,6 +38,7 @@ export default {
 
     try {
       if (request.method === 'POST' && url.pathname === '/submit') return await submit(request, env, cors);
+      if (request.method === 'POST' && url.pathname === '/enquiry') return await enquiry(request, env, cors);
       if (url.pathname === '/items' || url.pathname === '/file' || url.pathname === '/done') {
         if (!authorised(request, env)) return json({ ok: false, error: 'Not allowed.' }, 401);
         if (request.method === 'GET' && url.pathname === '/items') return await items(env);
@@ -47,7 +54,7 @@ export default {
 };
 
 function corsHeaders(request, env) {
-  const allowed = (env.ALLOWED_ORIGINS ?? '').split(',').map((o) => o.trim()).filter(Boolean);
+  const allowed = [...(env.ALLOWED_ORIGINS ?? '').split(',').map((o) => o.trim()).filter(Boolean), ...Object.keys(clients)];
   const origin = request.headers.get('Origin') ?? '';
   return allowed.includes(origin)
     ? { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', Vary: 'Origin' }
@@ -158,4 +165,72 @@ async function done(env, id) {
   await env.STORE.put(`done/${id}.json`, await stored.text(), { httpMetadata: { contentType: 'application/json' } });
   await env.STORE.delete(`queue/${id}.json`);
   return json({ ok: true });
+}
+
+// A client site's enquiry, emailed to the client with the customer as Reply-To,
+// so answering is just pressing Reply. Only sites in src/clients.json can use
+// it, and Email Routing only delivers to addresses the client has verified.
+const MAX_FIELDS = 20;
+const MAX_FIELD_CHARS = 5_000;
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+async function enquiry(request, env, cors) {
+  const client = clients[request.headers.get('Origin') ?? ''];
+  if (!client) return json({ ok: false, error: 'Not allowed.' }, 403, cors);
+  if (!env.MAILER || !env.MAIL_FROM) return json({ ok: false, error: 'Email isn’t set up yet.' }, 503, cors);
+
+  let body;
+  try {
+    body = JSON.parse(await request.text());
+  } catch {
+    return json({ ok: false, error: 'That didn’t arrive properly. Please try again.' }, 400, cors);
+  }
+  if (body?.botcheck) return json({ ok: true }, 200, cors);
+
+  const fields = Object.entries(body?.fields ?? {}).filter(([, value]) => typeof value === 'string' && value.trim());
+  if (!fields.length || fields.length > MAX_FIELDS || fields.some(([key, value]) => key.length > 50 || value.length > MAX_FIELD_CHARS))
+    return json({ ok: false, error: 'The form answers are missing or too long.' }, 400, cors);
+
+  const replyTo = fields.find(([key]) => key === 'email')?.[1].trim();
+  const subject = oneLine(String(body.subject ?? 'New enquiry')).slice(0, 200) || 'New enquiry';
+  const text = [
+    `New enquiry from your website.`,
+    '',
+    ...fields.map(([key, value]) => `${label(key)}: ${value.trim()}`),
+    '',
+    replyTo && EMAIL.test(replyTo) ? 'Reply to this email to answer them.' : '',
+  ].join('\n');
+
+  const raw = mime({ from: env.MAIL_FROM, fromName: `${client.name} website`, to: client.to, replyTo: replyTo && EMAIL.test(replyTo) ? replyTo : '', subject, text });
+  await env.MAILER.send(new EmailMessage(env.MAIL_FROM, client.to, raw));
+  return json({ ok: true }, 200, cors);
+}
+
+const oneLine = (value) => value.replace(/[\r\n]+/g, ' ').trim();
+const label = (key) => oneLine(key).replace(/^./, (c) => c.toUpperCase());
+
+function base64(text) {
+  const bytes = new TextEncoder().encode(text);
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+
+/** A plain-text email, with headers made safe (no line breaks) and UTF-8 throughout. */
+function mime({ from, fromName, to, replyTo, subject, text }) {
+  const domain = from.split('@')[1];
+  const body = base64(text).replace(/.{76}/g, '$&\r\n');
+  return [
+    `From: =?UTF-8?B?${base64(oneLine(fromName))}?= <${from}>`,
+    `To: <${to}>`,
+    ...(replyTo ? [`Reply-To: <${oneLine(replyTo)}>`] : []),
+    `Subject: =?UTF-8?B?${base64(subject)}?=`,
+    `Date: ${new Date().toUTCString()}`,
+    `Message-ID: <${crypto.randomUUID()}@${domain}>`,
+    'MIME-Version: 1.0',
+    'Content-Type: text/plain; charset=utf-8',
+    'Content-Transfer-Encoding: base64',
+    '',
+    body,
+  ].join('\r\n');
 }

@@ -9,7 +9,7 @@
   import { onMount } from 'svelte';
   import { site } from '../../site.config';
   import { looks } from '../../lib/catalogue';
-  import { send, canUpload } from '../../lib/send';
+  import { canUpload, connected, send } from '../../lib/send';
   import { money } from '../../lib/money';
   import { load, save, clear } from '../../lib/store';
   import ContactFields from './ContactFields.svelte';
@@ -162,7 +162,7 @@
     tried[step] = true;
     if (step < steps.length - 1) return next();
     if (!stepValid(step) || status === 'sending') return;
-    if (!site.formKey && !site.intakeUrl) {
+    if (!connected) {
       status = 'sent';
       return;
     }
@@ -200,7 +200,7 @@
 {#if status === 'sent'}
   <div class="sent" role="status">
     <p class="big">Thanks, that’s everything I need.</p>
-    {#if site.formKey || site.intakeUrl}
+    {#if connected}
       <p>I’ll check it and send you a quote. Nothing to pay now, and nothing is built until you’ve said yes.</p>
     {:else}
       <p>This form isn't connected yet, so nothing was sent.</p>
@@ -311,7 +311,7 @@
 
     <input class="botcheck" type="checkbox" tabindex="-1" aria-hidden="true" bind:checked={botcheck} />
     {#if status === 'failed'}<p class="error" role="alert">{failure || "Sorry, that didn't send."} Please try again in a moment.</p>{/if}
-    {#if !site.formKey && !site.intakeUrl}<p class="note">Not connected yet: this form doesn't send anything.</p>{/if}
+    {#if !connected}<p class="note">Not connected yet: this form doesn't send anything.</p>{/if}
   </form>
 {/if}
 

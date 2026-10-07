@@ -1,12 +1,10 @@
 <script lang="ts">
-  // Enquiry form. Sends through lib/send.ts: Web3Forms emails the enquiry to
-  // the address behind `site.formKey` (or, on a site with `intakeUrl`, it goes
-  // into the request queue). Without either it sends nothing. The "What do you
+  // Enquiry form. Sends through lib/send.ts: the intake Worker (`mailUrl`) or
+  // Web3Forms (`site.formKey`) emails the enquiry to the client (or, on a site
+  // with `intakeUrl`, it goes into the request queue). Without any it sends nothing. The "What do you
   // need?" choices come from `site.enquiry.options`.
   import { site } from '../site.config';
-  import { send } from '../lib/send';
-
-  const connected = Boolean(site.formKey || site.intakeUrl);
+  import { connected, send } from '../lib/send';
 
   let name = $state('');
   let email = $state('');
