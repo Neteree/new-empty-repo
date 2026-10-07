@@ -98,6 +98,7 @@
     <button class="button" type="submit" disabled={status === 'sending'}>
       {status === 'sending' ? 'Sending…' : 'Send enquiry'}
     </button>
+    {#if site.enquiry.privacy}<p class="privacy">{site.enquiry.privacy}</p>{/if}
     {#if status === 'failed'}
       <p class="error" role="alert">Sorry, that didn't send. Please try again in a moment.</p>
     {/if}
@@ -106,3 +107,11 @@
     {#if !connected && !site.demo}<p class="note">[PLACEHOLDER: connect this form with the client's Web3Forms key (a "form-key" change)]</p>{/if}
   </form>
 {/if}
+
+<style>
+  .privacy {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+  }
+</style>

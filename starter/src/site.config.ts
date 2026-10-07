@@ -45,8 +45,9 @@ export interface Site {
    * The enquiry form. `askBusiness` adds a "Your business" field; `thanks` is shown once
    * it's sent (blank for the usual wording). With `link` set (e.g. { label: 'Get started',
    * href: 'start.html' }) the section sends people there instead of showing the form.
+   * `privacy` is the line under the Send button saying how their details are used (blank hides it).
    */
-  enquiry: { title: string; intro: string; options: string[]; askBusiness: boolean; thanks: string; link: { label: string; href: string } };
+  enquiry: { title: string; intro: string; options: string[]; askBusiness: boolean; thanks: string; link: { label: string; href: string }; privacy: string };
   /** Look preset from src/themes.ts: bold, classic, calm or warm. */
   theme: string;
   /** Web3Forms access key (web3forms.com), tied to the inbox it emails. While null, the form sends nothing. */

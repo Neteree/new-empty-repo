@@ -1,10 +1,11 @@
-// Draws the link-preview image (public/og.png, 1200x630) and the phone home
-// screen icon (public/apple-touch-icon.png, 180x180) from the site's name,
-// headline and look. The layout shows the preview once `url` is set in
+// Draws the link-preview image (public/og.png, 1200x630), the phone home
+// screen icon (public/apple-touch-icon.png, 180x180) and the browser tab icon
+// (public/favicon.svg: the dot beside the name, in markColours or the look's
+// highlight) from the site's name, headline and look. The layout shows the preview once `url` is set in
 // site.json. Run it again after changing the name, headline or look:
 //
 //   node scripts/share-images.js
-import { mkdirSync, readFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { launch } from './browser.js';
 import { themes } from '../src/themes.ts';
 
@@ -34,6 +35,12 @@ const icon = `<!doctype html><html><head><link rel="stylesheet" href="${fonts}">
 </style></head><body><div>${esc(initials)}</div></body></html>`;
 
 mkdirSync('public', { recursive: true });
+
+// The tab icon is the header's dot: a gradient of the client's own colours, or the look's highlight.
+const dots = site.markColours?.length > 1 ? site.markColours : [c.highlight];
+const stops = dots.map((colour, i) => `<stop offset="${dots.length > 1 ? i / (dots.length - 1) : 0}" stop-color="${esc(colour)}"/>`).join('');
+writeFileSync('public/favicon.svg', `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">${stops}</linearGradient></defs><circle cx="16" cy="16" r="14" fill="url(#g)"/></svg>\n`);
+console.log('Wrote public/favicon.svg');
 const { newPage, close } = await launch();
 for (const [html, size, path] of [
   [share, { width: 1200, height: 630 }, 'public/og.png'],
