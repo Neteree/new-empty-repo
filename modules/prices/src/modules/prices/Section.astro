@@ -17,6 +17,8 @@ const shown = await Promise.all(
     description: item.description,
     category: item.category,
     price: priceText(item),
+    // On a demo site, Buy buttons stay on the page instead of opening Stripe.
+    link: item.link ? (site.demo ? '#prices' : item.link) : '',
     image: item.photo ? await picture(item.photo.file, item.photo.alt, large ? [600, 1000] : [400, 800], large ? '(max-width: 40rem) 100vw, 50vw' : carousel ? '(max-width: 40rem) 75vw, 18rem' : '(max-width: 40rem) 100vw, 25vw') : null,
   })),
 );

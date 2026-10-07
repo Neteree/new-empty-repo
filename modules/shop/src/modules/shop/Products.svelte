@@ -2,6 +2,7 @@
   // Product cards, each with a "Buy" button to its Stripe payment link.
   import type { Picture as PictureData } from '../../lib/images';
   import Picture from '../../components/Picture.svelte';
+  import BuyButton from '../../components/BuyButton.svelte';
 
   interface Item {
     id: string;
@@ -26,7 +27,7 @@
         {#if item.soldOut}
           <p class="out">Sold out for now</p>
         {:else if item.link}
-          <a class="button" href={item.link} rel="noopener">Buy<span class="visually-hidden"> {item.name}</span></a>
+          <BuyButton href={item.link} name={item.name} />
         {:else}
           <a class="button" href="#enquire">Ask us<span class="visually-hidden"> about {item.name}</span></a>
         {/if}
