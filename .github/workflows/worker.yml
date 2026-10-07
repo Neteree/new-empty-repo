@@ -29,7 +29,7 @@ jobs:
       - name: Run it locally and test it
         run: |
           TEST_CLIENT=http://localhost:4322=florist@example.com node clients.js
-          printf 'ADMIN_TOKEN=local-test-token\nMAIL_FROM=enquiries@example.com\n' > .dev.vars
+          printf 'ADMIN_TOKEN=local-test-token\nMAIL_FROM=enquiries@example.com\n' > .dev.vars  # .dev.vars overrides wrangler.toml's blank MAIL_FROM
           npx wrangler dev --local --port 8787 > wrangler.log 2>&1 &
           for i in $(seq 1 60); do curl -s -o /dev/null http://localhost:8787/ && break; sleep 1; done
           node test.mjs || { cat wrangler.log; exit 1; }
@@ -41,8 +41,6 @@ jobs:
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       ADMIN_TOKEN: ${{ secrets.INTAKE_ADMIN_TOKEN }}
-      # The address enquiries are sent from, on a domain with Email Routing (a repository variable).
-      MAIL_FROM: ${{ vars.MAIL_FROM }}
     defaults:
       run:
         working-directory: worker
@@ -72,11 +70,12 @@ jobs:
         if: steps.ready.outputs.ready == 'true'
         run: |
           node clients.js
-          if [ -z "$MAIL_FROM" ]; then
-            echo "Client enquiries aren't switched on yet: set the MAIL_FROM variable (see worker/README.md)."
+          if grep -q '^MAIL_FROM = ""' wrangler.toml; then
+            echo "Client enquiries aren't switched on yet: MAIL_FROM in wrangler.toml is blank (see worker/README.md)."
             sed -i '/# send-email-start/,/# send-email-end/d' wrangler.toml
-            npx wrangler deploy
-          else
-            npx wrangler deploy --var "MAIL_FROM:$MAIL_FROM"
           fi
+          npx wrangler deploy
           printf '%s' "$ADMIN_TOKEN" | npx wrangler secret put ADMIN_TOKEN
+      - name: Ask new client inboxes to verify
+        if: steps.ready.outputs.ready == 'true'
+        run: grep -q '^MAIL_FROM = ""' wrangler.toml || node verify-addresses.js

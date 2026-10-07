@@ -30,23 +30,30 @@ day; R2: 10 GB).
 
 Then `node ops/pull.js` brings new submissions and photos into the queue.
 
-## Client enquiries by email (one-time setup, Cameron)
+## Client enquiries by email
 
 Client sites can send their enquiry form here instead of to Web3Forms, and the
 Worker emails each enquiry to the client (Reply-To is the customer). Free, no
 keys for the client: they only click one Cloudflare "verify" link.
 
-1. **A domain on Cloudflare with Email Routing on:** Cloudflare → the domain →
-   Email → Email Routing → turn it on (it sets the domain's MX records, so check
-   nobody gets email at that domain first).
-2. **Set the sending address:** github.com/Neteree/new-empty-repo → Settings →
-   Secrets and variables → Actions → Variables → `MAIL_FROM`, e.g.
-   `enquiries@artangelflorist.co.nz`. The next deploy switches sending on.
-3. **Per client:** Email Routing → Destination addresses → add the client's
-   email (their `contact.email`); they click the link in Cloudflare's email.
-   Then give the client JSON `"mailUrl": "<this Worker's address>/enquiry"` and
-   their live `url`, and run update-site. The Worker learns the site from
-   `starter/clients/` on its next deploy (`node clients.js`).
+What only Cameron can do (once):
+
+1. **A domain on Cloudflare with Email Routing on:** add the domain to this
+   Cloudflare account, then the domain → Email → Email Routing → turn it on.
+   It sets the domain's MX records, so check nobody gets email at that domain.
+2. **One more token permission:** Cloudflare → My Profile → API Tokens → the
+   token in the `CLOUDFLARE_API_TOKEN` secret → Edit → add
+   *Account · Email Routing Addresses · Edit*.
+
+The rest is in the repo, so Claude or a script does it:
+
+3. **Switch sending on:** set `MAIL_FROM` in `wrangler.toml` to an address on
+   that domain, e.g. `enquiries@artangelflorist.co.nz`.
+4. **Per client:** give the client JSON `"mailUrl": "<this Worker's address>/enquiry"`
+   and their live `url`. On the next deploy the Worker learns the site from
+   `starter/clients/` (`clients.js`) and `verify-addresses.js` asks Cloudflare
+   to send the client (`contact.email`) a verify email; the deploy log says
+   who has verified. Then update-site and push their site.
 
 ## Testing locally
 
