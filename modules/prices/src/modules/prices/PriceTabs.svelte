@@ -2,6 +2,7 @@
   // Price list as tabs: one per group, showing the group's photo beside its
   // list. lib/tabs.ts switches them; without it every group shows in turn.
   import Picture from '../../components/Picture.svelte';
+  import BuyButton from '../../components/BuyButton.svelte';
   import type { Group } from './shown';
 
   let { groups, askText }: { groups: Group[]; askText: string } = $props();
@@ -19,7 +20,7 @@
       {#if group.photo}<Picture image={group.photo} />{/if}
       <ul>
         {#each group.list as item (item.id)}
-          <li><span>{item.name}</span><em>{item.price || askText}</em></li>
+          <li><span>{item.name}</span><em>{item.price || askText}</em>{#if item.link}<BuyButton href={item.link} name={item.name} small />{/if}</li>
         {/each}
       </ul>
     </div>

@@ -8,18 +8,81 @@
   "heroText": "A made-up florist that shows the base starter with the price list and 3D bouquet add-ons. Every detail here is example text.",
   "visitText": "This florist isn't real, so there's nowhere to visit.",
   "hours": [
-    { "days": "Monday to Saturday", "times": "Example hours" },
-    { "days": "Sunday", "times": "Closed" }
+    {
+      "days": "Monday to Saturday",
+      "times": "Example hours"
+    },
+    {
+      "days": "Sunday",
+      "times": "Closed"
+    }
   ],
   "enquiry": {
     "title": "Order flowers",
     "intro": "Tell us what you'd like and when you need it.",
-    "options": ["A bouquet", "Wedding flowers", "Something else"]
+    "options": [
+      "A bouquet",
+      "Wedding flowers",
+      "Something else"
+    ]
   },
   "theme": "calm",
-  "modules": ["prices", "bouquet"],
+  "modules": [
+    "prices",
+    "bouquet"
+  ],
   "prices": {
-    "section": { "note": "Prices", "title": "What it costs", "intro": "", "footnote": "", "askText": "Ask us", "layout": "tabs", "nav": "Prices" }
+    "section": {
+      "note": "Prices",
+      "title": "What it costs",
+      "intro": "",
+      "footnote": "",
+      "askText": "Ask us",
+      "layout": "tabs",
+      "nav": "Prices"
+    },
+    "items": [
+      {
+        "id": "example-sizes",
+        "name": "Example with sizes",
+        "description": "An example item. Real prices replace these.",
+        "category": "Example group",
+        "sizes": [
+          {
+            "label": "Small",
+            "price": 45
+          },
+          {
+            "label": "Medium",
+            "price": 65
+          },
+          {
+            "label": "Large",
+            "price": 90
+          }
+        ]
+      },
+      {
+        "id": "example-from",
+        "name": "Example with a starting price",
+        "description": "For work priced to suit, like custom orders.",
+        "category": "Example group",
+        "price": 120,
+        "from": true
+      },
+      {
+        "id": "example-one-price",
+        "name": "Example with one price",
+        "category": "Another example group",
+        "price": 30,
+        "link": "https://buy.stripe.com/test_demo"
+      },
+      {
+        "id": "example-ask",
+        "name": "Example priced on request",
+        "category": "Another example group"
+      }
+    ]
   },
   "demo": true
 }

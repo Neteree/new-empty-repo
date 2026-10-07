@@ -7,6 +7,10 @@ import { askText, demoPrices, items, priceText, section } from './prices';
 import { picture } from '../../lib/images';
 import { site } from '../../site.config';
 
+// Sample Stripe links (test_…) are for demos and previews: on a real site the
+// checks fail until the client's own links replace them.
+const sampleLinks = !site.demo && items.some((item) => item.link?.includes('/test_'));
+
 // Tabs and rows show one large photo per group; the carousel a narrow card each.
 const carousel = section.layout === 'carousel';
 const large = section.layout === 'tabs' || section.layout === 'rows';
@@ -17,6 +21,8 @@ const shown = await Promise.all(
     description: item.description,
     category: item.category,
     price: priceText(item),
+    // On a demo site, Buy buttons stay on the page instead of opening Stripe.
+    link: item.link ? (site.demo ? '#prices' : item.link) : '',
     image: item.photo ? await picture(item.photo.file, item.photo.alt, large ? [600, 1000] : [400, 800], large ? '(max-width: 40rem) 100vw, 50vw' : carousel ? '(max-width: 40rem) 75vw, 18rem' : '(max-width: 40rem) 100vw, 25vw') : null,
   })),
 );
@@ -25,6 +31,7 @@ const shown = await Promise.all(
 {shown.length > 0 && (
   <section id="prices" class="section">
     {demoPrices && !site.demo && <p class="intro">[PLACEHOLDER: the client's real prices go in src/modules/prices/prices.json]</p>}
+    {sampleLinks && <p class="intro">[PLACEHOLDER: the client's real Stripe payment links, not sample ones]</p>}
     <PriceList items={shown} head={section} {askText} footnote={section.footnote} layout={section.layout} />
   </section>
 )}

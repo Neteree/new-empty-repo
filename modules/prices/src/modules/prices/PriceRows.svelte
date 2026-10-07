@@ -2,6 +2,7 @@
   // Price list as magazine rows: each group's photo beside its name and list,
   // alternating sides. A group without a photo is a row of text only.
   import Picture from '../../components/Picture.svelte';
+  import BuyButton from '../../components/BuyButton.svelte';
   import type { Group } from './shown';
 
   let { groups, askText }: { groups: Group[]; askText: string } = $props();
@@ -15,7 +16,7 @@
         {#if group.category}<h3>{group.category}</h3>{/if}
         <ul>
           {#each group.list as item (item.id)}
-            <li><span>{item.name}</span>{#if item.price || group.priced}<em>{item.price || askText}</em>{/if}</li>
+            <li><span>{item.name}</span>{#if item.price || group.priced}<em>{item.price || askText}</em>{/if}{#if item.link}<BuyButton href={item.link} name={item.name} small />{/if}</li>
           {/each}
         </ul>
         {#if !group.priced}<p class="ask">{askText}</p>{/if}

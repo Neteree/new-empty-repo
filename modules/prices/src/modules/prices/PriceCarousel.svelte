@@ -5,6 +5,7 @@
   import type { Snippet } from 'svelte';
   import Picture from '../../components/Picture.svelte';
   import Carousel from '../../components/Carousel.svelte';
+  import BuyButton from '../../components/BuyButton.svelte';
   import type { ShownItem } from './shown';
 
   let { items, askText, head }: { items: ShownItem[]; askText: string; head: Snippet } = $props();
@@ -18,6 +19,7 @@
         <p class="name">{item.name}</p>
         <p class="price">{item.price || askText}</p>
         {#if item.description}<p class="description">{item.description}</p>{/if}
+        {#if item.link}<p class="buy"><BuyButton href={item.link} name={item.name} /></p>{/if}
       </div>
     </li>
   {/each}
@@ -78,5 +80,9 @@
   .description {
     color: var(--ink-soft);
     font-size: 0.95rem;
+  }
+
+  .buy {
+    margin: 0.5rem 0 0;
   }
 </style>

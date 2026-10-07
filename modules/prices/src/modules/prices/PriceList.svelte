@@ -11,6 +11,7 @@
   // - rows: a big photo beside each group, alternating sides.
   import Picture from '../../components/Picture.svelte';
   import SectionHead from '../../components/SectionHead.svelte';
+  import BuyButton from '../../components/BuyButton.svelte';
   import PriceCarousel from './PriceCarousel.svelte';
   import PriceTabs from './PriceTabs.svelte';
   import PriceRows from './PriceRows.svelte';
@@ -73,6 +74,7 @@
                 <p class="name">{item.name}</p>
                 {#if shown(item, priced)}<p class="price">{shown(item, priced)}</p>{/if}
                 {#if item.description}<p class="description">{item.description}</p>{/if}
+                {#if item.link}<p class="buy"><BuyButton href={item.link} name={item.name} /></p>{/if}
               </div>
             </li>
           {/each}
@@ -87,6 +89,7 @@
                   <span class="dots" aria-hidden="true"></span>
                   <span class="price">{shown(item, priced)}</span>
                 {/if}
+                {#if item.link}<BuyButton href={item.link} name={item.name} small />{/if}
               </div>
               {#if item.description}<p class="description">{item.description}</p>{/if}
             </li>
@@ -182,6 +185,10 @@
 
   .card-text p {
     margin: 0;
+  }
+
+  .card-text .buy {
+    margin-top: 0.5rem;
   }
 
   .name {

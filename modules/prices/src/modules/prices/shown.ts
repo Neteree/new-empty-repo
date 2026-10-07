@@ -10,6 +10,8 @@ export interface ShownItem {
   /** The price as shown, e.g. 'From $120', or '' for none (see priceText in prices.ts). */
   price: string;
   image: Picture | null;
+  /** Its Stripe payment link, for a "Buy" button, or '' for none. */
+  link: string;
 }
 
 export interface Group {

@@ -26,6 +26,8 @@ export interface PriceItem {
   sizes?: Size[];
   /** Optional photo: a file in src/assets/photos/ and its description. */
   photo?: { file: string; alt: string };
+  /** Optional Stripe payment link (https://buy.stripe.com/…): adds a "Buy" button. */
+  link?: string;
   /** Hidden from the site until switched back on. */
   unavailable?: boolean;
 }

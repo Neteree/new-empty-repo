@@ -85,7 +85,7 @@ export function describeChange(change) {
     case 'price-add':
       return `Add “${change.name}” to the price list`;
     case 'price-change':
-      return `Change the price of “${change.name}”`;
+      return change.link !== undefined && change.price === undefined && change.sizes === undefined ? `New payment link for “${change.name}”` : `Change the price of “${change.name}”`;
     case 'price-remove':
       return `Remove “${change.name}” from the price list`;
     case 'price-available':

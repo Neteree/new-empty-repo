@@ -26,7 +26,7 @@
 //   menu-sold-out  { name, soldOut: true|false, days? }  days default to every menu day
 //   prices-replace { items: [{ name, description?, category?, price?, from?, sizes? }], footnote? }  the client's full price list
 //   price-add      { name, description?, category?, price?, from?, sizes?: [{ label, price }], photo?: { file | gallery, alt? } }
-//   price-change   { name, price?, from?, sizes?, description? }  new price (one price, or sizes)
+//   price-change   { name, price?, from?, sizes?, description?, link? }  new price (one price, or sizes), or its Stripe payment link for a Buy button ('' removes it)
 //   price-remove   { name }
 //   price-available { name, available: true|false }  hide an item for now, or show it again
 //   price-photo    { name, file | gallery, alt? } or { name, remove: true }
@@ -522,7 +522,7 @@ const priceChanges = {
     writeJson(PRICES_JSON, data);
     return `Added “${item.name}” (${describePrice(item)}).`;
   },
-  'price-change'({ name, price: cost, from, sizes, description }) {
+  'price-change'({ name, price: cost, from, sizes, description, link }) {
     const data = priceList();
     const item = findByName(data.items, name, 'on the price list');
     if (cost !== undefined || sizes !== undefined) setPricing(item, { price: cost, from, sizes });
@@ -530,8 +530,13 @@ const priceChanges = {
       if (description.trim()) item.description = description.trim();
       else delete item.description;
     }
+    if (link !== undefined) {
+      const clean = stripeLink(link);
+      if (clean) item.link = clean;
+      else delete item.link;
+    }
     writeJson(PRICES_JSON, data);
-    return `“${item.name}” is now ${describePrice(item)}.`;
+    return `“${item.name}” is now ${describePrice(item)}${item.link ? ', with a Buy button' : ''}.`;
   },
   'price-remove'({ name }) {
     const data = priceList();
