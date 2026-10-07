@@ -94,6 +94,7 @@ const { modules: _, contact: __, menu: ___, words: ____, ...rest } = {
   enquiry: { askBusiness: false, thanks: '', link: { label: '', href: '' }, ...details.enquiry },
   formKey: details.formKey ?? null,
   intakeUrl: details.intakeUrl ?? null,
+  mailUrl: details.mailUrl ?? null,
   url: details.url ?? null,
   demo: details.demo ?? false,
 };

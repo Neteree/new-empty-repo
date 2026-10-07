@@ -1,5 +1,6 @@
-// Sends the site's forms. On a client's site (`intakeUrl` null) Web3Forms
-// emails them to the address behind `site.formKey`, with any structured
+// Sends the site's forms. On a client's site with `mailUrl` the intake Worker
+// emails them to the client through Cloudflare. Otherwise (`intakeUrl` null)
+// Web3Forms emails them to the address behind `site.formKey`, with any structured
 // answers attached as a ---…-JSON--- block the queue scripts can read. On the
 // builder's own site (`intakeUrl` set: the Cloudflare intake Worker) the
 // answers and any photos go into the request queue instead, and Web3Forms
@@ -56,6 +57,17 @@ export async function send(submission: Submission): Promise<void> {
     return;
   }
 
+  if (site.mailUrl) {
+    const response = await fetch(site.mailUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject, fields, botcheck }),
+    });
+    const result = await response.json().catch(() => ({ ok: false }));
+    if (!result.ok) throw new Error(result.error ?? 'The email couldn’t be sent.');
+    return;
+  }
+
   if (!site.formKey) return;
   await web3forms({
     subject,
@@ -64,6 +76,9 @@ export async function send(submission: Submission): Promise<void> {
     botcheck,
   });
 }
+
+/** Whether the site's forms send anywhere yet (a Web3Forms key, the intake or Cloudflare email). */
+export const connected = Boolean(site.formKey || site.intakeUrl || site.mailUrl);
 
 /** Whether photos can be uploaded (only through the intake). */
 export const canUpload = Boolean(site.intakeUrl);

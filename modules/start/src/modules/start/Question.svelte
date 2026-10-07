@@ -1,7 +1,7 @@
 <script lang="ts">
   // Just a question: name, email and message, into the same queue as everything else.
   import { site } from '../../site.config';
-  import { send } from '../../lib/send';
+  import { connected, send } from '../../lib/send';
 
   let { onback }: { onback: () => void } = $props();
 
@@ -23,7 +23,7 @@
     event.preventDefault();
     tried = true;
     if (!valid || status === 'sending') return;
-    if (!site.formKey && !site.intakeUrl) {
+    if (!connected) {
       status = 'sent';
       return;
     }
@@ -41,7 +41,7 @@
 {#if status === 'sent'}
   <div class="sent" role="status">
     <p class="big">Thanks, {name.trim().split(' ')[0]}.</p>
-    <p>{site.formKey || site.intakeUrl ? "I'll get back to you soon." : "This form isn't connected yet, so nothing was sent."}</p>
+    <p>{connected ? "I'll get back to you soon." : "This form isn't connected yet, so nothing was sent."}</p>
   </div>
 {:else}
   <form class="site-form" novalidate onsubmit={submit}>

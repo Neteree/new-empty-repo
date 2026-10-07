@@ -30,11 +30,30 @@ day; R2: 10 GB).
 
 Then `node ops/pull.js` brings new submissions and photos into the queue.
 
+## Client enquiries by email (one-time setup, Cameron)
+
+Client sites can send their enquiry form here instead of to Web3Forms, and the
+Worker emails each enquiry to the client (Reply-To is the customer). Free, no
+keys for the client: they only click one Cloudflare "verify" link.
+
+1. **A domain on Cloudflare with Email Routing on:** Cloudflare → the domain →
+   Email → Email Routing → turn it on (it sets the domain's MX records, so check
+   nobody gets email at that domain first).
+2. **Set the sending address:** github.com/Neteree/new-empty-repo → Settings →
+   Secrets and variables → Actions → Variables → `MAIL_FROM`, e.g.
+   `enquiries@artangelflorist.co.nz`. The next deploy switches sending on.
+3. **Per client:** Email Routing → Destination addresses → add the client's
+   email (their `contact.email`); they click the link in Cloudflare's email.
+   Then give the client JSON `"mailUrl": "<this Worker's address>/enquiry"` and
+   their live `url`, and run update-site. The Worker learns the site from
+   `starter/clients/` on its next deploy (`node clients.js`).
+
 ## Testing locally
 
 ```
 cd worker && npm install
-echo "ADMIN_TOKEN=local-test-token" > .dev.vars
+TEST_CLIENT=http://localhost:4322=florist@example.com node clients.js
+printf 'ADMIN_TOKEN=local-test-token\nMAIL_FROM=enquiries@example.com\n' > .dev.vars
 npx wrangler dev --local     # in one terminal
 node test.mjs                # in another
 ```

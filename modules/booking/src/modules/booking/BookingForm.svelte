@@ -2,7 +2,7 @@
   // The booking or quote form. Sends through Web3Forms (lib/send.ts) like the
   // enquiry form, so it only sends once the site has its form key.
   import { site } from '../../site.config';
-  import { sendForm } from '../../lib/send';
+  import { connected, sendForm } from '../../lib/send';
   import { longDate, nzDate, type Booking } from './booking';
 
   let { settings }: { settings: Booking } = $props();
@@ -37,7 +37,7 @@
     event.preventDefault();
     tried = true;
     if (!valid || status === 'sending') return;
-    if (!site.formKey) {
+    if (!connected) {
       status = 'sent';
       return;
     }
@@ -60,7 +60,7 @@
 {#if status === 'sent'}
   <div class="form-sent" role="status">
     <p class="big">Thanks, {name.trim().split(' ')[0]}.</p>
-    {#if site.formKey}
+    {#if connected}
       <p>{quote ? 'We’ll look at the job and get back to you with a price.' : 'This is a request, not a confirmed booking yet: we’ll email you to confirm the time.'}</p>
     {:else}
       <p>This form isn't connected yet, so nothing was sent.</p>
@@ -127,7 +127,7 @@
       {status === 'sending' ? 'Sending…' : quote ? 'Ask for a quote' : 'Request a booking'}
     </button>
     {#if status === 'failed'}<p class="error" role="alert">Sorry, that didn't send. Please try again in a moment.</p>{/if}
-    {#if !site.formKey && site.demo}<p class="note">Not connected yet: this form doesn't send anything.</p>{/if}
-    {#if !site.formKey && !site.demo}<p class="note">[PLACEHOLDER: connect this form with the client's Web3Forms key (a "form-key" change)]</p>{/if}
+    {#if !connected && site.demo}<p class="note">Not connected yet: this form doesn't send anything.</p>{/if}
+    {#if !connected && !site.demo}<p class="note">[PLACEHOLDER: connect this form: the client's Web3Forms key (a "form-key" change) or Cloudflare email (mailUrl)]</p>{/if}
   </form>
 {/if}

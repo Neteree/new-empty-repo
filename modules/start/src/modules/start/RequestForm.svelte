@@ -5,7 +5,7 @@
   // from their saved email address and Cameron approves the price.
   import { site } from '../../site.config';
   import { isPrice as priceOk, money } from '../../lib/money';
-  import { send, canUpload } from '../../lib/send';
+  import { canUpload, connected, send } from '../../lib/send';
   import { looks as themes } from '../../lib/catalogue';
   import type { ExistingPhoto } from '../../components/forms/PhotoPicker.svelte';
   import ContactFields from './ContactFields.svelte';
@@ -371,7 +371,7 @@
       build.open = itemOf(unfinished.kind);
     }
     if (!valid || status === 'sending') return;
-    if (!site.formKey && !site.intakeUrl) {
+    if (!connected) {
       status = 'sent';
       return;
     }
@@ -397,7 +397,7 @@
 {#if status === 'sent'}
   <div class="sent" role="status">
     <p class="big">Request sent.</p>
-    {#if site.formKey || site.intakeUrl}
+    {#if connected}
       <p>
         You’ll get an email at the address I have for you. Click the link in it to confirm the
         request, then I’ll send you the price before any work starts.
@@ -607,7 +607,7 @@
     {#if status === 'failed'}
       <p class="error" role="alert">Sorry, that didn't send. Please try again in a moment.</p>
     {/if}
-    {#if !site.formKey && !site.intakeUrl}<p class="note">Not connected yet: this form doesn't send anything.</p>{/if}
+    {#if !connected}<p class="note">Not connected yet: this form doesn't send anything.</p>{/if}
   </form>
 {/if}
 
