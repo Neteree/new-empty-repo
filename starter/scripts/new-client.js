@@ -91,7 +91,7 @@ const { modules: _, contact: __, menu: ___, words: ____, ...rest } = {
   ...details,
   social: { instagram: '', facebook: '', ...details.social },
   theme,
-  enquiry: { askBusiness: false, thanks: '', link: { label: '', href: '' }, ...details.enquiry },
+  enquiry: { askBusiness: false, thanks: '', link: { label: '', href: '' }, privacy: 'We only use your details to reply to you.', ...details.enquiry },
   formKey: details.formKey ?? null,
   intakeUrl: details.intakeUrl ?? null,
   mailUrl: details.mailUrl ?? null,
